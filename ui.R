@@ -1,0 +1,661 @@
+# Load required libraries
+suppressPackageStartupMessages(library(shinyjs, quietly = TRUE))
+suppressPackageStartupMessages(library(shinyBS, quietly = TRUE))
+suppressPackageStartupMessages(library(shinydashboard, quietly = TRUE))
+suppressPackageStartupMessages(library(rintrojs, quietly = TRUE))
+suppressPackageStartupMessages(library(slickR, quietly = TRUE))
+suppressPackageStartupMessages(library(sortable, quietly = TRUE))
+
+# Functions required
+source("R/textAreaInput2.R")
+
+# Help documentation
+help_text <- read.csv("data/help_text.csv", row.names = 1)
+
+# Load text input
+module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
+
+# Read in assessment questions
+quest <- read.csv("data/handout_questions.csv", row.names = 1)
+answers <- quest
+answers[, 1] <- NA
+
+# colors for theme
+obj_bg <- "#D4ECE1"
+ques_bg <- "#B8E0CD"
+nav_bg <- "#DDE4E1"
+nav_butt <- "#31ED92"
+nav_txt <- "#000000" # white = #fff; black = #000000
+slider_col <- "#2CB572"
+
+ui <- function(req) {
+
+  tagList( # Added functionality for not losing your settings
+    # shinythemes::themeSelector(), # user-defined theme
+    # Java to prompt the students to click a button
+    # Java script https://community.rstudio.com/t/keeping-track-of-idle-time-during-app-usage/1735
+    tags$script("
+              (function() {
+  var timeoutWarningMsecs = 12 * 60 * 1000;
+  var idleTimer;
+
+  function onTimeout() {
+    alert('Warning: Session is about to time out! Please click a button to prevent losing progress.');
+  }
+
+  function startIdleTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(onTimeout, timeoutWarningMsecs);
+  }
+
+  $(document).on('shiny:message shiny:inputchanged', startIdleTimer);
+
+})();"),
+    tags$style(type = "text/css", "text-align: justify"),
+    tags$head(tags$link(rel = "shortcut icon", href = "macroeddi_ico_green.ico")), # Add icon for web bookmarks
+    fluidPage(
+      column(1, offset = 11, align = "right",
+             introBox(
+               actionButton("help", label = "", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
+             )
+      )
+    ),
+    navbarPage(title = "Module 6: Ecological Forecast Uncertainty",
+               position = "static-top", id = "maintab",
+
+               # 1. Module Overview ----
+               tabPanel(introBox("Module Overview",
+                                 data.step = 2,
+                                 data.intro = help_text["tab_nav1", 1]
+               ),
+               value = "mtab1",
+               introjsUI(), # must include in UI
+               introBox(
+                 img(src = "project-eddie-banner-2020_green.png", height = 100,
+                     width = 1544, top = 5),
+                 data.step = 1,
+                 data.intro = help_text["welcome", 1]
+               ),
+
+               tags$style(".btn-file {
+             background-color:#98CAB2;
+             border-color: #579277;
+             }
+
+             .progress-bar {
+             background-color: #579277;
+             }"),
+               # Change progress bar color
+               tags$style(paste0("
+                                   .irs-bar,
+.irs-bar-edge,
+.irs-single,
+.irs-grid-pol {
+  background: ", slider_col, ";
+  border-color: ", slider_col, ";
+}")),
+               includeCSS("www/slider_cols.css"),
+               tags$style(HTML("
+               .irs-bar {
+                        border-color: transparent;
+                        background-color: transparent;
+                        }
+                        #first {
+                        border: 4px double red;
+                        }
+                        #13a_graz {
+                        margin-bottom: 10px;
+                        }
+                        #bla_border {
+                        border: 2px solid black;
+                        }
+                        #bla_border2 {
+                        border: 1px solid black;
+                        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+                        }
+                        #txt_j {
+                        text-align: justify;
+                        }
+                        #txt_c {
+                        text-align: center;
+                        }
+                        #txt_l {
+                        text-align: left;
+                        }
+                        #ackn {
+                        color: gray;
+                        font-size: 12px
+                        }
+                        #pheno img {
+                        transition:transform 0.25s ease;
+                        max-width: 100%; width: 100%; height: auto
+                        }
+                        #nextBtn1:hover {
+                        background-color: yellow;
+                        }
+                        #dl_btn {
+                        width:290px
+                        }
+                        #pheno:hover img{
+    -webkit-transform:scale(1.5);
+    transform:scale(1.5);
+}
+                        #wh_link a {
+                        color: #FFFFFF
+                        }
+                        #q6_tab {
+                        'border':'1px solid #ddd'
+                        }
+                        .box.box-solid.box-primary>.box-header {
+
+                }
+
+                .box.box-solid.box-primary{
+
+                background:#B8E0CD
+                }
+                .box.box-solid.box-success{
+
+                background: #DDE4E1;
+                }
+                .box.box-solid.box-warning>.box-header {
+
+                }
+
+                .box.box-solid.box-warning{
+
+                background:#FFBE85
+                }
+                        ")),
+               introBox(
+                 fluidRow(
+                   column(6,
+                          #* Module text ====
+                          h2("Ecological Forecast Uncertainty"),
+                          h3("Summary"),
+                          p(id = "txt_j", module_text["intro_eco_forecast", ]),
+                          p(id = "txt_j", module_text["this_module", ])
+                   ),
+                   column(5, offset = 1,
+                          br(), br(), br(),
+                          img(src = "mod5_viz_v2.png", height = "80%",
+                              width = "80%", align = "left")
+                          )
+                   ), data.step = 8, data.intro = help_text["start", 1]
+                 ),
+               ),
+               # 2. Presentation recap ----
+               tabPanel(title = "Presentation", value = "mtab2",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          hr(),
+                          column(4,
+                                 h3("Presentation"),
+                                 p("The presentation accompanying this module covers the introduction to forecasting, the nutrient-phytoplankton model (NP) and the importance and relevance of ecological forecasts."),
+                                 p("What is a forecast?"),
+                                 tags$ul(
+                                   tags$li(module_text["what_forecast", ])
+                                 ),
+                                 p("Why do we forecast?"),
+                                 tags$ul(
+                                   tags$li(module_text["why_forecast", ])
+                                 ),
+                                 p("How do we generate a forecast?"),tags$ul(
+                                   tags$li(module_text["how_forecast", ])
+                                 ),
+                                 p("Click through the slides to recap some of the main points from the lecture.")
+                          ),
+                          column(8, offset = 0, align = "center",
+                                 h3("Key Slides",
+                                    align = "center"),
+                                 h5("Click the arrows to navigate through the slides", align = "center"),
+                                 wellPanel(
+                                   # slickROutput("slides", width = "600px", height = "450px")
+                                 )
+                          )
+                        )
+               ),
+               # 3. Introduction ----
+               tabPanel(title = "Introduction", value = "mtab3",
+                        # tags$style(type="text/css", "body {padding-top: 65px;}"),
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(5,
+                                 h3("Workflow for this module"),
+                                 tags$ol(
+                                   tags$li(id = "txt_j", module_text["workflow1", ]),
+                                   tags$li(id = "txt_j", module_text["workflow2", ]),
+                                   tags$li(id = "txt_j", module_text["workflow3", ]),
+                                   tags$li(id = "txt_j", module_text["workflow4", ])
+                                   # tags$li(id = "txt_j", module_text["workflow5", ]),
+                                   # tags$li(id = "txt_j", module_text["workflow6", ])
+                                 )
+                          ),
+                          column(6, align = "center", offset = 1,
+                                 br(), br(),
+                                 img(src = "activity_outline.png", height = "80%", id = "bla_border",
+                                     width = "80%", tags$style("border: solid 2px black;"))
+
+                          )
+                        ), hr(),
+                        fluidRow(
+                          column(7, offset = 1,
+                                 h3("Student Activities"),
+                                 p("Within Introduction, Exploration and Activities A, B and C tabs there are questions for students to complete as part of this module. These can be completed by writing your answers into the text boxes within the green boxes. If you do not complete the module in one continuous sitting you can download a file with your responses saved which you can then upload when you return. When you finish the module, you can generate a report which will embed your answers and saved plots into a Word (.docx) file which you can download and make further edits to before submitting to your instructor."),
+                                 box(width = 12, status = "warning",
+                                     solidHeader = TRUE,
+                                     p(tags$b("WARNING:"), " The Shiny app will disconnect from the server if it is left idle for 15 minutes. If this happens you will lose all your inputs into the app. It is recommended to download the user input at the end of the class, but you can also download throughout the class."),
+                                 ),
+                                 p("Alternatively, you can download the questions as a Word (.docx) file  and record your answers there. If you opt for this option, you can hide the green question boxes by unchecking the box below."),
+                                 checkboxInput("show_q1", "Show questions", value = TRUE),
+                                 tags$style(type="text/css", "#stud_dl {background-color:#579277;color: white}"),
+                                 conditionalPanel("output.handoutbuilt",
+                                                  downloadButton(outputId = "stud_dl", label = "Download Student Handout"),
+                                 )
+                          ),
+                        ), hr(),
+                        #* Generate report buttons ====
+                        fluidRow(
+                          column(4,offset = 1,
+                                 h3("Save your progress"),
+                                 p(id = "txt_j", "If you run out of time to finish all the activities you can save your progress and return to it at a later date. Click the 'Download user input' button at the bottom of the page and a file 'module5_answers_ID_number.eddie' will download. Store this file in a safe place locally on your computer."),
+                                 br(),
+                                 h3("Resume your progress"),
+                                 p(id = "txt_j", "To reload the app input you can upload the downloaded '.eddie' file below and it will populate your answers into the Shiny app."),
+                                 fileInput("upload_answers", "Upload data", accept = c(".eddie", ".rds")), # B77C2C
+                                 p(id = "txt_j", HTML(paste0(tags$b("Note:"), " You will need to navigate to tabs Objective 1, 2 and 3 in Activity A after uploading your file for the inputs to load there. You will also need to load the NOAA data in Objective 6."))),
+                                 p(id = "txt_j", "Currently the plots do not save to the file.  If you generated plots during your last session, you will need to reload the data and reproduce the plots before generating your report.  Additionally, the answers for Q.10 will need to be re-submitted.")
+                          ),
+                          column(4, offset = 1,
+                                 introBox(
+                                   h3("Generate Report"),
+                                   p("This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting. Return here when you have completed the module."),
+                                   actionButton("generate", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
+                                                # id = "dl_btn", # This is the only button that shows up when the app is loaded
+                                                # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+                                   ), br(), br(),
+                                   data.step = 6, data.intro = help_text["finish", 1]
+                                 ),
+                                 tags$style(type="text/css", "#download {background-color:#579277;color: white}"),
+                                 conditionalPanel(condition = "output.reportbuilt", # This button appears after the report has been generated and is ready for download.
+                                                  downloadButton("download", "Download Report", width = "60px", style = "width:190px;"
+                                                                 # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+                                                  )), br(),
+                                 h5(tags$b("Questions still to be completed:")),
+                                 # verbatimTextOutput("check_list"),
+                                 wellPanel(
+                                   htmlOutput("check_list")
+                                 )
+
+                          )
+                        ),
+                        fluidRow(
+                          hr(),
+                          column(10, align = "left",
+                                 box(id = "box1", width = 10, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(8, offset = 1,
+                                              h3("Before you start..."),
+                                              p("Input your name and Student ID and this will be added to your final report."),
+                                              textInput("name", "Name:"),
+                                              textInput("id_number", "ID number:"),
+                                              introBox(
+                                                h3(tags$b("Think about it!")),
+                                                p("Note: The size of these text boxes can be adjusted by clicking and dragging the bottom right of the text box."),
+                                                textAreaInput2(inputId = "q1", label = quest["q1", 1]),
+                                                data.step = 5, data.intro = help_text["questions", 1]
+                                              )
+                                       )
+                                     ),
+
+                                 ),
+                          )
+                        ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Data sources"),
+                                 p(HTML(paste0('This module will introduce key concepts within Ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model and then generating a short-term ecological forecast.")))
+                          ),
+                          column(6, align = "center",
+                                 a(
+                                   href = "https://www.neonscience.org/",
+                                   img(src = "NSF-NEON-logo.png", title = "NEON - NSF logo"), target = "_blank"
+                                   )
+                                 )
+                          )
+                        ),
+
+               # 5. Site Selection ----
+               tabPanel(title = "Site Selection", value = "mtab5",
+                        tags$style(".nav-tabs {
+  background-color: #DDE4E1;
+  border-color: #FFF;
+
+}
+
+.nav-tabs-custom .nav-tabs li.active:hover a, .nav-tabs-custom .nav-tabs li.active a {
+background-color: #4D6A5C;
+border-color: #FFF;
+}
+
+.nav-tabs-custom .nav-tabs li.active {
+    border-top-color: #FFF;
+    background-color: #4D6A5C;
+}"),
+                        # tags$style(type="text/css", "body {padding-top: 65px;}"),
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 h3("Activity A: Visualize data from a selected NEON site"),
+                                 h4("Explore Data & Understand Model"),
+                                 p("Complete objectives 1-3 to...")
+                          )
+                        ),
+
+                        #* Objective 1 - Select and view site ====
+                        tabsetPanel(id = "tabseries1",
+                                    tabPanel(title = "Objective 1 - Select and view a NEON site",
+
+                                             value = "obj1", id = "wh_link",
+
+                                             tags$style("outline: 5px dotted green;"),
+                                             #* Objective 1 ====
+                                             # introBox(
+                                               fluidRow(
+                                                 column(12,
+                                                        wellPanel(style = paste0("background: ", obj_bg),
+                                                                  h3("Objective 1 - Select a Site"),
+                                                                  p(module_text["obj_01", ])
+                                                        )
+                                                 )
+                                               ),
+                                               # data.step = 4, data.intro = help_text["objectives", 1], data.position = "top"),
+                                             #** NEON Map ====
+                                             fluidRow(
+                                               #** NEON Intro ----
+                                               column(4,
+                                                      h2("Site Description"),
+                                                      p("Select a site in the table to highlight on the map"),
+                                                      conditionalPanel("input.row_num > 25",
+                                                                       selectizeInput("row_num", "Select row",
+                                                                                      choices = 1:nrow(neon_sites_df),
+                                                                                      options = list(
+                                                                                        placeholder = 'Please select a row',
+                                                                                        onInitialize = I('function() { this.setValue(""); }')),
+                                                                       )
+                                                      )
+                                                      ,
+                                                      DTOutput("table01"),
+                                                      p(tags$b("Click 'View latest photo' to see the latest image from the webcam on site (this may take 10-30 seconds).")),
+                                                      actionButton("view_webcam", label = "View latest photo", icon = icon("eye"))
+                                               ),
+                                               #** Site map ----
+                                               column(4,
+                                                      h2("Map of NEON sites"),
+                                                      wellPanel(
+                                                        leafletOutput("neonmap")
+                                                      )
+                                               )
+
+                                               ,
+                                               #** Site photo ----
+                                               column(4,
+                                                      h2("Phenocam"),
+                                                      textOutput("prompt1"),
+                                                      wellPanel(
+                                                        imageOutput("pheno"),
+                                                        p(id = "txt_j", module_text["phenocam", ])
+                                                      )
+                                               )
+                                             ), br(),
+                                             span(textOutput("site_name1"), style = "font-size: 22px;
+                                        font-style: bold;"),
+                                             fluidRow(
+                                               wellPanel(
+                                                 h4(tags$b("About Site")),
+                                                 uiOutput("site_html"),
+                                                 textOutput("prompt2"),
+                                                 htmlOutput("site_link")
+                                               ),
+                                             ),
+                                             fluidRow(
+                                               column(10, align = "left",
+                                                      box(id = "box3", width = 10, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(7, offset = 1,
+                                                                   h3("Questions"),
+                                                                   h4(quest["q5", 1]),
+                                                                   p("If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
+                                                            )
+                                                          ),
+                                                          fluidRow(
+                                                            column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
+                                                                   textInput(inputId = "q5a", label = quest["q5a", 1] , width = "90%"),
+                                                                   textInput(inputId = "q5b", label = quest["q5b", 1], width = "90%"),
+                                                                   textInput(inputId = "q5c", label = quest["q5c", 1], width = "90%")
+                                                            ),
+                                                            column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
+                                                                   textInput(inputId = "q5d", label = quest["q5d", 1] , width = "90%"),
+                                                                   textInput(inputId = "q5e", label = quest["q5e", 1], width = "90%"),
+                                                                   textInput(inputId = "q5f", label = quest["q5f", 1], width = "90%")
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("We will explore the data which has been measured at this site by NEON.."))
+                                             )
+                                    ),
+                                    #* Objective 2 - Explore data
+                                    tabPanel(title = "Objective 2 - Explore data",  value = "obj2",
+                                             #* Objective 2 - Explore the Data ====
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 2 - Explore the Data"),
+                                                                # p(id = "txt_j", module_text["obj_02", ]),
+                                                                p("If there are some variables which you are not familiar with, visit the ", a(href = "https://data.neonscience.org/home", "NEON Data Portal", target = "_blank"), "and click 'Explore Data Products' to learn more about how the data are collected.")
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(8, offset = 2,
+                                                      h3("Variable descriptions"),
+                                                      DT::DTOutput("var_desc")
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               #** Data Table ----
+                                               column(4,
+                                                      h3("Data Table"),
+                                                      p("This is a Shiny data table. It is interactive and allows you to navigate through the data table by searching or clicking through the different pages."),
+                                                      DT::DTOutput("neon_datatable")
+                                               ),
+                                               #** Plot of data ----
+                                               column(8,
+                                                      h3("Data Plot"),
+                                                      p("All plots in this Shiny app are generated using Plotly. This allows you to hover your mouse over the plot to get information from each of the plots. You can inspect the data closely by clicking and zooming into particular areas. There is a tool box at the top of the plot which has the selection function required for Q6."),
+                                                      plotlyOutput("var_plot"),
+                                                      useShinyjs(),  # Set up shinyjs
+                                                      # splitLayout(cellWidths = c("75%", "25%"),
+                                                                  selectizeInput("view_var", "Select variable",
+                                                                                 choices = unique(neon_vars$Short_name),
+                                                                                 options = list(
+                                                                                   placeholder = 'Please select a variable',
+                                                                                   onInitialize = I('function() { this.setValue(""); }')),
+                                                                  ),
+                                                                  actionButton("clear_sel1", "Clear Selection"),
+                                                      # ),
+                                                      wellPanel(
+                                                        h4("Variable Description"),
+                                                        textOutput("txt_out")
+                                                      )
+                                               )
+                                             ), hr(),
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Calculate statistics"),
+                                                      selectInput("stat_calc", label = "Select calculation:", choices = stats),
+                                                      textOutput("out_stats")
+                                               ),
+                                               column(8,
+                                                      box(id = "box4", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   # h4(quest["q6", 1]),
+                                                                   p("Make sure you select data that best represent an annual period (i.e. one or two complete years), be wary of including potential outliers in your selection."),
+                                                                   p("To edit the table you must double click the cell and then type in your answer."),
+                                                                   DTOutput("q6_tab"),
+                                                                   bsTooltip("q6_tab", title = "Double click the cell to edit", placement = "top", trigger = "hover"),
+                                                                   br()
+                                                            )
+                                                          )
+                                                      )
+                                                      # )
+                                                      # )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("We will plot each of the variables against chlorophyll-a to see if there are any relationships."))
+                                             )
+                                    ),
+
+                                    #* Objective 3 - Understand the ecological model ====
+                                    tabPanel(title = "Objective 3 - Understand model", value = "obj3",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 3 - Understand the ecological model"),
+                                                                p(module_text["obj_04", ])
+                                                      )
+                                               ),
+                                             ),
+                                             fluidRow(
+                                               column(12, align = "center",
+                                                      img(src = "02-build-model.png", height = "30%",
+                                                          width = "30%")
+                                               )
+                                             ), br(), br(), hr(),
+                                             #* Intro text ====
+                                             fluidRow(
+                                               # conditionalPanel(condition = "input.site_html > 1",
+                                               #** NEON Intro ----
+                                               column(4,
+                                                      h3("What is a Model?"),
+                                                      h4("Read through this section and scroll through the slides"),
+                                                      p(id = "txt_j", module_text["model1", ]),
+                                                      p(id = "txt_j", module_text["model2", ]),
+                                                      p(id = "txt_j", module_text["model3", ]),
+                                                      p(id = "txt_j", module_text["mod_desc", ]),
+                                                      p(id = "txt_j", module_text["phyto_chla", ]),
+                                                      p("Click through the images to see how we can go from a conceptual food web model to a mathematical representation of the interaction of Nitrogen (N) and Phytoplankton (P).", id = "txt_j")
+                                               ),
+                                               column(8,
+                                                      br(), br(), br(),
+                                                      h5("Click on the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("slck_model", width = "600px", height = "450px")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(10, align = "left",
+                                                      box(id = "box6", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   h4(quest["q9", 1]),
+                                                                   radioButtons("q9a", quest["q9a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                                                   radioButtons("q9b", quest["q9b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                                                   radioButtons("q9c", quest["q9c", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                                                   br()
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+
+                                             #** Sort state and process variables ====
+                                             h2(tags$b("Exercise")),
+                                             p(id = "txt_j", "When working with ecological models, the terms 'state variable' and 'parameter' are used. Using the model diagram above, can you identify which are state variables or parameters?"),
+                                             p(id = "txt_j", module_text["state_var", 1]),
+                                             p(id = "txt_j", module_text["parameter", 1]),
+
+                                             fluidRow(
+                                               column(12, align = "left",
+                                                      box(id = "box7", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(8, offset = 1,
+                                                                   h3("Questions"),
+                                                                   h4(quest["q10", 1]),
+                                                                   bucket_list(
+                                                                     header = "",
+                                                                     group_name = "bucket_list_group",
+                                                                     orientation = "horizontal",
+                                                                     add_rank_list(
+                                                                       text = tags$b("Drag from here"),
+                                                                       labels = sample(c(state_vars, process_vars)),
+                                                                       input_id = "rank_list_1"
+                                                                     ),
+                                                                     add_rank_list(
+                                                                       text = tags$b("State variable"),
+                                                                       labels = NULL,
+                                                                       input_id = "rank_list_2"
+                                                                     ),
+                                                                     add_rank_list(
+                                                                       text = tags$b("Parameter"),
+                                                                       labels = NULL,
+                                                                       input_id = "rank_list_3"
+                                                                     )
+                                                                   ),
+                                                                   br(),
+                                                                   h4(quest["q11", 1]),
+                                                                   radioButtons("q11a", quest["q11a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                                                   radioButtons("q11b", quest["q11b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                                                   br()
+                                                            ),
+                                                            column(2,
+                                                                   wellPanel(
+                                                                     useShinyjs(),  # Set up shinyjs
+                                                                     actionButton("ans_btn", "Check answers"),
+                                                                     textOutput("state_ans"),
+                                                                     textOutput("proc_ans")
+                                                                   )
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("Now we will use this information about the model to..."))
+                                               )
+                                             )
+                                    ),
+                        )
+               )
+    )
+  }
+
+shinyUI(ui)
+
+# end
