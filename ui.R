@@ -64,7 +64,7 @@ ui <- function(req) {
                position = "static-top", id = "maintab",
 
                # 1. Module Overview ----
-               tabPanel(introBox("Module Overview",
+               tabPanel(introBox("Overview",
                                  data.step = 2,
                                  data.intro = help_text["tab_nav1", 1]
                ),
@@ -184,6 +184,7 @@ ui <- function(req) {
                    ), data.step = 8, data.intro = help_text["start", 1]
                  ),
                ),
+
                # 2. Presentation recap ----
                tabPanel(title = "Presentation", value = "mtab2",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
@@ -216,6 +217,7 @@ ui <- function(req) {
                           )
                         )
                ),
+
                # 3. Introduction ----
                tabPanel(title = "Introduction", value = "mtab3",
                         # tags$style(type="text/css", "body {padding-top: 65px;}"),
@@ -329,7 +331,7 @@ ui <- function(req) {
                           )
                         ),
 
-               # 5. Site Selection ----
+               # 4. Site Selection ----
                tabPanel(title = "Site Selection", value = "mtab5",
                         tags$style(".nav-tabs {
   background-color: #DDE4E1;
@@ -651,6 +653,211 @@ border-color: #FFF;
                                                )
                                              )
                                     ),
+                        ),
+
+               # 5. Stats 101 ----
+               tabPanel(title = "Stats 101", value = "mtab5",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h3("Objective 4 - Statistics 101"),
+                                           p(module_text["obj_04", ])
+                                 )
+                          ),
+                        ),
+                        fluidRow(
+                          hr(),
+                          column(4,
+                                 h3("Statistics 101"),
+                                 p("We will quickly revisit some key statistical concepts"),
+                                 p("What is a population?"),
+                                 tags$ul(
+                                   tags$li(module_text["what_forecast", ])
+                                 ),
+                                 p("What is a sample?"),
+                                 tags$ul(
+                                   tags$li(module_text["why_forecast", ])
+                                 ),
+                                 p("What is a statistical parameter"),tags$ul(
+                                   tags$li(module_text["how_forecast", ])
+                                 ),
+                                 p("Click through the slides to recap some of the main points from the lecture.")
+                          ),
+                          column(8, offset = 0, align = "center",
+                                 h3("Key Figures",
+                                    align = "center"),
+                                 h5("Click the arrows to navigate through the slides", align = "center"),
+                                 wellPanel(
+                                   # slickROutput("slides", width = "600px", height = "450px")
+                                   )
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Linear Regression"),
+                                 p("We will explore the relationship between air temperature and surface water temperature"),
+                                 actionButton("plot_airt_swt", "Plot")
+                                 ),
+                          column(6,
+                                 h4("Interactive Linear Regression plot..."),
+                                 p("Plot the air temperature against the surface water temperature,"),
+                                 wellPanel(
+                                   plotOutput("airt_swt_plot")
+                                 )
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Draw a line through the most points"),
+                                 p("By adjusting the y-intercept (b) and the slope (m), draw 10 lines which represent the relationship between air temperature and surface water temperature."),
+                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.1),
+                                 actionButton("draw_line", "Draw line"),
+                                 numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
+                                 actionButton("save_line", "Save line"),
+                                 DTOutput("lr_DT", width = "40%")
+                                 ),
+                          column(6,
+                                 wellPanel(
+                                   plotlyOutput("airt_swt_plot_lines")
+                                   )
+                                 )
+                        ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Generate distributions for intercept & slope"),
+                                 p("Using the values from the lines you drew above, you will calculate a normal distribution for the parameters."),
+                                 p("Calculate the mean and standard deviation of the parameters"),
+                                 actionButton("calc_stats", "Calculate!"),
+                                 DTOutput("lr_stats", width = "60%"),
+                                 hr(),
+                                 p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
+                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.05),
+                                 sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05),
+                                 actionButton("gen_lr_dist_plot", "Generate plot!")
+                                 ),
+                          column(6,
+                                 plotOutput("lr_m_dist_plot"),
+                                 hr(),
+                                 plotOutput("lr_b_dist_plot")
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Create multiple lines"),
+                                 p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
+                                 radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 actionButton("gen_lin_mods", "Add lines"),
+                                 br(),
+                                 DTOutput("mb_samps", width = "60%")
+                                 ),
+                          column(6,
+                                 plotlyOutput("add_lin_mods")
+                                 )
+                          )
+                        ),
+
+               # 6. Probability 101 ----
+               tabPanel(title = "Probability 101", value = "mtab6",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h3("Objective 5 - Probability 101"),
+                                           p(module_text["obj_04", ])
+                                 )
+                          ),
+                        ),
+                        fluidRow(
+                          hr(),
+                          column(4,
+                                 h3("Probability 101"),
+                                 p("We will go over some key probability concepts"),
+                                 p("What is probability?"),
+                                 tags$ul(
+                                   tags$li(module_text["what_forecast", ])
+                                 ),
+                                 p("What is a sample?"),
+                                 tags$ul(
+                                   tags$li(module_text["why_forecast", ])
+                                 ),
+                                 p("What is a statistical parameter"),tags$ul(
+                                   tags$li(module_text["how_forecast", ])
+                                 ),
+                                 p("Click through the slides to recap some of the main points from the lecture.")
+                          ),
+                          column(8, offset = 0, align = "center",
+                                 h3("Key Figures",
+                                    align = "center"),
+                                 h5("Click the arrows to navigate through the slides", align = "center"),
+                                 wellPanel(
+                                   # slickROutput("slides", width = "600px", height = "450px")
+                                 )
+                          )
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h3("Linear Regression"),
+                                 p("We will explore the relationship between air temperature and surface water temperature")
+                          ),
+                          column(6,
+                                 h4("Interactive Linear Regression plot..."),
+                                 wellPanel(
+
+                                 )
+                                 )
+                          )
+                        ),
+
+               # 7. Activity A ----
+               tabPanel(title = "Activity A", value = "mtab7",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h2("Activity A - Explore Uncertainty"),
+                                           h3("Objective X - "),
+                                           p(module_text["obj_04", ])
+                                           )
+                                 ),
+                          )
+                        ),
+
+               # 8. Activity B ----
+               tabPanel(title = "Activity B", value = "mtab8",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h2("Activity B - Explore Uncertainty"),
+                                           h3("Objective X - "),
+                                           p(module_text["obj_04", ])
+                                           )
+                                 ),
+                          )
+                        ),
+
+               # 8. Activity C ----
+               tabPanel(title = "Activity C", value = "mtab9",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h2("Activity C - Explore Uncertainty"),
+                                           h3("Objective X - "),
+                                           p(module_text["obj_04", ])
+                                           )
+                                 )
+                          )
                         )
                )
     )

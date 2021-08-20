@@ -8,6 +8,20 @@ neonIcons <- iconList(
 # Slides for slickR
 model_slides <- list.files("www/model_slides", full.names = TRUE)
 
+# a table container with complex header
+sketch1 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(colspan = 2, 'Slope (m)'),
+      th(colspan = 2, 'Intercept (b)')
+    ),
+    tr(
+      lapply(rep(c('Mean', 'Std. Dev.'), 2), th)
+    )
+  )
+))
+
 shinyServer(function(input, output, session) {
 
   # NEON Sites datatable ----
@@ -236,6 +250,245 @@ shinyServer(function(input, output, session) {
   # Slickr model output
   output$slck_model <- renderSlickR({
     slickR(model_slides)
+  })
+
+  # Stats 101 ----
+  # Load airt & SWT
+  airt_swt <- reactiveValues(df = NULL)
+  observeEvent(input$plot_airt_swt, { # view_var
+
+    req(input$table01_rows_selected != "")
+
+    ref <- "Air temperature"
+    x_var <- neon_vars$id[which(neon_vars$Short_name == ref)][1]
+    x_units <- neon_vars$units[which(neon_vars$Short_name == ref)][1]
+    x_file <- file.path("data", "neon", paste0(siteID, "_", x_var, "_", x_units, ".csv"))
+    validate(
+      need(file.exists(x_file), message = paste0(ref, " is not available at this site."))
+    )
+    xvar <- read.csv(x_file)
+    xvar[, 1] <- as.POSIXct(xvar[, 1], tz = "UTC")
+    xvar$Date <- as.Date(xvar[, 1])
+    xvar <- plyr::ddply(xvar, c("Date"), function(x) mean(x[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
+
+
+    ref2 <- "Surface water temperature"
+    y_var <- neon_vars$id[which(neon_vars$Short_name == ref2)][1]
+    y_units <- neon_vars$units[which(neon_vars$Short_name == ref2)][1]
+    y_file <- file.path("data", "neon", paste0(siteID, "_", y_var, "_", y_units, ".csv"))
+    validate(
+      need(file.exists(y_file), message = paste0(ref2, " is not available at this site."))
+    )
+    yvar <- read.csv(y_file)
+    yvar[, 1] <- as.POSIXct(yvar[, 1], tz = "UTC")
+    yvar$Date <- as.Date(yvar[, 1])
+    if(ref2 == "Surface water temperature") {
+      yvar <- yvar[yvar[, 2] == min(yvar[, 2], na.rm = TRUE), c(1, 3)] # subset to Surface water temperature
+    }
+    yvar <- plyr::ddply(yvar, c("Date"), function(y) mean(y[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
+
+    df <- merge(xvar, yvar, by = "Date")
+
+    validate(
+      need(nrow(df) > 0, message = "No variables at matching timesteps.")
+    )
+    colnames(df)[-1] <- c("X", "Y")
+    airt_swt$df <- df
+
+  })
+
+  # Plot airtemperature vs. surface water temperature
+  output$airt_swt_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+    p <- ggplot() +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      theme_minimal(base_size = 18)
+    return(p)
+  })
+
+  # Add dashed lines to build reg plot
+  reg_line <- reactiveValues(m = 1, b = 0)
+  sav_lines <- reactiveValues(m = 1, b = 0)
+  observeEvent(input$draw_line, {
+    reg_line$m <- input$m
+    reg_line$b <- input$b
+  })
+
+  # Data table to store 10 lines
+  lr_pars <- reactiveValues(dt = data.frame(m = rep(NA, 10), b = rep(NA, 10)))
+  output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
+                           options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                          columnDefs = list(list(width = '10%', targets = "_all"))
+                           ), colnames = c("Slope (m)", "Intercept (b)"),
+                           server = FALSE, escape = FALSE)
+
+  # Add red saved lines to plot & DT
+  observeEvent(input$save_line, {
+    if(input$save_line == 1) {
+      sav_lines$m <- input$m
+      sav_lines$b <- input$b
+    } else {
+      sav_lines$m <- c(sav_lines$m, input$m)
+      sav_lines$b <- c(sav_lines$b, input$b)
+    }
+    if(!is.null(input$lr_DT_rows_selected)) {
+      lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
+      lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
+    } else {
+      idx <- which(is.na(lr_pars$dt$m))[1]
+      lr_pars$dt$m[idx] <- input$m
+      lr_pars$dt$b[idx] <- input$b
+    }
+  })
+
+  # Plot with regression lines
+  output$airt_swt_plot_lines <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+
+    p <- ggplot() +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
+      theme_minimal(base_size = 12)
+
+    if(input$draw_line > 0) {
+      p <- p +
+        geom_abline(slope = reg_line$m, intercept = reg_line$b, color = "gray", linetype = "dashed")
+    }
+    if(input$save_line > 0) {
+      p <- p +
+        geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
+    }
+    return(ggplotly(p, dynamicTicks = TRUE))
+  })
+
+  # Calculate statistics from the lines drawn
+  linr_stats <- reactiveValues(dt = data.frame("Mean (m)" = 0,
+                                               "Std. Dev (m)" = 0,
+                                               "Mean (b)" = 0,
+                                               "Std. Dev (b)" = 0))
+  observeEvent(input$calc_stats, {
+    req(sum(!is.na(lr_pars$dt$m)) > 1)
+    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m, na.rm = TRUE),
+                     "Std. Dev (m)" = sd(lr_pars$dt$m, na.rm = TRUE),
+                     "Mean (b)" = mean(lr_pars$dt$b, na.rm = TRUE),
+                     "Std. Dev (b)" = sd(lr_pars$dt$b, na.rm = TRUE))
+    updateSliderInput(session, "m_std", value = df[1, 2])
+    updateSliderInput(session, "b_std", value = df[1, 4])
+    linr_stats$dt <- signif(df, 3)
+  })
+
+  output$lr_stats <- renderDT(linr_stats$dt, selection = "none",
+                              options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                             columnDefs = list(list(width = '10%', targets = "_all"))
+                              ),
+                              colnames = c("Mean (m)", "Std. Dev (m)", "Mean (b)", "Std. Dev (b)"),
+                              rownames = FALSE, container = sketch1,
+                              server = FALSE, escape = FALSE)
+
+  # Generate distribution plots
+  lr_dist_plot <- reactiveValues(m = NA, b = NA)
+  observeEvent(input$gen_lr_dist_plot, {
+    lr_dist_plot$m <- rnorm(500, mean = linr_stats$dt[1, 1], sd = input$m_std)
+    lr_dist_plot$b <- rnorm(500, mean = linr_stats$dt[1, 3], sd = input$b_std)
+  })
+
+  output$lr_m_dist_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$gen_lr_dist_plot > 0, "Click 'Generate plot!'")
+    )
+    df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
+
+    p <- ggplot(df) +
+      geom_vline(xintercept = linr_stats$dt[1, 1]) +
+      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
+      coord_cartesian(xlim = c(0, 2), ylim = c(0, 5)) +
+      ggtitle("Slope (m)") +
+      theme_minimal(base_size = 22)
+    return(p)
+  })
+  output$lr_b_dist_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$gen_lr_dist_plot > 0, "Click 'Generate plot!'")
+    )
+    df <- data.frame(par = "Intercept (b)", value = lr_dist_plot$b)
+
+    p <- ggplot(df) +
+      geom_vline(xintercept = linr_stats$dt[1, 3]) +
+      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
+      coord_cartesian(xlim = c(-2, 10), ylim = c(0, 5)) +
+      ggtitle("Intercept (b)") +
+      theme_minimal(base_size = 22)
+    return(p)
+  })
+
+  # Sample m and b for plotting
+  mb_samples <- reactiveValues(df = NULL)
+  observeEvent(input$gen_lin_mods, {
+    mb_samples$df <- signif(data.frame("m" = sample(lr_dist_plot$m, input$n_samp),
+                                "b" = sample(lr_dist_plot$b, input$n_samp)), 3)
+  })
+  output$mb_samps <- renderDT(mb_samples$df, selection = "none",
+                              # options = list(searching = FALSE, paging = TRUE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                              #                columnDefs = list(list(width = '10%', targets = "_all"))
+                              # ),
+                              colnames = c("Slope (m)", "Intercept (b)"),
+                              rownames = FALSE,
+                              server = FALSE, escape = FALSE)
+
+  output$add_lin_mods <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+
+    p <- ggplot() +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
+      theme_minimal(base_size = 18)
+
+    if(!is.null(mb_samples$df)) {
+      p <- p +
+        geom_abline(slope = mb_samples$df$m, intercept = mb_samples$df$b, color = "gray", linetype = "solid")
+    }
+    return(ggplotly(p, dynamicTicks = TRUE))
   })
 
 })
