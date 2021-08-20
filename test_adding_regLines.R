@@ -30,7 +30,13 @@ ui <- fluidPage(
   actionButton("calc_stats", "Calculate!"),
   DTOutput("lr_stats", width = "40%"),
   plotOutput("lr_par_dist_plot"),
-  actionButton("gen_lr_dist_plot", "Generate plot!")
+  actionButton("gen_lr_dist_plot", "Generate plot!"),
+  radioButtons("n_samp", "No. of samples", choices = c(1, 10, 50, 100)),
+  actionButton("gen_lin_mods", "Add lines"),
+  plotlyOutput("add_lin_mods"),
+  actionButton("gen_lm_plot", "Add lm plot"),
+  plotlyOutput("lm_plot")
+
 )
 
 server <- function(input, output, session) {
@@ -109,7 +115,6 @@ server <- function(input, output, session) {
 
   lr_dist_plot <- reactiveValues(m = NA, b = NA)
   observeEvent(input$gen_lr_dist_plot, {
-    print(linr_stats$dt)
     lr_dist_plot$m <- rnorm(500, mean = linr_stats$dt[1, 1], sd = linr_stats$dt[1, 2])
     lr_dist_plot$b <- rnorm(500, mean = linr_stats$dt[1, 3], sd = linr_stats$dt[1, 4])
   })
@@ -121,13 +126,53 @@ server <- function(input, output, session) {
     df1 <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
     df2 <- data.frame(par = "Intercept (b)", value = lr_dist_plot$b)
     df <- rbind.data.frame(df1, df2)
+    dat <- data.frame(x = c(linr_stats$dt[1, 1], linr_stats$dt[1, 3]),
+                      par = c("Slope (m)", "Intercept (b)"))
 
     p <- ggplot(df) +
-      geom_density(aes(x = value)) +
-      facet_wrap(~par, scales = "free_x") +
+      geom_vline(data = dat, aes(xintercept = x)) +
+      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
+      facet_wrap(~par, scales = "free") +
       theme_minimal(base_size = 22)
     return(p)
+  })
 
+  mb_samples <- reactiveValues(df = NULL)
+  observeEvent(input$gen_lin_mods, {
+    mb_samples$df <- data.frame("m" = sample(lr_dist_plot$m, input$n_samp),
+                                "b" = sample(lr_dist_plot$b, input$n_samp))
+  })
+
+  output$add_lin_mods <- renderPlotly({
+    p <- ggplot(df) +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(aes(x, y), color = "black") +
+      coord_cartesian(xlim = c(-5, 25), ylim = c(-5, 25)) +
+      theme_minimal(base_size = 12)
+
+    if(!is.null(mb_samples$df)) {
+      p <- p +
+        geom_abline(slope = mb_samples$df$m, intercept = mb_samples$df$b, color = "gray", linetype = "solid")
+    }
+    return(ggplotly(p, dynamicTicks = TRUE))
+  })
+
+  lm_plot <- reactiveValues(p = NULL)
+  observeEvent(input$gen_lm_plot, {
+    lm_plot$p <- ggplot(df) +
+      geom_smooth(aes(x, y), method = "lm") +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(aes(x, y), color = "black") +
+      coord_cartesian(xlim = c(-5, 25), ylim = c(-5, 25)) +
+      theme_minimal(base_size = 12)
+  })
+  output$lm_plot <- renderPlotly({
+    validate(
+      need(input$gen_lm_plot > 0, "Click add lm plot")
+    )
+    ggplotly(lm_plot$p, dynamicTicks = TRUE)
   })
 }
 
