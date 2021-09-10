@@ -8,6 +8,8 @@ suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 # Functions required
 source("R/download_phenocam.R")
 source("R/get_html.R")
+source("R/NP_model.R")
+source("R/create_np_inputs.R")
 
 # Load in sp format with coordinates
 neon_sites <- readRDS("data/neon_sites.rds")
@@ -38,5 +40,37 @@ mod_choices <- c("Negative", "No change", "Positive")
 # Sorting variables
 state_vars <- c("Phytoplankton", "Nitrogen")
 process_vars <- c("Mortality", "Uptake")
+
+# Parameters for NP model
+parms <- c(
+  maxUptake = 1.0, #day-1
+  kspar=120, #uEinst m-2 s-1
+  ksdin=0.5, #mmol m-3
+  maxGrazing=1.0, # day-1
+  ksphyto=1, #mmol N m-3
+  pFaeces=0.3, #unitless
+  mortalityRate=0.4, #(mmmolN m-3)-1 day-1
+  excretionRate=0.1, #day-1
+  mineralizationRate=0.1, #day-1
+  Chl_Nratio = 1, #mg chl (mmolN)-1
+  Q10 = 2,  #unitless
+  refTEMP = 20 # Reference temperature for q10
+)
+
+calib_model_png <- gsub("www/", "", list.files("www/calib_model/", full.names = TRUE))
+
+# Initial conditions for NP
+yini <- c(
+  PHYTO = 2, #mmolN m-3
+  DIN = 9) #mmolN m-3
+
+mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = element_line(colour = "black"),
+                 axis.text.x=element_text(size=18, colour='black'), axis.text.y=element_text(size=18, colour='black'),
+                 axis.title.x=element_text(size=18), axis.title.y=element_text(size=18),
+                 strip.text.x = element_text(size=14), strip.text.y = element_text(size=14),
+                 panel.background = element_rect(fill = NA, color = "black"),
+                 panel.grid.major = element_line(colour = "gray"),
+                 legend.text=element_text(size=16),
+                 legend.title = element_text(size = 20))
 
 # end
