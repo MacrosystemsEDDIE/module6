@@ -5,6 +5,10 @@ suppressPackageStartupMessages(library(shinydashboard, quietly = TRUE))
 suppressPackageStartupMessages(library(rintrojs, quietly = TRUE))
 suppressPackageStartupMessages(library(slickR, quietly = TRUE))
 suppressPackageStartupMessages(library(sortable, quietly = TRUE))
+suppressPackageStartupMessages(library(ncdf4, quietly = TRUE))
+suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
+suppressPackageStartupMessages(library(stringr, quietly = TRUE))
+# suppressPackageStartupMessages(library(ggforce, quietly = TRUE)) # Only for geom_ellipse (doesn't work in plotly!)
 
 # Functions required
 source("R/textAreaInput2.R")
@@ -753,6 +757,8 @@ border-color: #FFF;
                                  p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
                                  radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100)),
                                  actionButton("gen_lin_mods", "Add lines"),
+                                 conditionalPanel("input.gen_lin_mods >= 1",
+                                                  checkboxInput("add_dist", "Distribution plot")),
                                  br(),
                                  DTOutput("mb_samps", width = "60%")
                                  ),
@@ -827,7 +833,129 @@ border-color: #FFF;
                                            p(module_text["obj_04", ])
                                            )
                                  ),
+                          ),
+                        #* Initial Condition UC
+                        fluidRow(
+                          column(6,
+                                 h4("Initial Condition Uncertainty"),
+                                 p("Initial condition uncertainty is...")
+                                 ),
+                          column(6,
+                                 h4("Some image for IC Uncertainty!")
+                                 )
+                          ),
+                        fluidRow(
+                          #** Weather Forecast ----
+                          column(12, align = "center",
+                                 h3("Weather Forecast"), hr()
+                          ),
+                        ),
+                        fluidRow(
+                          column(5,
+                                 p(id = "txt_j", module_text["weather_forecast1", ]),
+                                 p(id = "txt_j", HTML(paste0("Weather forecasts are produced using ",tags$b("ensemble modelling"), "."))),
+                                 p(id = "txt_j", module_text["ens_mod1", ]),
+                                 p(id = "txt_j", "Each simulation in an ensemble is called a _member_."),
+                                 p(id = "txt_j", module_text["weather_forecast2", ])
+                          ),
+                          column(6,
+                                 p("Some image of a weather forecast...")
+                                 )
+                          ),
+                        fluidRow(
+                          column(6,
+                                 h4("Observational Error"),
+                                 p("If you have 3 thermometers in this room, what are the chances they would all read the EXACT same measurement?"),
+                                 p("Very unlikely! Why is that?"),
+                                 p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
+                                 p("Does this mean the instruments are wrong?"),
+                                 p("No! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
+                                 p("This is what is called _observational error_.")
+                          ),
+                          column(6,
+                                 h4("Some image for observational error [3 thermometers showing different temps]")
+                                 )
+                          ),
+                        fluidRow(
+                          column(6,
+                                 h4("NOAA Forecast data"),
+                                 p("NOAA forecast data comes from GEFS etc."),
+                                 actionButton("load_noaa_at", "Load forecast"),
+                                 verbatimTextOutput("noaa_at_loaded"),
+                                 checkboxInput("view_day0", "View observation"),
+                                 conditionalPanel("input.view_day0",
+                                                  checkboxInput("add_obs_uc", "Add observational uncertainty")
+                                                  ),
+                                 checkboxInput("view_ic", "View forecast initial conditions"),
+                                 conditionalPanel("input.view_ic",
+                                                  numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
+                                                  p("The initial conditions have been jittered to avoid points overlapping.")
+                                                  ),
+                                 checkboxInput("view_day7", "View forecast 7-days ahead"),
+                                 conditionalPanel("input.view_day7",
+                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution"), selected = "None")
+                                                  )
+                                 ),
+                          column(6,
+                                 h4("Air temperature forecast"),
+                                 plotlyOutput("noaa_at_plot")
+                                 # plotOutput("noaa_at_plot")
+                                 )
+                          ),
+                        fluidRow(
+                          column(6,
+                                 h4("How does initial condition uncertainty affect our forecasts of primary productivity?"),
+                                 p("Adjust the level of uncertainty associated with the initial conditions and see how levels of high, medium and low affect
+                                   forecasts of primary productivity."),
+                                 p("We will use one weather forecast to drive the model but instead of using one value for the initial conditions we will use
+                                   multiple to represent the uncertainty related to our measurement."),
+                                 p("Can you think of occasions when initial condition uncertainty might be higher than others?"),
+                                 numericInput("phy_ic_value", "Chlorophyll-a initial conditions", value = 4, min = 0.1, max = 10, step = 0.1),
+                                 sliderInput("phy_ic_sd", "Chlorophyll-a standard deviation", min = 0.1, max = 1, value = 0.3, step = 0.05),
+                                 numericInput("nut_ic_value", "Nurtients initial conditions", value = 1, min = 0.01, max = 5, step = 0.01),
+                                 sliderInput("nut_ic_sd", "Nutrients standard deviation", min = 0.01, max = 1, value = 0.5, step = 0.05),
+                                 p("Select how many samples you wish to use to run your forecast."),
+                                 radioButtons("n_samp_ic", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 actionButton("gen_ic_dist", "Generate initial condition distributions")
+                          ),
+                          column(6,
+                                 plotOutput("ic_phy_dist_plot"),
+                                 hr(),
+                                 plotOutput("ic_nut_dist_plot"),
                           )
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h4("IC UC"),
+                                 p("Run forecast with IC UC"),
+                                 actionButton("run_ic_fc", "Run forecast"),
+                                 radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"))
+                          ),
+                          column(6,
+                                 h4("IC FC Plot"),
+                                 plotlyOutput("ic_fc_plot")
+                          )
+                        ),
+                        hr(),
+                        #* Parameter UC ----
+                        fluidRow(
+                          column(6,
+                                 h4("Parameter Uncertainty"),
+                                 p("Parameter uncertainty is...")
+                          ),
+                          column(6,
+                                 h4("Some image for Parameter Uncertainty!")
+                                 )
+                          ),
+                        fluidRow(
+                          column(6,
+                                 h4("First we will explore how the parameters affect our model"),
+                                 p("Run model simulations of primary productivity using the model from  ")
+                          ),
+                          column(6,
+                                 h4("Plot for ")
+                                 )
+                          ),
                         ),
 
                # 8. Activity B ----
