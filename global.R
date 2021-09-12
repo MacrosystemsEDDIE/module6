@@ -5,6 +5,9 @@ suppressPackageStartupMessages(library(sf, quietly = TRUE))
 suppressPackageStartupMessages(library(leaflet, quietly = TRUE))
 suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 
+scale_colour_discrete <- ggthemes::scale_colour_colorblind
+scale_fill_discrete <- ggthemes::scale_fill_colorblind
+
 # Functions required
 source("R/download_phenocam.R")
 source("R/get_html.R")
