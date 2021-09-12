@@ -940,22 +940,58 @@ border-color: #FFF;
                         #* Parameter UC ----
                         fluidRow(
                           column(6,
-                                 h4("Parameter Uncertainty"),
-                                 p("Parameter uncertainty is...")
+                                 h4("Model Uncertainty"),
+                                 p("Parameter uncertainty is related to how the parameter within the model are simplifications."),
+                                 p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
+                                 sliderInput("mort_rate1", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                                 sliderInput("nut_uptake1", "Nutrient uptake", min = 0.01, max = 1, value = 0.3, step = 0.01),
+                                 sliderInput("refTEMP1", "Reference temperature", min = 10, max = 30, value = 20, step = 1),
+                                 actionButton("run_mod1", "Run model")
                           ),
                           column(6,
-                                 h4("Some image for Parameter Uncertainty!")
+                                 h4("Some image for Parameter Uncertainty!"),
+                                 plotlyOutput("run_mod1_plot"),
+                                 DTOutput("run_mod1_pars")
                                  )
                           ),
+                        hr(),
                         fluidRow(
-                          column(6,
-                                 h4("First we will explore how the parameters affect our model"),
-                                 p("Run model simulations of primary productivity using the model from  ")
-                          ),
-                          column(6,
-                                 h4("Plot for ")
+                          column(3,
+                                 h4("Add parameter uncertainty"),
+                                 p("Now we will run a forecast with parameter uncertainty added...  "),
+                                 numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                                 checkboxInput("add_mort_uc", "Add uncertainty"),
+                                 conditionalPanel("input.add_mort_uc",
+                                                  sliderInput("mort_rate2_sd", "Standard deviation", min = 0, max = 0.4, value = 0.1, step = 0.01)
+                                 ),
+                                 numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                                 checkboxInput("add_nut_uc", "Add uncertainty"),
+                                 conditionalPanel("input.add_nut_uc",
+                                                  sliderInput("nut_uptake2_sd", "Standard deviation", min = 0, max = 0.4, value = 0.1, step = 0.01)
                                  )
                           ),
+                          column(3,
+                                 h4("Generate parameter distributions"),
+                                 p("To add parameter uncertainty, we will need to 'Add uncertainty' in the form of standard deviation around the set parameter value."),
+                                 radioButtons("n_samp_pars", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 actionButton("gen_param_dist", "Generate parameter distributions"),
+                                 ),
+                          column(6,
+                                 h4("Plot for Param UC"),
+                                 plotlyOutput("pars_dist_plot")
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(4,
+                                 h3("Run Forecast - Parameter UC"),
+                                 actionButton("run_pars_fc", "Run forecast")
+                          ),
+                          column(8,
+                                 h3("Pars UC Plot"),
+                                 plotlyOutput("pars_fc_plot")
+                                 )
+                        )
                         ),
 
                # 8. Activity B ----
