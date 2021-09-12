@@ -412,7 +412,7 @@ shinyServer(function(input, output, session) {
                               server = FALSE, escape = FALSE)
 
   # Generate distribution plots
-  lr_dist_plot <- reactiveValues(m = NA, b = NA)
+  lr_dist_plot <- reactiveValues(m = NULL, b = NULL)
   observeEvent(input$gen_lr_dist_plot, {
     lr_dist_plot$m <- rnorm(500, mean = linr_stats$dt[1, 1], sd = input$m_std)
     lr_dist_plot$b <- rnorm(500, mean = linr_stats$dt[1, 3], sd = input$b_std)
@@ -766,7 +766,7 @@ shinyServer(function(input, output, session) {
 
   # Run forecasts with IC UC ----
   # Generate Initial condition distribution plots
-  ic_dist_plot <- reactiveValues(phy = NA, nut = NA, phy_xlims = NA, nut_xlims = NA)
+  ic_dist_plot <- reactiveValues(phy = NULL, nut = NULL, phy_xlims = NULL, nut_xlims = NULL)
   observeEvent(input$gen_ic_dist, {
     ic_dist_plot$phy <- rnorm(input$n_samp_ic, mean = input$phy_ic_value, sd = input$phy_ic_sd)
     ic_dist_plot$phy[ic_dist_plot$phy <= 0] <- 0.01
@@ -816,10 +816,10 @@ shinyServer(function(input, output, session) {
   })
 
   # Run IC FC
-  ic_fc_data <- reactiveValues(chla = NA, nut = NA)
+  ic_fc_data <- reactiveValues(chla = NULL, nut = NULL)
   observeEvent(input$run_ic_fc, {
 
-    req(!is.na(noaa_df$airt))
+    req(!is.null(noaa_df$airt))
 
     progress <- shiny::Progress$new()
     # Make sure it closes when we exit this reactive, even if there's an error
@@ -893,15 +893,15 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.na(noaa_df$airt),
+      need(!is.null(noaa_df$airt),
            "Load NOAA weather forecast")
     )
     validate(
-      need(!is.na(ic_dist_plot$phy),
+      need(!is.null(ic_dist_plot$phy),
            "Please generate distributions of initial conditions required")
     )
     validate(
-      need(!is.na(ic_fc_data$chla),
+      need(!is.null(ic_fc_data$chla),
            message = "Click 'Run forecast'")
     )
 
@@ -941,6 +941,121 @@ shinyServer(function(input, output, session) {
       }
     return(gp)
     })
+
+  # Parameter Uncertainty ----
+  #* Run model & explore parameters
+
+  mod1_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
+                              pars_df = data.frame(matrix(NA, nrow = 3, ncol = 3, dimnames = list(c("Current run", "Previous run", "Previous run2"), c("Mortality rate", "Nutrient uptake", "Reference temperature")))),
+                              pars_curr = NULL, pars_prev = NULL, pars_prev2 = NULL)
+  observeEvent(input$run_mod1, {
+
+    mod1_runs$prev2 <- mod1_runs$prev
+    mod1_runs$prev <- mod1_runs$curr
+
+    mod1_runs$pars_df[3, ] <- mod1_runs$pars_df[2, ]
+    mod1_runs$pars_df[2, ] <- mod1_runs$pars_df[1, ]
+    mod1_runs$pars_df[1, ] <- c(input$mort_rate1, input$nut_uptake1, input$refTEMP1)
+
+
+    swt <- noaa_df$swt
+    swt$date <- as.Date(swt$time)
+    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    upar <- noaa_df$upar
+    upar$date <- as.Date(upar$time)
+    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    np_inp <- merge(swt_dly, upar_dly, by = 1)
+    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
+    times <- 1:nrow(np_inp)
+
+    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
+
+    # Parameters for NP model
+    parms <- c(
+      maxUptake = 0.2, #day-1
+      kspar=120, #uEinst m-2 s-1
+      ksdin=0.5, #mmol m-3
+      maxGrazing=1.0, # day-1
+      ksphyto=1, #mmol N m-3
+      pFaeces=0.3, #unitless
+      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
+      excretionRate=0.1, #day-1
+      mineralizationRate=0.1, #day-1
+      Chl_Nratio = 1, #mg chl (mmolN)-1
+      Q10 = 2,  #unitless
+      refTEMP = 20 # Reference temperature for q10
+    )
+
+    parms[1] <- input$nut_uptake1
+    parms[7] <- input$mort_rate1
+    parms[12] <- input$refTEMP1
+
+    res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
+    res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
+    res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
+    res[1, 3] <- res[1, 1]  * 62
+    for(i in 2:8) {
+
+      out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
+      res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
+                    (res[i-1, 2] + out[[1]][2]),
+                    (res[i-1, 1] + out[[1]][1]) * 62)
+
+    }
+
+    res <- as.data.frame(res)
+    res$date <- np_inp[1:8, 1]
+
+    mod1_runs$curr <- res
+    mod1_runs$pars_curr <- c(parms[7], parms[1], parms[12])
+  })
+
+  output$run_mod1_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    validate(
+      need(!is.null(mod1_runs$curr),
+           message = "Click 'Run model'")
+    )
+
+    p <- ggplot()
+
+    if(!is.null(mod1_runs$prev2)) {
+      p <- p +
+        geom_line(data = mod1_runs$prev2, aes(date, Chla, color = "Previous run2"),
+                  linetype = "dotted")
+    }
+    if(!is.null(mod1_runs$prev)) {
+      p <- p +
+        geom_line(data = mod1_runs$prev, aes(date, Chla, color = "Previous run"),
+                  linetype = "dashed")
+    }
+
+    p <- p +
+      geom_line(data = mod1_runs$curr, aes(date, Chla, color = "Current run")) +
+      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
+      ylab("Chlorophyll-a (μg/L)") +
+      xlab("Time") +
+      theme_bw(base_size = 18)
+
+    return(ggplotly(p, dynamicTicks = TRUE))
+
+  })
+
+  output$run_mod1_pars <- renderDT(
+    mod1_runs$pars_df, rownames = TRUE, options = list(ordering = FALSE, dom = 't'),
+    colnames = c("Mortality rate", "Nutrient uptake", "Reference temperature")
+  )
+
+
 })
 
 # end
