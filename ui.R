@@ -937,7 +937,21 @@ border-color: #FFF;
                           )
                         ),
                         hr(),
-                        #* Parameter UC ----
+                        #* Model UC ----
+                        fluidRow(
+                          column(6,
+                                 h4("Model Uncertainty"),
+                                 p("Process uncertainty is uncertainty caused by an incomplete description of the process."),
+                                 p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
+                                 radioButtons("proc_uc0", "Level of process uncertainty", choices = c("Low", "Medium", "High")),
+                                 actionButton("run_mod0", "Run model")
+                          ),
+                          column(6,
+                                 h4("Some image for Process Uncertainty!"),
+                                 plotlyOutput("run_mod0_plot")
+                          )
+                        ),
+                        hr(),
                         fluidRow(
                           column(6,
                                  h4("Model Uncertainty"),
@@ -962,12 +976,12 @@ border-color: #FFF;
                                  numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
                                  checkboxInput("add_mort_uc", "Add uncertainty"),
                                  conditionalPanel("input.add_mort_uc",
-                                                  sliderInput("mort_rate2_sd", "Standard deviation", min = 0, max = 0.4, value = 0.1, step = 0.01)
+                                                  sliderInput("mort_rate2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
                                  ),
                                  numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.6, step = 0.01),
                                  checkboxInput("add_nut_uc", "Add uncertainty"),
                                  conditionalPanel("input.add_nut_uc",
-                                                  sliderInput("nut_uptake2_sd", "Standard deviation", min = 0, max = 0.4, value = 0.1, step = 0.01)
+                                                  sliderInput("nut_uptake2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
                                  )
                           ),
                           column(3,
@@ -978,14 +992,18 @@ border-color: #FFF;
                                  ),
                           column(6,
                                  h4("Plot for Param UC"),
-                                 plotlyOutput("pars_dist_plot")
+                                 plotOutput("mort_rate_dist_plot"),
+                                 hr(),
+                                 plotOutput("nut_uptake_dist_plot")
                                  )
                           ),
                         hr(),
                         fluidRow(
                           column(4,
                                  h3("Run Forecast - Parameter UC"),
-                                 actionButton("run_pars_fc", "Run forecast")
+                                 actionButton("run_pars_fc", "Run forecast"),
+                                 radioButtons("pars_fc_type", "Type of plot", choices = c("Line", "Distribution"))
+
                           ),
                           column(8,
                                  h3("Pars UC Plot"),
