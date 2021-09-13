@@ -432,12 +432,13 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = linr_stats$dt[1, 1]) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
       coord_cartesian(xlim = c(0, 2), ylim = c(0, 5)) +
+      ylab("Density") +
+      xlab("Value") +
       ggtitle("Slope (m)") +
       theme_bw(base_size = 22)
     return(p)
   })
   output$lr_b_dist_plot <- renderPlot({
-    print("test")
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -451,6 +452,8 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = linr_stats$dt[1, 3]) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
       coord_cartesian(xlim = c(-2, 10), ylim = c(0, 5)) +
+      ylab("Density") +
+      xlab("Value") +
       ggtitle("Intercept (b)") +
       theme_bw(base_size = 22)
     return(p)
@@ -792,6 +795,8 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = ic_dist_plot$phy_vline) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
       coord_cartesian(xlim = ic_dist_plot$phy_xlims, ylim = c(0, 5)) +
+      ylab("Density") +
+      xlab("Value") +
       ggtitle("Chlorophyll-a (μg/L)") +
       theme_bw(base_size = 22)
     return(p)
@@ -810,12 +815,14 @@ shinyServer(function(input, output, session) {
       geom_vline(xintercept = ic_dist_plot$nut_vline) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
       coord_cartesian(xlim = ic_dist_plot$nut_xlims, ylim = c(0, 5)) +
+      ylab("Density") +
+      xlab("Value") +
       ggtitle("Nutrient (mg/L)") +
       theme_bw(base_size = 22)
     return(p)
   })
 
-  # Run IC FC
+  # Run IC FC ----
   ic_fc_data <- reactiveValues(chla = NULL, nut = NULL)
   observeEvent(input$run_ic_fc, {
 
@@ -942,13 +949,139 @@ shinyServer(function(input, output, session) {
     return(gp)
     })
 
-  # Parameter Uncertainty ----
+  # Model Uncertainty ----
+  #* Process Uncertainty ----
+  mod0_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
+                              proc_curr = NULL, proc_prev = NULL, proc_prev2 = NULL)
+  observeEvent(input$run_mod0, {
+
+    req(input$table01_rows_selected != "")
+    req(!is.null(noaa_df$airt))
+
+    mod0_runs$prev2 <- mod0_runs$prev
+    mod0_runs$prev <- mod0_runs$curr
+
+    # mod0_runs$pars_df[3, ] <- mod0_runs$pars_df[2, ]
+    # mod0_runs$pars_df[2, ] <- mod0_runs$pars_df[1, ]
+    # mod0_runs$pars_df[1, ] <- c(input$mort_rate1, input$nut_uptake1, input$refTEMP1)
+
+
+    swt <- noaa_df$swt
+    swt$date <- as.Date(swt$time)
+    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    upar <- noaa_df$upar
+    upar$date <- as.Date(upar$time)
+    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    np_inp <- merge(swt_dly, upar_dly, by = 1)
+    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
+    times <- 1:nrow(np_inp)
+
+    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
+
+    # Parameters for NP model
+    parms <- c(
+      maxUptake = 0.2, #day-1
+      kspar=120, #uEinst m-2 s-1
+      ksdin=0.5, #mmol m-3
+      maxGrazing=1.0, # day-1
+      ksphyto=1, #mmol N m-3
+      pFaeces=0.3, #unitless
+      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
+      excretionRate=0.1, #day-1
+      mineralizationRate=0.1, #day-1
+      Chl_Nratio = 1, #mg chl (mmolN)-1
+      Q10 = 2,  #unitless
+      refTEMP = 20 # Reference temperature for q10
+    )
+
+    parms[1] <- 0.15
+    parms[7] <- 0.85
+    if(input$proc_uc0 == "Low") {
+      w_sd <- 0.01
+    } else if(input$proc_uc0 == "Medium") {
+      w_sd <- 0.025
+    } else if(input$proc_uc0 == "High") {
+      w_sd <- 0.05
+    }
+    sig_w <- rnorm(8, mean = 0, sd = w_sd)
+    print(sig_w)
+
+    res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
+    res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
+    res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
+    res[1, 3] <- res[1, 1]  * 62
+    for(i in 2:8) {
+
+      out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
+      new_phy <- res[i-1, 1] + out[[1]][1] + sig_w[i]
+      new_nut <- res[i-1, 2] + out[[1]][2]
+      if(new_phy <= 0) {
+        new_phy <- 0.01
+      }
+      if(new_nut <= 0) {
+        new_nut <- 1
+      }
+      res[i, ] <- c(new_phy,
+                    new_nut,
+                    (new_phy * 62))
+    }
+
+    res <- as.data.frame(res)
+    res$date <- np_inp[1:8, 1]
+
+    mod0_runs$curr <- res
+  })
+
+  output$run_mod0_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    validate(
+      need(!is.null(mod0_runs$curr),
+           message = "Click 'Run model'")
+    )
+
+    p <- ggplot()
+
+    if(!is.null(mod0_runs$prev2)) {
+      p <- p +
+        geom_line(data = mod0_runs$prev2, aes(date, Chla, color = "Previous run2"),
+                  linetype = "dotted")
+    }
+    if(!is.null(mod0_runs$prev)) {
+      p <- p +
+        geom_line(data = mod0_runs$prev, aes(date, Chla, color = "Previous run"),
+                  linetype = "dashed")
+    }
+
+    p <- p +
+      geom_line(data = mod0_runs$curr, aes(date, Chla, color = "Current run")) +
+      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
+      ylab("Chlorophyll-a (μg/L)") +
+      xlab("Time") +
+      theme_bw(base_size = 18)
+
+    return(ggplotly(p, dynamicTicks = TRUE))
+
+  })
+
+
   #* Run model & explore parameters
 
   mod1_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
                               pars_df = data.frame(matrix(NA, nrow = 3, ncol = 3, dimnames = list(c("Current run", "Previous run", "Previous run2"), c("Mortality rate", "Nutrient uptake", "Reference temperature")))),
                               pars_curr = NULL, pars_prev = NULL, pars_prev2 = NULL)
   observeEvent(input$run_mod1, {
+
+    req(input$table01_rows_selected != "")
+    req(!is.null(noaa_df$airt))
 
     mod1_runs$prev2 <- mod1_runs$prev
     mod1_runs$prev <- mod1_runs$curr
@@ -1050,10 +1183,221 @@ shinyServer(function(input, output, session) {
 
   })
 
+  #** Data table of used parameters ----
   output$run_mod1_pars <- renderDT(
     mod1_runs$pars_df, rownames = TRUE, options = list(ordering = FALSE, dom = 't'),
     colnames = c("Mortality rate", "Nutrient uptake", "Reference temperature")
   )
+
+  #* Generate parameters ----
+  pars_dist <- reactiveValues(mort_rate = NULL, nut_uptake = NULL, mort_xlims = NULL, nut_xlims = NULL)
+  observeEvent(input$gen_param_dist, {
+
+    if(input$add_nut_uc) {
+      pars_dist$nut_uptake <- data.frame(value = rnorm(input$n_samp_pars, mean = input$nut_uptake2, sd = input$nut_uptake2_sd),
+                                         par = "Nutrient uptake")
+      pars_dist$nut_uptake[pars_dist$nut_uptake <= 0] <- 0.01
+      pars_dist$nut_uptake[pars_dist$nut_uptake >= 1] <- 0.99
+      pars_dist$nut_uptake_xlims <- c(input$nut_uptake2 - 3 * input$nut_uptake2_sd, input$nut_uptake2 + 3 * input$nut_uptake2_sd)
+      pars_dist$nut_uptake_vline <- input$nut_uptake2
+    }
+
+    if(input$add_mort_uc) {
+      pars_dist$mort_rate <- data.frame(value = rnorm(input$n_samp_pars, mean = input$mort_rate2, sd = input$mort_rate2_sd), par =  "Mortality rate")
+      pars_dist$mort_rate[pars_dist$mort_rate <= 0] <- 0.01
+      pars_dist$mort_rate[pars_dist$mort_rate >= 1] <- 0.99
+      pars_dist$mort_rate_xlims <- c(input$mort_rate2 - 3 * input$mort_rate2_sd, input$mort_rate2 + 3 * input$mort_rate2_sd)
+      pars_dist$mort_rate_vline <- input$mort_rate2
+    }
+  })
+
+  #** Mortality rate distribution plot ----
+  output$mort_rate_dist_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$add_mort_uc, "Check 'Add uncertainty for mortality rate'")
+    )
+    validate(
+      need(!is.null(pars_dist$mort_rate), "Click 'Generate parameter distributions'")
+    )
+
+    df <- pars_dist$mort_rate
+
+    p <- ggplot(df) +
+      geom_vline(xintercept = pars_dist$mort_rate_vline) +
+      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
+      coord_cartesian(xlim = c(0, 1)) +
+      ylab("Density") +
+      xlab("Value") +
+      ggtitle("Mortality rate") +
+      theme_bw(base_size = 22)
+    return(p)
+  })
+
+  #** Nutrient uptake distribution plot ----
+  output$nut_uptake_dist_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$add_nut_uc, "Check 'Add uncertainty for nutrient uptake'")
+    )
+    validate(
+      need(!is.null(pars_dist$nut_uptake), "Click 'Generate parameter distributions'")
+    )
+
+    df <- pars_dist$nut_uptake
+
+    p <- ggplot(df) +
+      geom_vline(xintercept = pars_dist$nut_uptake_vline) +
+      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
+      coord_cartesian(xlim = c(0, 1)) +
+      ylab("Density") +
+      xlab("Value") +
+      ggtitle("Nutrient uptake") +
+      theme_bw(base_size = 22)
+    return(p)
+  })
+
+
+  # Run Param UC FC ----
+  pars_fc_data <- reactiveValues(chla = NULL, nut = NULL)
+  observeEvent(input$run_pars_fc, {
+
+    req(!is.null(noaa_df$airt))
+
+    progress <- shiny::Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error
+    on.exit(progress$close())
+    progress$set(message = paste0("Running NP model with ", input$n_samp_pars, " different sets of parameters."),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished running", value = 0.01)
+
+    swt <- noaa_df$swt
+    swt$date <- as.Date(swt$time)
+    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    upar <- noaa_df$upar
+    upar$date <- as.Date(upar$time)
+    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
+
+    np_inp <- merge(swt_dly, upar_dly, by = 1)
+    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
+    times <- 1:nrow(np_inp)
+
+    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
+
+    # Parameters for NP model
+    parms <- c(
+      maxUptake = 0.2, #day-1
+      kspar=120, #uEinst m-2 s-1
+      ksdin=0.5, #mmol m-3
+      maxGrazing=1.0, # day-1
+      ksphyto=1, #mmol N m-3
+      pFaeces=0.3, #unitless
+      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
+      excretionRate=0.1, #day-1
+      mineralizationRate=0.1, #day-1
+      Chl_Nratio = 1, #mg chl (mmolN)-1
+      Q10 = 2,  #unitless
+      refTEMP = 20 # Reference temperature for q10
+    )
+
+    n_mem <- nrow(pars_dist$mort_rate)
+    arr <- array(NA, dim = c(8, 3, n_mem))
+    for(mem in 1:n_mem) {
+
+      if(input$add_mort_uc) {
+        parms[7] <- pars_dist$mort_rate$value[mem]
+      }
+      if(input$add_nut_uc) {
+        parms[1] <- pars_dist$nut_uptake$value[mem]
+      }
+
+      res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
+      res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
+      res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
+      res[1, 3] <- res[1, 1]  * 62
+
+      for(i in 2:8) {
+        out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
+        res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
+                      (res[i-1, 2] + out[[1]][2]),
+                      (res[i-1, 1] + out[[1]][1]) * 62)
+      }
+      res[res[, 3] > 50 | res[, 3] < 0, 3] <- NA # Reset outlier values
+      arr[, , mem] <- res
+      progress$set(value = mem/n_mem)
+    }
+
+    mlt <- reshape2::melt(arr[, 3, ])
+    mlt$date <- np_inp$date[1:8]
+    pars_fc_data$chla <- mlt
+
+    mlt <- reshape2::melt(arr[, 2, ])
+    mlt$date <- np_inp$date[1:8]
+    mlt$value <- mlt$value / 16.129
+    pars_fc_data$nut <- mlt
+  })
+
+  output$pars_fc_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    validate(
+      need(!is.null(pars_dist$mort_rate),
+           "Please generate distributions of parameters required")
+    )
+    validate(
+      need(!is.null(pars_fc_data$chla),
+           message = "Click 'Run forecast'")
+    )
+
+    dat <- pars_fc_data$chla
+
+    p <- ggplot()
+
+    if(input$pars_fc_type == "Distribution") {
+      wid <- tidyr::pivot_wider(dat, c(date), names_from = Var2, values_from = value)
+      df <- apply(wid[, -c(1)], 1, function(x){
+        quantile(x, c(0.025, 0.05, 0.125, 0.5, 0.875, 0.95, 0.975), na.rm = TRUE)
+      })
+      df <- as.data.frame(t(df))
+      colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
+      df$time <- wid$date
+      p <- p +
+        geom_ribbon(data = df, aes(time, ymin = p2.5, ymax = p97.5, fill = "95%"), alpha = 0.3)+
+        geom_ribbon(data = df, aes(time, ymin = p12.5, ymax = p87.5, fill = "75%"), alpha = 0.3)+
+        geom_line(data = df, aes(time, p50, color = "Median"))
+    } else if(input$pars_fc_type == "Line") {
+      p <- p +
+        geom_line(data = dat, aes_string("date", "value", group = "Var2"),
+                  color = "gray", alpha = 0.6)
+    }
+    p <- p +
+      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
+      ylab("Chlorophyll-a (μg/L)") +
+      xlab("Time") +
+      theme_bw(base_size = 18)
+
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
 
 
 })
