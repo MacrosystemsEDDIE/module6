@@ -5,8 +5,10 @@ suppressPackageStartupMessages(library(sf, quietly = TRUE))
 suppressPackageStartupMessages(library(leaflet, quietly = TRUE))
 suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 
+# Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
 scale_fill_discrete <- ggthemes::scale_fill_colorblind
+cols <- RColorBrewer::brewer.pal(8, "Dark2")
 
 # Functions required
 source("R/download_phenocam.R")
