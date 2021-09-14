@@ -755,7 +755,7 @@ border-color: #FFF;
                           column(6,
                                  h3("Create multiple lines"),
                                  p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
-                                 radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_lin_mods", "Add lines"),
                                  conditionalPanel("input.gen_lin_mods >= 1",
                                                   checkboxInput("add_dist", "Distribution plot")),
@@ -893,7 +893,7 @@ border-color: #FFF;
                                                   ),
                                  checkboxInput("view_day7", "View forecast 7-days ahead"),
                                  conditionalPanel("input.view_day7",
-                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution"), selected = "None")
+                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution"))
                                                   )
                                  ),
                           column(6,
@@ -902,8 +902,9 @@ border-color: #FFF;
                                  # plotOutput("noaa_at_plot")
                                  )
                           ),
+                        # Initial Conditions - Primary prod model ----
                         fluidRow(
-                          column(6,
+                          column(3,
                                  h4("How does initial condition uncertainty affect our forecasts of primary productivity?"),
                                  p("Adjust the level of uncertainty associated with the initial conditions and see how levels of high, medium and low affect
                                    forecasts of primary productivity."),
@@ -915,25 +916,28 @@ border-color: #FFF;
                                  numericInput("nut_ic_value", "Nurtients initial conditions", value = 1, min = 0.01, max = 5, step = 0.01),
                                  sliderInput("nut_ic_sd", "Nutrients standard deviation", min = 0.01, max = 1, value = 0.5, step = 0.05),
                                  p("Select how many samples you wish to use to run your forecast."),
-                                 radioButtons("n_samp_ic", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 radioButtons("n_samp_ic", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_ic_dist", "Generate initial condition distributions")
                           ),
-                          column(6,
+                          column(4,
+                                 h3("Distributions of potential initial conditions"),
                                  plotOutput("ic_phy_dist_plot"),
                                  hr(),
-                                 plotOutput("ic_nut_dist_plot"),
-                          )
-                        ),
-                        fluidRow(
-                          column(6,
+                                 plotOutput("ic_nut_dist_plot")
+                          ),
+                          column(5,
                                  h4("IC UC"),
                                  p("Run forecast with IC UC"),
                                  actionButton("run_ic_fc", "Run forecast"),
-                                 radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"))
-                          ),
-                          column(6,
+                                 radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
                                  h4("IC FC Plot"),
                                  plotlyOutput("ic_fc_plot")
+                                 )
+                        ),
+                        fluidRow(
+                          column(6,
+                          ),
+                          column(6,
                           )
                         ),
                         hr(),
@@ -942,12 +946,15 @@ border-color: #FFF;
                           column(6,
                                  h4("Model Uncertainty"),
                                  p("Process uncertainty is uncertainty caused by an incomplete description of the process."),
+                                 p("Below is a description of our model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
+                                 p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality$$")),
+                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our equation:"),
+                                 p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality + W_t$$")),
                                  p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
-                                 radioButtons("proc_uc0", "Level of process uncertainty", choices = c("Low", "Medium", "High")),
+                                 radioButtons("proc_uc0", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
                                  actionButton("run_mod0", "Run model")
                           ),
                           column(6,
-                                 h4("Some image for Process Uncertainty!"),
                                  plotlyOutput("run_mod0_plot")
                           )
                         ),
@@ -973,43 +980,68 @@ border-color: #FFF;
                           column(3,
                                  h4("Add parameter uncertainty"),
                                  p("Now we will run a forecast with parameter uncertainty added...  "),
-                                 numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                                 numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.8, step = 0.01),
                                  checkboxInput("add_mort_uc", "Add uncertainty"),
                                  conditionalPanel("input.add_mort_uc",
                                                   sliderInput("mort_rate2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
                                  ),
-                                 numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                                 numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.2, step = 0.01),
                                  checkboxInput("add_nut_uc", "Add uncertainty"),
                                  conditionalPanel("input.add_nut_uc",
                                                   sliderInput("nut_uptake2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
                                  )
                           ),
-                          column(3,
+                          column(4,
                                  h4("Generate parameter distributions"),
                                  p("To add parameter uncertainty, we will need to 'Add uncertainty' in the form of standard deviation around the set parameter value."),
-                                 radioButtons("n_samp_pars", "No. of samples", choices = c(10, 20, 50, 75, 100)),
+                                 radioButtons("n_samp_pars", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_param_dist", "Generate parameter distributions"),
-                                 ),
-                          column(6,
                                  h4("Plot for Param UC"),
                                  plotOutput("mort_rate_dist_plot"),
                                  hr(),
                                  plotOutput("nut_uptake_dist_plot")
+                                 ),
+                          column(5,
+                                 h3("Run Forecast - Parameter UC"),
+                                 actionButton("run_pars_fc", "Run forecast"),
+                                 radioButtons("pars_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
+                                 plotlyOutput("pars_fc_plot")
                                  )
                           ),
                         hr(),
                         fluidRow(
-                          column(4,
-                                 h3("Run Forecast - Parameter UC"),
-                                 actionButton("run_pars_fc", "Run forecast"),
-                                 radioButtons("pars_fc_type", "Type of plot", choices = c("Line", "Distribution"))
-
+                          column(6,
+                                 h3("Driver Uncertainty"),
+                                 p("Driver uncertainty is related to the uncertainty of the data which is used to drive the model e.g. weather forecast data."),
+                                 p("Weather forecasts are generated using numerical weather prediction models. Weather forecasts are based on current weather observations, which are assimilated into the model’s framework and used to produce predictions for temperature, precipitation, and hundreds of other meteorological elements from the oceans to the top of the atmosphere."),
+                                 p("Due to uncertainty related to the ", tags$b("initial conditions"), " of such models, they use an ensemble of initial conditions to start the model and generate a  multitude of potential future realizations. Each different realization within the ensemble is called a ", tags$b("member"), ". The weather forecast data we are using has 31 members in the ensemble.")
                           ),
+                          column(6,
+                                 h3("Driver UC Diagram"),
+                                 )
+                          ),
+                        fluidRow(
+                          column(4,
+                                 h3("First we will run the model with just one member of the weather forecast."),
+                                 p("Run the forecast multiple times and each time it will run the model with one randomly selected member."),
+                                 p("A key part of a forecast is that it generates a ", tags$b("probabilistic"), " output. How will we generate a probabilistic output from a single model output?")                                 ),
                           column(8,
-                                 h3("Pars UC Plot"),
-                                 plotlyOutput("pars_fc_plot")
+                                 h3("Plot of 1 Driver UC"),
+                                 actionButton("run_driv_fc0", "Run forecast")
+                                 )
+                        ),
+                        fluidRow(
+                          column(5,
+                                 h4("Driver data"),
+                                 plotOutput("driv_fc_plot1"),
+                                 actionButton("add_mem", "Add members")
+                                 ),
+                          column(5, offset = 1,
+                                 h4("Primary Productivity Forecast"),
+                                 plotOutput("driv_fc_plot0")
                                  )
                         )
+
                         ),
 
                # 8. Activity B ----

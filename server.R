@@ -462,6 +462,7 @@ shinyServer(function(input, output, session) {
   # Sample m and b for plotting
   mb_samples <- reactiveValues(df = NULL)
   observeEvent(input$gen_lin_mods, {
+    req(!is.null(input$n_samp))
     mb_samples$df <- signif(data.frame("m" = sample(lr_dist_plot$m, input$n_samp),
                                 "b" = sample(lr_dist_plot$b, input$n_samp)), 3)
   })
@@ -477,6 +478,9 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$n_samp), "Select number of samples")
     )
     validate(
       need(input$plot_airt_swt > 0,
@@ -771,6 +775,7 @@ shinyServer(function(input, output, session) {
   # Generate Initial condition distribution plots
   ic_dist_plot <- reactiveValues(phy = NULL, nut = NULL, phy_xlims = NULL, nut_xlims = NULL)
   observeEvent(input$gen_ic_dist, {
+    req(!is.null(input$n_samp_ic))
     ic_dist_plot$phy <- rnorm(input$n_samp_ic, mean = input$phy_ic_value, sd = input$phy_ic_sd)
     ic_dist_plot$phy[ic_dist_plot$phy <= 0] <- 0.01
     ic_dist_plot$nut <- rnorm(input$n_samp_ic, mean = input$nut_ic_value, sd = input$nut_ic_sd)
@@ -787,7 +792,11 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$gen_ic_dist > 0, "Click 'Generate plot!'")
+      need(!is.null(input$n_samp_ic),
+           message = "Please select a number of samples.")
+    )
+    validate(
+      need(input$gen_ic_dist > 0, "Click 'Generate initial condition distributions'")
     )
     df <- data.frame(par = "Chlorophyll-a (μg/L)", value = ic_dist_plot$phy)
 
@@ -807,7 +816,11 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$gen_ic_dist > 0, "Click 'Generate plot!'")
+      need(!is.null(input$n_samp_ic),
+           message = "Please select a number of samples.")
+    )
+    validate(
+      need(input$gen_ic_dist > 0, "Click 'Generate initial condition distributions'")
     )
     df <- data.frame(par = "Nutrients (mg/L)", value = ic_dist_plot$nut)
 
@@ -908,6 +921,10 @@ shinyServer(function(input, output, session) {
            "Please generate distributions of initial conditions required")
     )
     validate(
+      need(!is.null(input$ic_fc_type),
+           "Please select a type of plot")
+    )
+    validate(
       need(!is.null(ic_fc_data$chla),
            message = "Click 'Run forecast'")
     )
@@ -952,19 +969,11 @@ shinyServer(function(input, output, session) {
   # Model Uncertainty ----
   #* Process Uncertainty ----
   mod0_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
-                              proc_curr = NULL, proc_prev = NULL, proc_prev2 = NULL)
+                              none = NULL, low = NULL, med = NULL, high = NULL)
   observeEvent(input$run_mod0, {
 
     req(input$table01_rows_selected != "")
     req(!is.null(noaa_df$airt))
-
-    mod0_runs$prev2 <- mod0_runs$prev
-    mod0_runs$prev <- mod0_runs$curr
-
-    # mod0_runs$pars_df[3, ] <- mod0_runs$pars_df[2, ]
-    # mod0_runs$pars_df[2, ] <- mod0_runs$pars_df[1, ]
-    # mod0_runs$pars_df[1, ] <- c(input$mort_rate1, input$nut_uptake1, input$refTEMP1)
-
 
     swt <- noaa_df$swt
     swt$date <- as.Date(swt$time)
@@ -998,7 +1007,9 @@ shinyServer(function(input, output, session) {
 
     parms[1] <- 0.15
     parms[7] <- 0.85
-    if(input$proc_uc0 == "Low") {
+    if(input$proc_uc0 == "None") {
+      w_sd <- 0
+    } else if(input$proc_uc0 == "Low") {
       w_sd <- 0.01
     } else if(input$proc_uc0 == "Medium") {
       w_sd <- 0.025
@@ -1006,7 +1017,6 @@ shinyServer(function(input, output, session) {
       w_sd <- 0.05
     }
     sig_w <- rnorm(8, mean = 0, sd = w_sd)
-    print(sig_w)
 
     res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
     res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
@@ -1028,8 +1038,19 @@ shinyServer(function(input, output, session) {
                     (new_phy * 62))
     }
 
+
+
     res <- as.data.frame(res)
     res$date <- np_inp[1:8, 1]
+    if(input$proc_uc0 == "None") {
+      mod0_runs$none <- res
+    } else if(input$proc_uc0 == "Low") {
+      mod0_runs$low <- res
+    } else if(input$proc_uc0 == "Medium") {
+      mod0_runs$med <- res
+    } else if(input$proc_uc0 == "High") {
+      mod0_runs$high <- res
+    }
 
     mod0_runs$curr <- res
   })
@@ -1050,22 +1071,33 @@ shinyServer(function(input, output, session) {
 
     p <- ggplot()
 
-    if(!is.null(mod0_runs$prev2)) {
+    if(!is.null(mod0_runs$none)) {
       p <- p +
-        geom_line(data = mod0_runs$prev2, aes(date, Chla, color = "Previous run2"),
+        geom_line(data = mod0_runs$none, aes(date, Chla, color = "None"),
+                  linetype = "solid")
+    }
+    if(!is.null(mod0_runs$low)) {
+      p <- p +
+        geom_line(data = mod0_runs$low, aes(date, Chla, color = "Low"),
+                  linetype = "twodash")
+    }
+    if(!is.null(mod0_runs$med)) {
+      p <- p +
+        geom_line(data = mod0_runs$med, aes(date, Chla, color = "Medium"),
                   linetype = "dotted")
     }
-    if(!is.null(mod0_runs$prev)) {
+    if(!is.null(mod0_runs$high)) {
       p <- p +
-        geom_line(data = mod0_runs$prev, aes(date, Chla, color = "Previous run"),
+        geom_line(data = mod0_runs$high, aes(date, Chla, color = "High"),
                   linetype = "dashed")
     }
 
     p <- p +
-      geom_line(data = mod0_runs$curr, aes(date, Chla, color = "Current run")) +
       scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
+      scale_color_manual(values = c("None" = cols[1], "Low" = cols[2], "Medium" = cols[3], "High" = cols[4])) +
       ylab("Chlorophyll-a (μg/L)") +
       xlab("Time") +
+      labs(color = "Process uncertainty") +
       theme_bw(base_size = 18)
 
     return(ggplotly(p, dynamicTicks = TRUE))
@@ -1191,8 +1223,10 @@ shinyServer(function(input, output, session) {
 
   #* Generate parameters ----
   pars_dist <- reactiveValues(mort_rate = NULL, nut_uptake = NULL, mort_xlims = NULL, nut_xlims = NULL)
+  plot_switch <- reactiveValues(pars_UC = FALSE)
   observeEvent(input$gen_param_dist, {
 
+    req(!is.null(input$n_samp_pars))
     if(input$add_nut_uc) {
       pars_dist$nut_uptake <- data.frame(value = rnorm(input$n_samp_pars, mean = input$nut_uptake2, sd = input$nut_uptake2_sd),
                                          par = "Nutrient uptake")
@@ -1209,6 +1243,7 @@ shinyServer(function(input, output, session) {
       pars_dist$mort_rate_xlims <- c(input$mort_rate2 - 3 * input$mort_rate2_sd, input$mort_rate2 + 3 * input$mort_rate2_sd)
       pars_dist$mort_rate_vline <- input$mort_rate2
     }
+    plot_switch$pars_UC <- FALSE
   })
 
   #** Mortality rate distribution plot ----
@@ -1219,6 +1254,9 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$add_mort_uc, "Check 'Add uncertainty for mortality rate'")
+    )
+    validate(
+      need(!is.null(input$n_samp_pars), "Select the number of samples")
     )
     validate(
       need(!is.null(pars_dist$mort_rate), "Click 'Generate parameter distributions'")
@@ -1269,6 +1307,8 @@ shinyServer(function(input, output, session) {
   observeEvent(input$run_pars_fc, {
 
     req(!is.null(noaa_df$airt))
+    req(!is.null(input$pars_fc_type))
+    plot_switch$pars_UC <- TRUE
 
     progress <- shiny::Progress$new()
     # Make sure it closes when we exit this reactive, even if there's an error
@@ -1358,7 +1398,11 @@ shinyServer(function(input, output, session) {
            "Please generate distributions of parameters required")
     )
     validate(
-      need(!is.null(pars_fc_data$chla),
+      need(!is.null(input$pars_fc_type),
+           message = "Select a type of plot")
+    )
+    validate(
+      need(plot_switch$pars_UC,
            message = "Click 'Run forecast'")
     )
 
@@ -1397,6 +1441,170 @@ shinyServer(function(input, output, session) {
       }
     }
     return(gp)
+  })
+
+  # Run Driver UC FC ----
+  driv_fc_data0 <- reactiveValues(chla = NULL, nut = NULL)
+  rand_samp <- reactiveValues(val = NULL)
+  observeEvent(input$run_driv_fc0, {
+
+    req(!is.null(noaa_df$airt))
+    # plot_switch$pars_UC <- TRUE
+
+    progress <- shiny::Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error
+    on.exit(progress$close())
+    progress$set(message = paste0("Running NP model."),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished running", value = 0.01)
+
+    # Parameters for NP model
+    parms <- c(
+      maxUptake = 0.12, #day-1
+      kspar=120, #uEinst m-2 s-1
+      ksdin=0.5, #mmol m-3
+      maxGrazing=1.0, # day-1
+      ksphyto=1, #mmol N m-3
+      pFaeces=0.3, #unitless
+      mortalityRate=0.85, #(mmmolN m-3)-1 day-1
+      excretionRate=0.1, #day-1
+      mineralizationRate=0.1, #day-1
+      Chl_Nratio = 1, #mg chl (mmolN)-1
+      Q10 = 2,  #unitless
+      refTEMP = 20 # Reference temperature for q10
+    )
+
+    n_mem <- 30
+    arr <- array(NA, dim = c(8, 3, n_mem))
+    for(mem in 1:n_mem) {
+
+      sel_mem <- paste0("mem", formatC(mem, width = 2, format = "d", flag = "0"))
+
+      swt <- noaa_df$swt
+      swt <- swt[swt$variable == sel_mem, ]
+      swt$date <- as.Date(swt$time)
+      swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
+
+      upar <- noaa_df$upar
+      upar <- upar[upar$variable == sel_mem, ]
+      upar$date <- as.Date(upar$time)
+      upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
+
+      np_inp <- merge(swt_dly, upar_dly, by = 1)
+      np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
+      times <- 1:nrow(np_inp)
+
+      np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
+
+      res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
+      res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
+      res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
+      res[1, 3] <- res[1, 1]  * 62
+
+      for(i in 2:8) {
+        out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
+        res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
+                      (res[i-1, 2] + out[[1]][2]),
+                      (res[i-1, 1] + out[[1]][1]) * 62)
+      }
+      # res[res[, 3] > 50 | res[, 3] < 0, 3] <- NA # Reset outlier values
+      arr[, , mem] <- res
+    }
+
+    mlt <- reshape2::melt(arr[, 3, ])
+    mlt$date <- np_inp$date[1:8]
+    driv_fc_data0$chla <- mlt
+
+    mlt <- reshape2::melt(arr[, 2, ])
+    mlt$date <- np_inp$date[1:8]
+    mlt$value <- mlt$value / 16.129
+    driv_fc_data0$nut <- mlt
+
+    rand_samp$val <- sample(1:30, 1)
+
+    progress$set(value = 1)
+  })
+
+  output$driv_fc_plot0 <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    validate(
+      need(!is.null(driv_fc_data0$chla),
+           message = "Click 'Run forecast'")
+    )
+
+    dat <- driv_fc_data0$chla
+    ylims <- range(dat$value, na.rm = TRUE)
+    if(input$add_mem > 0) {
+      add_dat <- dat[dat$Var2 %in% c(2:(input$add_mem + 1)), ]
+    }
+    dat <- dat[dat$Var2 == 1, ]
+
+    p <- ggplot() +
+      geom_line(data = dat, aes_string("date", "value")) +
+      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
+      ylab("Chlorophyll-a (μg/L)") +
+      xlab("Time") +
+      coord_cartesian(ylim = ylims) +
+      theme_bw(base_size = 18)
+
+    if(input$add_mem > 0) {
+      p <- p +
+        geom_line(data = add_dat, aes_string("date", "value", group = "Var2"))
+    }
+
+    return(p)
+  })
+
+  output$driv_fc_plot1 <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    validate(
+      need(!is.null(driv_fc_data0$chla),
+           message = "Click 'Run forecast'")
+    )
+
+    swt <- noaa_df$swt
+    # swt <- swt[swt$variable == sel_mem, ]
+    swt$date <- as.Date(swt$time)
+    dat <- plyr::ddply(swt, c("date", "variable"), function(x) {
+      data.frame(value = mean(x$value, na.rm = TRUE))
+    })
+    dat
+    sub_dates <- unique(dat$date)[1:8]
+
+    ylims <- range(dat$value, na.rm = TRUE)
+    if(input$add_mem > 0) {
+      add_dat <- dat[dat$variable %in% paste0("mem", formatC((2:(input$add_mem + 1)), width = 2, format = "d", flag = "0")) & dat$date %in% sub_dates, ]
+      }
+    dat <- dat[dat$variable == "mem01" & dat$date %in% sub_dates, ]
+
+    p <- ggplot() +
+      geom_line(data = dat, aes_string("date", "value")) +
+      scale_x_date(date_labels = "%a", date_breaks = "1 day") +
+      ylab("Water temperature (\u00B0C)") +
+      xlab("Time") +
+      coord_cartesian(ylim = ylims) +
+      theme_bw(base_size = 18)
+
+    if(input$add_mem > 0) {
+      p <- p +
+        geom_line(data = add_dat, aes_string("date", "value", group = "variable"))
+    }
+
+    return(p)
   })
 
 
