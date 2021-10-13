@@ -177,7 +177,7 @@ ui <- function(req) {
                           #* Module text ====
                           h2("Ecological Forecast Uncertainty"),
                           h3("Summary"),
-                          p(id = "txt_j", module_text["intro_eco_forecast", ]),
+                          p(id = "txt_j", module_text["eco_forecast", ]),
                           p(id = "txt_j", module_text["this_module", ])
                    ),
                    column(5, offset = 1,
@@ -675,7 +675,7 @@ border-color: #FFF;
                           hr(),
                           column(4,
                                  h3("Statistics 101"),
-                                 p("We will quickly revisit some key statistical concepts"),
+                                 p("Before we begin generating an ecological forecast with uncertainty we will explore some key statistical and probability concepts."),
                                  p("What is a population?"),
                                  tags$ul(
                                    tags$li(module_text["what_forecast", ])
@@ -870,7 +870,7 @@ border-color: #FFF;
                                  p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
                                  p("Does this mean the instruments are wrong?"),
                                  p("No! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
-                                 p("This is what is called _observational error_.")
+                                 p("This is what is called ", tags$b("observational error"), ".")
                           ),
                           column(6,
                                  h4("Some image for observational error [3 thermometers showing different temps]")
@@ -950,11 +950,16 @@ border-color: #FFF;
                                  p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality$$")),
                                  p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our equation:"),
                                  p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality + W_t$$")),
+                                 p("Phytoplankton concentration tomorrow is equalt to phytoplankton concentration today ", tags$b("plus"), " nutrient uptake and ", tags$b("minus"), " mortality."),
+                                 p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
+                                 p("where process noise is equal a random number with a mean of zero and some standard deviation."), br(),
                                  p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
                                  radioButtons("proc_uc0", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
                                  actionButton("run_mod0", "Run model")
                           ),
                           column(6,
+                                 plotOutput("proc_uc_plot"),
+                                 hr(),
                                  plotlyOutput("run_mod0_plot")
                           )
                         ),
@@ -1040,8 +1045,17 @@ border-color: #FFF;
                                  h4("Primary Productivity Forecast"),
                                  plotOutput("driv_fc_plot0")
                                  )
+                          ),
+                        fluidRow(
+                          column(5,
+                                 h4("Probabilistic forecast"),
+                                 p("We have created ")
+                          ),
+                          column(5, offset = 1,
+                                 h4("Primary Productivity Forecast"),
+                                 # plotOutput("driv_fc_plot0")
+                          )
                         )
-
                         ),
 
                # 8. Activity B ----

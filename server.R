@@ -637,6 +637,10 @@ shinyServer(function(input, output, session) {
   # output$noaa_at_plot <- renderPlot({
   output$noaa_at_plot <- renderPlotly({
     validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
       need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
     )
     validate(
@@ -1055,6 +1059,44 @@ shinyServer(function(input, output, session) {
     mod0_runs$curr <- res
   })
 
+  output$proc_uc_plot <- renderPlot({
+
+
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt),
+           "Load NOAA weather forecast")
+    )
+    # validate(
+    #   need(input$proc_uc0 != "None",
+    #        message = "Add process uncertainty")
+    # )
+
+    xlims <- c((0 - 3*0.05), (0 + 3*0.05))
+    ylims <- c(0, 40)
+    df <- data.frame(Low = rnorm(1000, mean = 0, sd = 0.01),
+                     Medium = rnorm(1000, mean = 0, sd = 0.025),
+                     High = rnorm(1000, mean = 0, sd = 0.05))
+
+    p <- ggplot(df) +
+      geom_vline(xintercept = 0) +
+      geom_density(aes(x = Low, fill = "Low"), alpha = 0.6) +
+      geom_density(aes(x = Medium, fill = "Medium"), alpha = 0.6) +
+      geom_density(aes(x = High, fill = "High"), alpha = 0.6) +
+      coord_cartesian(xlim = xlims, ylim = ylims) +
+      scale_fill_manual(values = c("Low" = cols[2], "Medium" = cols[3], "High" = cols[4])) +
+      guides(fill = guide_legend(override.aes = list(alpha = 0.6))) +
+      labs(fill = "Level") +
+      ylab("Density") +
+      xlab("Value") +
+      ggtitle("Process Uncertainty") +
+      theme_bw(base_size = 22)
+    return(p)
+    })
+    
   output$run_mod0_plot <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1540,14 +1582,16 @@ shinyServer(function(input, output, session) {
     )
 
     dat <- driv_fc_data0$chla
+    dat$label <- paste0("mem", formatC((dat$Var2), width = 2, format = "d", flag = "0"))
     ylims <- range(dat$value, na.rm = TRUE)
     if(input$add_mem > 0) {
       add_dat <- dat[dat$Var2 %in% c(2:(input$add_mem + 1)), ]
     }
     dat <- dat[dat$Var2 == 1, ]
+    col30 <- cols
 
     p <- ggplot() +
-      geom_line(data = dat, aes_string("date", "value")) +
+      geom_line(data = dat, aes(date, value, color = label)) +
       scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
       ylab("Chlorophyll-a (μg/L)") +
       xlab("Time") +
@@ -1556,8 +1600,13 @@ shinyServer(function(input, output, session) {
 
     if(input$add_mem > 0) {
       p <- p +
-        geom_line(data = add_dat, aes_string("date", "value", group = "Var2"))
+        geom_line(data = add_dat, aes(date, value, color = label))
     }
+    if(input$add_mem > 7) {
+      col30 <- c(rep("black", input$add_mem - 7), cols)
+    }
+    p <- p + scale_color_manual(values = col30) +
+      guides(color = "none")
 
     return(p)
   })
@@ -1582,7 +1631,7 @@ shinyServer(function(input, output, session) {
     dat <- plyr::ddply(swt, c("date", "variable"), function(x) {
       data.frame(value = mean(x$value, na.rm = TRUE))
     })
-    dat
+
     sub_dates <- unique(dat$date)[1:8]
 
     ylims <- range(dat$value, na.rm = TRUE)
@@ -1590,9 +1639,11 @@ shinyServer(function(input, output, session) {
       add_dat <- dat[dat$variable %in% paste0("mem", formatC((2:(input$add_mem + 1)), width = 2, format = "d", flag = "0")) & dat$date %in% sub_dates, ]
       }
     dat <- dat[dat$variable == "mem01" & dat$date %in% sub_dates, ]
+    col30 <- cols
+
 
     p <- ggplot() +
-      geom_line(data = dat, aes_string("date", "value")) +
+      geom_line(data = dat, aes(date, value, color = variable)) +
       scale_x_date(date_labels = "%a", date_breaks = "1 day") +
       ylab("Water temperature (\u00B0C)") +
       xlab("Time") +
@@ -1601,8 +1652,13 @@ shinyServer(function(input, output, session) {
 
     if(input$add_mem > 0) {
       p <- p +
-        geom_line(data = add_dat, aes_string("date", "value", group = "variable"))
+        geom_line(data = add_dat, aes(date, value, color = variable))
     }
+    if(input$add_mem > 7) {
+      col30 <- c(rep("black", input$add_mem - 7), cols)
+    }
+    p <- p + scale_color_manual(values = col30) +
+      guides(color = "none")
 
     return(p)
   })
