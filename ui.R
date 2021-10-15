@@ -64,7 +64,7 @@ ui <- function(req) {
              )
       )
     ),
-    navbarPage(title = "Module 6: Ecological Forecast Uncertainty",
+    navbarPage(title = "Module 6: Understanding Uncertainty in Ecological Forecasts",
                position = "static-top", id = "maintab",
 
                # 1. Module Overview ----
@@ -175,7 +175,7 @@ ui <- function(req) {
                  fluidRow(
                    column(6,
                           #* Module text ====
-                          h2("Ecological Forecast Uncertainty"),
+                          h2("Understanding Uncertainty in Ecological Forecasts"),
                           h3("Summary"),
                           p(id = "txt_j", module_text["eco_forecast", ]),
                           p(id = "txt_j", module_text["this_module", ])
@@ -740,7 +740,7 @@ border-color: #FFF;
                                  DTOutput("lr_stats", width = "60%"),
                                  hr(),
                                  p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
-                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.05),
+                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
                                  sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05),
                                  actionButton("gen_lr_dist_plot", "Generate plot!")
                                  ),
@@ -752,71 +752,61 @@ border-color: #FFF;
                           ),
                         hr(),
                         fluidRow(
-                          column(6,
+                          column(3,
                                  h3("Create multiple lines"),
                                  p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
                                  radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_lin_mods", "Add lines"),
                                  conditionalPanel("input.gen_lin_mods >= 1",
                                                   checkboxInput("add_dist", "Distribution plot")),
-                                 br(),
+                          ),
+                          column(3,
                                  DTOutput("mb_samps", width = "60%")
                                  ),
                           column(6,
                                  plotlyOutput("add_lin_mods")
                                  )
-                          )
-                        ),
-
-               # 6. Probability 101 ----
-               tabPanel(title = "Probability 101", value = "mtab6",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
-                        fluidRow(
-                          column(12,
-                                 wellPanel(style = paste0("background: ", obj_bg),
-                                           h3("Objective 5 - Probability 101"),
-                                           p(module_text["obj_04", ])
-                                 )
                           ),
-                        ),
-                        fluidRow(
-                          hr(),
-                          column(4,
-                                 h3("Probability 101"),
-                                 p("We will go over some key probability concepts"),
-                                 p("What is probability?"),
-                                 tags$ul(
-                                   tags$li(module_text["what_forecast", ])
-                                 ),
-                                 p("What is a sample?"),
-                                 tags$ul(
-                                   tags$li(module_text["why_forecast", ])
-                                 ),
-                                 p("What is a statistical parameter"),tags$ul(
-                                   tags$li(module_text["how_forecast", ])
-                                 ),
-                                 p("Click through the slides to recap some of the main points from the lecture.")
-                          ),
-                          column(8, offset = 0, align = "center",
-                                 h3("Key Figures",
-                                    align = "center"),
-                                 h5("Click the arrows to navigate through the slides", align = "center"),
-                                 wellPanel(
-                                   # slickROutput("slides", width = "600px", height = "450px")
-                                 )
-                          )
-                        ),
+                        hr(),
                         fluidRow(
                           column(6,
-                                 h3("Linear Regression"),
-                                 p("We will explore the relationship between air temperature and surface water temperature")
+                                 h3("Calculating model error"),
+                                 p("If you look at our linear model, we can see that the points do not fall exactly on our line. Does this mean our model does not predict surface water temperature well? How can we tell how 'good' or 'bad' our model us?"),
+                                 br(),
+                                 p("We can compare our model results to actual observations. Select points on the graph and the table below will display how far off the model was from the observation."),
+                                 h4("Selected points"),
+                                 p("Select a point on the plot by clicking on it or select multiple points by clicking and dragging the selection pane."),
+                                 DTOutput("click_dt", width = "90%"),
+                                 br(),
+                                 actionButton("calc_err", "Calculate"),
+                                 textOutput("mean_err"),
+                                 br(),
+                                 p("Calculate the model error (difference between modelled water temperature and observed temperature) at varying intervals (0-10, 10-20, 20-30, 30-40). Which interval has the largest error? Why do you think that is?, What does the sign in front of the error tell you?")
                           ),
                           column(6,
-                                 h4("Interactive Linear Regression plot..."),
-                                 wellPanel(
-
+                                 plotOutput("mod_err_plot",
+                                            click = "mod_err_plot_click",
+                                            brush = brushOpts(
+                                              id = "mod_err_plot_brush"
+                                            )),
                                  )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Calculating model error with uncertainty"),
+                                 p("Earlier when fitting our lines to the data we noticed that there were multiple lines that could potentially fit our data and this allowed us to create a plot with confidence intervals. Now we will assess how many of these points fall within our confidence intervals and this will give us a measure of how 'good' our model is."),
+                                 p("Use the 'Lasso select' tool to highlight points outside of the confidence interval and input the number below."),
+                                 textOutput("sel_points"),
+                                 textOutput("total_points"),
+                                 numericInput("points_above", "Number of points above the confidence interval", 0, min = 0, max = 1000, step = 1),
+                                 numericInput("points_below", "Number of points below the confidence interval", 0, min = 0, max = 1000, step = 1),
+                                 textOutput("pct_inside"),
+                                 actionButton("calc_pct", "Calculate percentage points inside the confidence intervals.")
+                          ),
+                          column(6,
+                                 plotlyOutput("mod_err_uc_plot"),
+                                 actionButton("clear_sel1", "Clear selection")
                                  )
                           )
                         ),
