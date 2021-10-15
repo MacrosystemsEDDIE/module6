@@ -250,7 +250,7 @@ shinyServer(function(input, output, session) {
 
   # Stats 101 ----
   # Load airt & SWT
-  airt_swt <- reactiveValues(df = NULL)
+  airt_swt <- reactiveValues(df = NULL, sel = NULL)
   observeEvent(input$plot_airt_swt, { # view_var
 
     req(input$table01_rows_selected != "")
@@ -290,10 +290,13 @@ shinyServer(function(input, output, session) {
     )
     colnames(df)[-1] <- c("X", "Y")
     airt_swt$df <- df
-
   })
 
-  # Plot airtemperature vs. surface water temperature
+  observe({
+    airt_swt$sel <- tryCatch(airt_swt$df[(selected$sel$pointNumber+1),,drop=FALSE] , error=function(e){NULL})
+  })
+
+  # Plot air temperature vs. surface water temperature
   output$airt_swt_plot <- renderPlot({
     validate(
       need(input$table01_rows_selected != "",
@@ -461,10 +464,21 @@ shinyServer(function(input, output, session) {
 
   # Sample m and b for plotting
   mb_samples <- reactiveValues(df = NULL)
+  lm_dist <- reactiveValues(df = NULL)
   observeEvent(input$gen_lin_mods, {
     req(!is.null(input$n_samp))
     mb_samples$df <- signif(data.frame("m" = sample(lr_dist_plot$m, input$n_samp),
                                 "b" = sample(lr_dist_plot$b, input$n_samp)), 3)
+    # Create summary data frame
+    x = c(-5, 35) # seq(-5, 35, 0.1)
+    y = apply(mb_samples$df, 1, function(y) y[1]* x + y[2])
+
+    lm_dist$df <- data.frame(x = x,
+                             p025 = apply(y, 1, function(x) quantile(x, 0.025)),
+                             p125 = apply(y, 1, function(x) quantile(x, 0.125)),
+                             p875 = apply(y, 1, function(x) quantile(x, 0.875)),
+                             p975 = apply(y, 1, function(x) quantile(x, 0.975)),
+                             mean = apply(y, 1, function(x) mean(x)))
   })
   output$mb_samps <- renderDT(mb_samples$df, selection = "none",
                               # options = list(searching = FALSE, paging = TRUE, ordering= FALSE, dom = "t", autoWidth = TRUE,
@@ -474,6 +488,9 @@ shinyServer(function(input, output, session) {
                               rownames = FALSE,
                               server = FALSE, escape = FALSE)
 
+
+
+  # Add linear models to plot ----
   output$add_lin_mods <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -486,18 +503,6 @@ shinyServer(function(input, output, session) {
       need(input$plot_airt_swt > 0,
            message = "Click 'Plot'")
     )
-
-    if(input$add_dist) {
-      x = seq(-5, 30, 0.1)
-      y = apply(mb_samples$df, 1, function(y) y[1]* x + y[2])
-
-      df <- data.frame(x = x,
-                       p025 = apply(y, 1, function(x) quantile(x, 0.025)),
-                       p125 = apply(y, 1, function(x) quantile(x, 0.125)),
-                       p875 = apply(y, 1, function(x) quantile(x, 0.875)),
-                       p975 = apply(y, 1, function(x) quantile(x, 0.975)),
-                       mean = apply(y, 1, function(x) mean(x)))
-    }
 
     p <- ggplot() +
       geom_vline(xintercept = 0) +
@@ -514,9 +519,10 @@ shinyServer(function(input, output, session) {
     }
     if(input$add_dist) {
       p <- p +
-        geom_ribbon(data = df, aes(x, ymin = p025, ymax = p975, fill = "95%"), alpha = 0.3) +
-        geom_ribbon(data = df, aes(x, ymin = p125, ymax = p875, fill = "75%"), alpha = 0.3) +
-        geom_line(data = df, aes(x, mean, color = "Mean"))
+        geom_ribbon(data = lm_dist$df, aes(x, ymin = p025, ymax = p975, fill = "95%"), alpha = 0.3) +
+        geom_ribbon(data = lm_dist$df, aes(x, ymin = p125, ymax = p875, fill = "75%"), alpha = 0.3) +
+        geom_line(data = lm_dist$df, aes(x, mean, color = "Mean")) +
+        scale_fill_manual(values = l.cols)
     }
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -527,6 +533,183 @@ shinyServer(function(input, output, session) {
     }
     return(gp)
   })
+
+  # Investigate model error
+  output$mod_err_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$n_samp), "Select number of samples")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(input$gen_lin_mods > 0,
+           message = "Add lines")
+    )
+
+
+    p <- ggplot(data = airt_swt$df, aes(X, Y)) +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(color = "black") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      coord_cartesian(xlim = c(-5, 35), ylim = c(-5, 35)) +
+      theme_bw(base_size = 16)
+
+    p <- p +
+      geom_line(data = lm_dist$df, aes(x, mean, color = "Linear regression")) +
+      scale_color_manual(values = cols[2])
+
+    return(p)
+  })
+
+  click_df <- reactiveValues(df = NULL)
+  observe({
+    req(!is.null(lm_dist$df))
+    pnts <- nearPoints(airt_swt$df, input$mod_err_plot_click)[, -1]
+    # class(pnts)
+    brsh <- brushedPoints(airt_swt$df, brush = input$mod_err_plot_brush)[, -1]
+    df <- rbind(pnts, brsh)
+    df <- round(df, 1)
+    # idx <- which(lm_dist$df$x %in% df$X)
+    df$`Modelled Water Temp.` <- linr_stats$dt[1, 1] * df$X + linr_stats$dt[1, 3]
+    colnames(df)[1:2] <- c("Air Temp.", "Observed Water Temp.")
+    df$Error <- df[, 3] - df[, 2]
+    click_df$df <- df
+    mean_err$val <- NULL
+  })
+
+
+  output$click_dt <- renderDT(click_df$df, selection = "none",
+                            colnames = c("Air Temp.", "Observed Water Temp.", "Modelled Water Temp.", "Mod - Obs"),
+                            options = list(pageLength = 5),
+                              rownames = FALSE,
+                              server = FALSE, escape = FALSE)
+
+  # Calculate mean error
+  mean_err <- reactiveValues(val = NULL)
+  observeEvent(input$calc_err, {
+    req(!is.null(click_df$df))
+    mean_err$val <- mean(click_df$df$Error, na.rm = TRUE)
+  })
+
+  output$mean_err <- renderText({
+    validate(
+      need(!is.null(click_df$df), "Please select points on the plot.")
+    )
+    validate(
+      need(!is.null(mean_err$val), "Click calculate.")
+    )
+    paste0("The mean model error is ", round(mean_err$val, 1), " \u00B0C.")
+  })
+
+  # Calculate error w/ UC
+  output$mod_err_uc_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$n_samp), "Select number of samples")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(input$gen_lin_mods > 0,
+           message = "Add lines")
+    )
+
+    p <- ggplot() +
+      geom_ribbon(data = lm_dist$df, aes(x, ymin = p025, ymax = p975, fill = "95%"), alpha = 0.3) +
+      geom_ribbon(data = lm_dist$df, aes(x, ymin = p125, ymax = p875, fill = "75%"), alpha = 0.3) +
+      geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      # coord_cartesian(xlim = c(-5, 35), ylim = c(-5, 35)) +
+      theme_bw(base_size = 16)
+
+    p <- p +
+      geom_line(data = lm_dist$df, aes(x, mean, color = "Linear regression")) +
+      scale_color_manual(values = cols[7]) +
+      scale_fill_manual(values = l.cols)
+    if(nrow(airt_swt$sel) != 0) {
+      p <- p +
+        geom_point(data = airt_swt$sel, aes(X, Y), color = cols[2])
+    }
+
+    gp <- ggplotly(p, dynamicTicks = TRUE, source = "ci_sel")
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
+
+  selected <- reactiveValues(sel = NULL)
+
+  observeEvent(input$clear_sel1, {
+    print("Test1")
+    airt_swt$sel <- NULL
+    selected$sel <- NULL
+  })
+
+  #selected
+  observe({
+    # suppress warnings
+    storeWarn<- getOption("warn")
+    options(warn = -1)
+    selected$sel <- event_data(event = "plotly_selected", source = "ci_sel")
+
+    #restore warnings, delayed so plot is completed
+    shinyjs::delay(expr =({
+      options(warn = storeWarn)
+    }) ,ms = 100)
+  })
+
+  output$sel_points <- renderText({
+    n <- 0
+    if(!is.null(airt_swt$sel)) {
+      n <- nrow(airt_swt$sel)
+    }
+    paste0("Number of selected points: ", n)
+  })
+
+  output$total_points <- renderText({
+    validate(
+      need(!is.null(airt_swt$df), "Need SOMETHING?")
+    )
+    n_pnts = nrow(na.exclude(airt_swt$df))
+    paste0("Total number of points: ", n_pnts)
+  })
+
+  pct_msg <- reactiveValues(txt = NULL)
+  observeEvent(input$calc_pct, {
+    n_pnts = nrow(na.exclude(airt_swt$df))
+    insid <- n_pnts - (input$points_above + input$points_below)
+    pct_msg$txt <- paste0("Percentage points inside the CI: ", round((insid * 100 / n_pnts), 2), "%")
+  })
+
+  output$pct_inside <- renderText({
+    validate(
+      need(!is.null(pct_msg$txt), "Click calculate")
+    )
+    pct_msg$txt
+  })
+
+
+  # Activity A ----
 
   # Load NOAA airT
   noaa_df <- reactiveValues(airt = NULL, swr = NULL)
@@ -1096,7 +1279,7 @@ shinyServer(function(input, output, session) {
       theme_bw(base_size = 22)
     return(p)
     })
-    
+
   output$run_mod0_plot <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
