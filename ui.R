@@ -678,14 +678,14 @@ border-color: #FFF;
                                  p("Before we begin generating an ecological forecast with uncertainty we will explore some key statistical and probability concepts."),
                                  p("What is a population?"),
                                  tags$ul(
-                                   tags$li(module_text["what_forecast", ])
+                                   tags$li(module_text["population", ])
                                  ),
                                  p("What is a sample?"),
                                  tags$ul(
-                                   tags$li(module_text["why_forecast", ])
+                                   tags$li(module_text["sample", ])
                                  ),
                                  p("What is a statistical parameter"),tags$ul(
-                                   tags$li(module_text["how_forecast", ])
+                                   tags$li(module_text["parameter", ])
                                  ),
                                  p("Click through the slides to recap some of the main points from the lecture.")
                           ),
@@ -699,14 +699,18 @@ border-color: #FFF;
                                  )
                           ),
                         hr(),
+                        #* Linear regression ----
                         fluidRow(
                           column(6,
                                  h3("Linear Regression"),
                                  p("We will explore the relationship between air temperature and surface water temperature"),
+                                 div("The formula for a linear regression is: $$y = mx + b$$"),
+                                 p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
+                                 div("$$wtemp = m * airtemp + b$$"),
                                  actionButton("plot_airt_swt", "Plot")
                                  ),
                           column(6,
-                                 h4("Interactive Linear Regression plot..."),
+                                 h4("Interactive Linear Regression plot"),
                                  p("Plot the air temperature against the surface water temperature,"),
                                  wellPanel(
                                    plotOutput("airt_swt_plot")
@@ -715,13 +719,17 @@ border-color: #FFF;
                           ),
                         hr(),
                         fluidRow(
-                          column(6,
-                                 h3("Draw a line through the most points"),
+                          column(3,
+                                 h3("Build your own linear regression"),
                                  p("By adjusting the y-intercept (b) and the slope (m), draw 10 lines which represent the relationship between air temperature and surface water temperature."),
-                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.1),
+                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
+                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
                                  actionButton("draw_line", "Draw line"),
                                  numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
                                  actionButton("save_line", "Save line"),
+                                 p("You can also select a row in the table and then click 'Save line' to remove an entry."),
+                          ),
+                          column(3,
                                  DTOutput("lr_DT", width = "40%")
                                  ),
                           column(6,
@@ -730,6 +738,7 @@ border-color: #FFF;
                                    )
                                  )
                         ),
+                        #* Generate distributions for intercept & slope ----
                         hr(),
                         fluidRow(
                           column(6,
@@ -751,6 +760,7 @@ border-color: #FFF;
                                  )
                           ),
                         hr(),
+                        #* Adding multiple lines ----
                         fluidRow(
                           column(3,
                                  h3("Create multiple lines"),
@@ -758,6 +768,7 @@ border-color: #FFF;
                                  radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_lin_mods", "Add lines"),
                                  conditionalPanel("input.gen_lin_mods >= 1",
+                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of"),
                                                   checkboxInput("add_dist", "Distribution plot")),
                           ),
                           column(3,
@@ -768,6 +779,7 @@ border-color: #FFF;
                                  )
                           ),
                         hr(),
+                        #* Calculation model error - deterministic ----
                         fluidRow(
                           column(6,
                                  h3("Calculating model error"),
@@ -792,6 +804,7 @@ border-color: #FFF;
                                  )
                           ),
                         hr(),
+                        #* Calculation model error - probabilistic ----
                         fluidRow(
                           column(6,
                                  h3("Calculating model error with uncertainty"),
@@ -802,7 +815,10 @@ border-color: #FFF;
                                  numericInput("points_above", "Number of points above the confidence interval", 0, min = 0, max = 1000, step = 1),
                                  numericInput("points_below", "Number of points below the confidence interval", 0, min = 0, max = 1000, step = 1),
                                  textOutput("pct_inside"),
-                                 actionButton("calc_pct", "Calculate percentage points inside the confidence intervals.")
+                                 actionButton("calc_pct", "Calculate percentage points inside the confidence intervals."),
+                                 p("Does the percentage of points inside your confidence intervals match your intervals?"),
+                                 p("If not, why do you think that is?"),
+                                 p("If you were to go back and repeat this exercise, what would you do differently?")
                           ),
                           column(6,
                                  plotlyOutput("mod_err_uc_plot"),
@@ -811,7 +827,7 @@ border-color: #FFF;
                           )
                         ),
 
-               # 7. Activity A ----
+               # 6. Activity A ----
                tabPanel(title = "Activity A", value = "mtab7",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
@@ -845,11 +861,13 @@ border-color: #FFF;
                                  p(id = "txt_j", module_text["weather_forecast1", ]),
                                  p(id = "txt_j", HTML(paste0("Weather forecasts are produced using ",tags$b("ensemble modelling"), "."))),
                                  p(id = "txt_j", module_text["ens_mod1", ]),
-                                 p(id = "txt_j", "Each simulation in an ensemble is called a _member_."),
+                                 p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member"), "."),
                                  p(id = "txt_j", module_text["weather_forecast2", ])
                           ),
                           column(6,
-                                 p("Some image of a weather forecast...")
+                                 p("Some image of a weather forecast..."),
+                                 img(src = "weather_fc.png", width = "90%",
+                                     align = "center")
                                  )
                           ),
                         fluidRow(
@@ -1039,16 +1057,18 @@ border-color: #FFF;
                         fluidRow(
                           column(5,
                                  h4("Probabilistic forecast"),
-                                 p("We have created ")
+                                 p("We have created a forecast with multiple different realizations of the future. How do we calculate a ", tags$em("probabilistic"), " forecast from these different realizations?"),
+                                 p("We can calculate descriptive statistics about the distribution of the forecasts (e.g. mean and standard deviation) and then use that to calculate different levels of confidence."),
+                                 p("Calculate the daily mean and standard deviation from the forecasts above."),
+                                 p("Use these calculations to convert")
                           ),
                           column(5, offset = 1,
                                  h4("Primary Productivity Forecast"),
-                                 # plotOutput("driv_fc_plot0")
                           )
                         )
                         ),
 
-               # 8. Activity B ----
+               # 7. Activity B ----
                tabPanel(title = "Activity B", value = "mtab8",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
