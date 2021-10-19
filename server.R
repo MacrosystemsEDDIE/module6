@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
 
   # to keep track of previously selected row
   prev_row <- reactiveVal()
-  siteID <- reactiveVal()
+  siteID <- reactiveValues(lab = NULL)
 
   # new icon style
   my_icon = makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'white')
@@ -45,7 +45,7 @@ shinyServer(function(input, output, session) {
   neon_chla <- reactiveValues(df = NULL)
   observeEvent(input$table01_rows_selected, {
     row_selected = neon_sites[input$table01_rows_selected, ]
-    siteID <<- neon_sites$siteID[input$table01_rows_selected]
+    siteID$lab <- neon_sites$siteID[input$table01_rows_selected]
     coords <- st_coordinates(row_selected)
     colnames(coords) <- c("long", "lat")
     row_selected = cbind(row_selected, coords)
@@ -69,7 +69,7 @@ shinyServer(function(input, output, session) {
     # Load Chl-a observations
     read_var <- neon_vars$id[which(neon_vars$Short_name == "Chlorophyll-a")]
     units <- neon_vars$units[which(neon_vars$Short_name == "Chlorophyll-a")]
-    file <- file.path("data", "neon", paste0(siteID, "_", read_var, "_", units, ".csv"))
+    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
     if(file.exists(file)) {
       chla <- read.csv(file)
       chla[, 1] <- as.POSIXct(chla[, 1], tz = "UTC")
@@ -93,6 +93,7 @@ shinyServer(function(input, output, session) {
   pheno_file <- reactiveValues(img = NULL)
   observeEvent(input$view_webcam, {
 
+    req(!is.null(siteID$lab))
     progress <- shiny::Progress$new()
     # Make sure it closes when we exit this reactive, even if there's an error
     on.exit(progress$close())
@@ -101,7 +102,7 @@ shinyServer(function(input, output, session) {
                      when it is downloaded.", value = 0.5)
 
     p <- input$neonmap_marker_click
-    idx <- which(neon_sites_df$siteID == siteID)
+    idx <- which(neon_sites_df$siteID == siteID$lab)
     url <- neon_sites_df$pheno_url[idx]
     pheno_file$img <<- download_phenocam(url)
     progress$set(value = 1)
@@ -153,6 +154,42 @@ shinyServer(function(input, output, session) {
     output$prompt2 <- renderText({
       "Click on the link below to find out more information about your site."
     })
+
+    ref <- "Air temperature"
+    x_var <- neon_vars$id[which(neon_vars$Short_name == ref)][1]
+    x_units <- neon_vars$units[which(neon_vars$Short_name == ref)][1]
+    x_file <- file.path("data", "neon", paste0(siteID$lab, "_", x_var, "_", x_units, ".csv"))
+    validate(
+      need(file.exists(x_file), message = paste0(ref, " is not available at this site."))
+    )
+    xvar <- read.csv(x_file)
+    xvar[, 1] <- as.POSIXct(xvar[, 1], tz = "UTC")
+    xvar$Date <- as.Date(xvar[, 1])
+    xvar <- plyr::ddply(xvar, c("Date"), function(x) mean(x[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
+
+
+    ref2 <- "Surface water temperature"
+    y_var <- neon_vars$id[which(neon_vars$Short_name == ref2)][1]
+    y_units <- neon_vars$units[which(neon_vars$Short_name == ref2)][1]
+    y_file <- file.path("data", "neon", paste0(siteID$lab, "_", y_var, "_", y_units, ".csv"))
+    validate(
+      need(file.exists(y_file), message = paste0(ref2, " is not available at this site."))
+    )
+    yvar <- read.csv(y_file)
+    yvar[, 1] <- as.POSIXct(yvar[, 1], tz = "UTC")
+    yvar$Date <- as.Date(yvar[, 1])
+    if(ref2 == "Surface water temperature") {
+      yvar <- yvar[yvar[, 2] == min(yvar[, 2], na.rm = TRUE), c(1, 3)] # subset to Surface water temperature
+    }
+    yvar <- plyr::ddply(yvar, c("Date"), function(y) mean(y[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
+
+    df <- merge(xvar, yvar, by = "Date")
+
+    validate(
+      need(nrow(df) > 0, message = "No variables at matching timesteps.")
+    )
+    colnames(df)[-1] <- c("X", "Y")
+    airt_swt$df <- df
   })
 
   # Read in site data ----
@@ -164,7 +201,7 @@ shinyServer(function(input, output, session) {
 
     read_var <- neon_vars$id[which(neon_vars$Short_name == input$view_var)][1]
     units <- neon_vars$units[which(neon_vars$Short_name == input$view_var)][1]
-    file <- file.path("data", "neon", paste0(siteID, "_", read_var, "_", units, ".csv"))
+    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
     validate(
       need(file.exists(file), message = "This variable is not available at this site. Please select a different variable or site.")
     )
@@ -223,7 +260,7 @@ shinyServer(function(input, output, session) {
     )
     read_var <- neon_vars$id[which(neon_vars$Short_name == input$view_var)][1]
     units <- neon_vars$units[which(neon_vars$Short_name == input$view_var)][1]
-    file <- file.path("data", "neon", paste0(siteID, "_", read_var, "_", units, ".csv"))
+    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
     validate(
       need(file.exists(file), message = "This variable is not available at this site. Please select a different variable or site.")
     )
@@ -250,46 +287,11 @@ shinyServer(function(input, output, session) {
 
   # Stats 101 ----
   # Load airt & SWT
-  airt_swt <- reactiveValues(df = NULL, sel = NULL)
-  observeEvent(input$plot_airt_swt, { # view_var
+  airt_swt <- reactiveValues(df = NULL, sub = NULL, sel = NULL)
+  observeEvent(input$plot_airt_swt2, { # view_var
 
-    req(input$table01_rows_selected != "")
-
-    ref <- "Air temperature"
-    x_var <- neon_vars$id[which(neon_vars$Short_name == ref)][1]
-    x_units <- neon_vars$units[which(neon_vars$Short_name == ref)][1]
-    x_file <- file.path("data", "neon", paste0(siteID, "_", x_var, "_", x_units, ".csv"))
-    validate(
-      need(file.exists(x_file), message = paste0(ref, " is not available at this site."))
-    )
-    xvar <- read.csv(x_file)
-    xvar[, 1] <- as.POSIXct(xvar[, 1], tz = "UTC")
-    xvar$Date <- as.Date(xvar[, 1])
-    xvar <- plyr::ddply(xvar, c("Date"), function(x) mean(x[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
-
-
-    ref2 <- "Surface water temperature"
-    y_var <- neon_vars$id[which(neon_vars$Short_name == ref2)][1]
-    y_units <- neon_vars$units[which(neon_vars$Short_name == ref2)][1]
-    y_file <- file.path("data", "neon", paste0(siteID, "_", y_var, "_", y_units, ".csv"))
-    validate(
-      need(file.exists(y_file), message = paste0(ref2, " is not available at this site."))
-    )
-    yvar <- read.csv(y_file)
-    yvar[, 1] <- as.POSIXct(yvar[, 1], tz = "UTC")
-    yvar$Date <- as.Date(yvar[, 1])
-    if(ref2 == "Surface water temperature") {
-      yvar <- yvar[yvar[, 2] == min(yvar[, 2], na.rm = TRUE), c(1, 3)] # subset to Surface water temperature
-    }
-    yvar <- plyr::ddply(yvar, c("Date"), function(y) mean(y[, 2], na.rm = TRUE)) # Daily average - also puts everything on same timestamp
-
-    df <- merge(xvar, yvar, by = "Date")
-
-    validate(
-      need(nrow(df) > 0, message = "No variables at matching timesteps.")
-    )
-    colnames(df)[-1] <- c("X", "Y")
-    airt_swt$df <- df
+    req(!is.null(airt_swt$df))
+    airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
   })
 
   observe({
@@ -310,14 +312,32 @@ shinyServer(function(input, output, session) {
       need(input$plot_airt_swt > 0,
            message = "Click 'Plot'")
     )
+    df <- airt_swt$df
+    df$X[is.na(df$Y)] <- NA
+    df$Y[is.na(df$X)] <- NA
     p <- ggplot() +
-      geom_vline(xintercept = 0) +
+      # geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
-      ylab("Surface water temperature (\u00B0C)") +
-      xlab("Air temperature (\u00B0C)") +
+      geom_line(data = df, aes(Date, X, color = "Air temperature")) +
+      geom_line(data = df, aes(Date, Y, color = "Water temperature")) +
+      scale_color_manual(values = cols[5:6]) +
+    # geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
       theme_bw(base_size = 18)
     return(p)
+  })
+
+  output$date_slider1 <- renderUI({
+    req(!is.null(airt_swt$df))
+    sliderInput("date1", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(min(airt_swt$df$Date), min(airt_swt$df$Date) + 100))
+  })
+
+  # Reset plot when adjusting dates
+  observeEvent(input$date1, {
+    airt_swt$sub <- NULL
+    lm_fit$fit <- NULL
   })
 
   # Add dashed lines to build reg plot
@@ -329,15 +349,20 @@ shinyServer(function(input, output, session) {
   })
 
   # Data table to store 10 lines
-  lr_pars <- reactiveValues(dt = data.frame(m = rep(NA, 10), b = rep(NA, 10)))
+  lr_pars <- reactiveValues(dt = data.frame(m = rep(NA, 5), b = rep(NA, 5),
+                                            start = rep(NA, 5), stop = rep(NA, 5),
+                                            mean_err = rep(NA, 5), label = rep(NA, 5)))
   output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("Slope (m)", "Intercept (b)"),
+                           ), colnames = c("Slope (m)", "Intercept (b)", "Start", "Stop", "Mean Error (\u00B0C)", "N"), rownames = FALSE,
                            server = FALSE, escape = FALSE)
 
   # Add red saved lines to plot & DT
   observeEvent(input$save_line, {
+    req(!is.null(airt_swt$sub))
+    req(!is.na(input$m))
+    req(!is.na(input$b))
     if(input$save_line == 1) {
       sav_lines$m <- input$m
       sav_lines$b <- input$b
@@ -345,13 +370,23 @@ shinyServer(function(input, output, session) {
       sav_lines$m <- c(sav_lines$m, input$m)
       sav_lines$b <- c(sav_lines$b, input$b)
     }
+    mod <- (input$m * airt_swt$sub$X) + input$b
+    mean_err <- round(mean(mod - airt_swt$sub$Y, na.rm = TRUE), 2)
     if(!is.null(input$lr_DT_rows_selected)) {
       lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
       lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
+      lr_pars$dt$start[input$lr_DT_rows_selected] <- as.character(input$date1[1])
+      lr_pars$dt$stop[input$lr_DT_rows_selected] <- as.character(input$date1[2])
+      lr_pars$dt$mean_err[input$lr_DT_rows_selected] <- mean_err
+      lr_pars$dt$label[input$lr_DT_rows_selected] <- paste0("N=", nrow(na.exclude(airt_swt$sub)))
     } else {
       idx <- which(is.na(lr_pars$dt$m))[1]
       lr_pars$dt$m[idx] <- input$m
       lr_pars$dt$b[idx] <- input$b
+      lr_pars$dt$start[idx] <- as.character(input$date1[1])
+      lr_pars$dt$stop[idx] <- as.character(input$date1[2])
+      lr_pars$dt$mean_err[idx] <- mean_err
+      lr_pars$dt$label[idx] <- paste0("N=", nrow(na.exclude(airt_swt$sub)))
     }
   })
 
@@ -362,18 +397,21 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(airt_swt$df),
-           message = "Click 'Plot'")
+      need(!is.na(reg_line$m), "Ensure numeric values in the 'Slope (m)' box. (Check for spaces!)")
     )
     validate(
-      need(input$plot_airt_swt > 0,
+      need(!is.na(reg_line$b), "Ensure numeric values in the 'Intercept (b)' box. (Check for spaces!)")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
            message = "Click 'Plot'")
     )
+    df <- na.exclude(airt_swt$sub)
 
     p <- ggplot() +
       geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      geom_point(data = df, aes(X, Y), color = "black") +
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Air temperature (\u00B0C)") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
@@ -384,10 +422,36 @@ shinyServer(function(input, output, session) {
         geom_abline(slope = reg_line$m, intercept = reg_line$b, color = "gray", linetype = "dashed")
     }
     if(input$save_line > 0) {
+      dat <- na.exclude(lr_pars$dt)
       p <- p +
-        geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
+        # geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
+        geom_abline(data = dat, aes(slope = m, intercept = b, color = label),
+                    linetype = "solid")
     }
+
+    if(!is.null(lm_fit$fit)) {
+      p <- p +
+        geom_smooth(data = df, aes(X, Y), method = "lm", formula = "y ~ x")
+    }
+
     return(ggplotly(p, dynamicTicks = TRUE))
+  })
+
+  # Add lm fit
+  lm_fit <- reactiveValues(fit = NULL)
+  observeEvent(input$add_lm, {
+    req(!is.null(airt_swt$sub))
+    df <- airt_swt$sub
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    lm_fit$fit <- lm(wtemp ~ airt, data = df)
+  })
+
+  output$lm_out <- renderPrint({
+    validate(
+      need(!is.null(lm_fit$fit), "Click 'Add linear model'")
+    )
+    summary(lm_fit$fit)
+    # summary(lm_fit$fit)
   })
 
   # Calculate statistics from the lines drawn
@@ -723,7 +787,7 @@ shinyServer(function(input, output, session) {
                  detail = "This may take a while. This window will disappear
                      when it is finished loading.", value = 0.1)
 
-    fpath <- file.path("data", "NOAAGEFS_1hr", siteID)
+    fpath <- file.path("data", "NOAAGEFS_1hr", siteID$lab)
     fc_date <- list.files(fpath)[1]
     fpath2 <- file.path(fpath, fc_date[1], "00")
     fils <- list.files(fpath2, full.names = TRUE)
@@ -743,7 +807,7 @@ shinyServer(function(input, output, session) {
 
       for( i in seq_len(length(fils))) {
 
-        fid <- ncdf4::nc_open(file.path("data", "NOAAGEFS_1hr", siteID, dat,
+        fid <- ncdf4::nc_open(file.path("data", "NOAAGEFS_1hr", siteID$lab, dat,
                                         "00", fils[i]))
         tim = ncvar_get(fid, "time")
         tunits = ncatt_get(fid, "time")
@@ -798,7 +862,7 @@ shinyServer(function(input, output, session) {
 
     names(out) <- fc_date
     # out$`2020-09-25`$L1 <- "Air temperature"
-    idx <- which(met_pars$Site == siteID)
+    idx <- which(met_pars$Site == siteID$lab)
 
     noaa_df$airt <- reshape::melt(out[[1]][out[[1]]$L1 == "air_temperature", ], id.vars = c("time", "L1"))
     noaa_df$swr <- reshape::melt(out[[1]][out[[1]]$L1 == "surface_downwelling_shortwave_flux_in_air", ], id.vars = c("time", "L1"))
@@ -814,7 +878,7 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
     )
-    return(paste0("Forecast loaded for ", siteID))
+    return(paste0("Forecast loaded for ", siteID$lab))
   })
 
   # output$noaa_at_plot <- renderPlot({

@@ -702,40 +702,57 @@ border-color: #FFF;
                         #* Linear regression ----
                         fluidRow(
                           column(6,
-                                 h3("Linear Regression"),
-                                 p("We will explore the relationship between air temperature and surface water temperature"),
-                                 div("The formula for a linear regression is: $$y = mx + b$$"),
-                                 p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
-                                 div("$$wtemp = m * airtemp + b$$"),
-                                 actionButton("plot_airt_swt", "Plot")
+                                 h3("Investigate variable relationship"),
+                                 p("We will explore the relationship between air temperature and surface water temperature."),
+                                 p("First, we will look at a time series of the data."),
+                                 actionButton("plot_airt_swt", "Plot"),
+                                 radioButtons("lin_reg_q1", "Do you think there is a linear relationship between air temperature and water temperature?", choices = c("Yes", "No"), selected = character(0), inline = TRUE),
+                                 conditionalPanel("input.lin_reg_q1 == 'Yes'",
+                                                  p(tags$b("Good job!")),
+                                                  p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
+                                                  br(),
+                                                  h4("Linear Regression"),
+                                                  div("The formula for a linear regression is: $$y = mx + b$$"),
+                                                  p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
+                                                  div("$$wtemp = m * airtemp + b$$"),
+                                                  p("where ", tags$em("m"), "is the slope and ", tags$em("b"), " is the intercept")
+                                                  ),
+                                 conditionalPanel("input.lin_reg_q1 == 'No'",
+                                                  p(tags$em("Are you sure?"))
+                                                  )
                                  ),
                           column(6,
-                                 h4("Interactive Linear Regression plot"),
-                                 p("Plot the air temperature against the surface water temperature,"),
+                                 h4("Time series of air temperature and water temperature"),
+                                 p("Plot the time series of the air temperature and the surface water temperature. Compare the seasonal cycles."),
                                  wellPanel(
                                    plotOutput("airt_swt_plot")
-                                 )
+                                   )
                                  )
                           ),
                         hr(),
                         fluidRow(
                           column(3,
                                  h3("Build your own linear regression"),
+                                 p("Select the range of dates for which to use to build your linear regression model."),
+                                 uiOutput("date_slider1"),
+                                 actionButton("plot_airt_swt2", "Plot"),
                                  p("By adjusting the y-intercept (b) and the slope (m), draw 10 lines which represent the relationship between air temperature and surface water temperature."),
                                  p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
                                  numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
                                  actionButton("draw_line", "Draw line"),
                                  numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
                                  actionButton("save_line", "Save line"),
-                                 p("You can also select a row in the table and then click 'Save line' to remove an entry."),
+                                 p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
                           ),
-                          column(3,
+                          column(4,
                                  DTOutput("lr_DT", width = "40%")
                                  ),
-                          column(6,
+                          column(5,
                                  wellPanel(
                                    plotlyOutput("airt_swt_plot_lines")
-                                   )
+                                   ),
+                                 actionButton("add_lm", "Add linear model"),
+                                 verbatimTextOutput("lm_out")
                                  )
                         ),
                         #* Generate distributions for intercept & slope ----
