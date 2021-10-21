@@ -78,5 +78,8 @@ mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = ele
                  panel.grid.major = element_line(colour = "gray"),
                  legend.text=element_text(size=16),
                  legend.title = element_text(size = 20))
+# Linear regression variables ----
+lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
+                         fileEncoding = "UTF-8-BOM")
 
 # end

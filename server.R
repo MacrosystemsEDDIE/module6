@@ -355,7 +355,7 @@ shinyServer(function(input, output, session) {
   output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("Slope (m)", "Intercept (b)", "Start", "Stop", "Mean Error (\u00B0C)", "N"), rownames = FALSE,
+                           ), colnames = c("Slope (m)", "Intercept (b)", "Start", "Stop", "Cor.", "N"), rownames = FALSE,
                            server = FALSE, escape = FALSE)
 
   # Add red saved lines to plot & DT
@@ -371,7 +371,10 @@ shinyServer(function(input, output, session) {
       sav_lines$b <- c(sav_lines$b, input$b)
     }
     mod <- (input$m * airt_swt$sub$X) + input$b
-    mean_err <- round(mean(mod - airt_swt$sub$Y, na.rm = TRUE), 2)
+    df <- data.frame(obs = airt_swt$sub$Y, mod = mod)
+    df <- na.exclude(df)
+    # mean_err <- round(mean(mod - airt_swt$sub$Y, na.rm = TRUE), 2)
+    mean_err <- round(cor(df$obs, df$mod), 2)
     if(!is.null(input$lr_DT_rows_selected)) {
       lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
       lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
@@ -421,11 +424,11 @@ shinyServer(function(input, output, session) {
       p <- p +
         geom_abline(slope = reg_line$m, intercept = reg_line$b, color = "gray", linetype = "dashed")
     }
-    if(input$save_line > 0) {
-      dat <- na.exclude(lr_pars$dt)
+    pars <- na.exclude(lr_pars$dt)
+    if(nrow(pars) > 0) {
       p <- p +
         # geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
-        geom_abline(data = dat, aes(slope = m, intercept = b, color = label),
+        geom_abline(data = pars, aes(slope = m, intercept = b, color = label),
                     linetype = "solid")
     }
 
@@ -434,6 +437,58 @@ shinyServer(function(input, output, session) {
         geom_smooth(data = df, aes(X, Y), method = "lm", formula = "y ~ x")
     }
 
+    return(ggplotly(p, dynamicTicks = TRUE))
+  })
+
+  # Plot water temp ts with model
+  output$lm_ts_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$df),
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
+    df <- airt_swt$df
+    df$X[is.na(df$Y)] <- NA
+    df$Y[is.na(df$X)] <- NA
+
+    pars <- na.exclude(lr_pars$dt)
+
+    if(nrow(pars) > 0) {
+      mod <- lapply(1:nrow(pars), function(x) {
+        data.frame(Date = airt_swt$df$Date,
+                   Model = pars$m[x] * airt_swt$df$X + pars$b[x])
+      })
+      names(mod) <- pars$label
+      mlt <- reshape::melt(mod, id.vars = "Date")
+      colnames(mlt)[4] <- "Label"
+    }
+
+    p <- ggplot() +
+      # geom_vline(xintercept = 0) +
+      geom_hline(yintercept = 0) +
+      # geom_line(data = df, aes(Date, X, color = "Air temperature")) +
+      geom_point(data = df, aes(Date, Y, color = "Observed")) +
+      # scale_color_manual(values = cols[5:6]) +
+      # geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
+      theme_bw(base_size = 12)
+
+    if(nrow(pars) > 0) {
+      p <- p +
+        geom_line(data = mlt, aes(Date, value, color = Label)) +
+        scale_color_manual(values = cols)
+    }
+
+    # return(p)
     return(ggplotly(p, dynamicTicks = TRUE))
   })
 
@@ -448,7 +503,7 @@ shinyServer(function(input, output, session) {
 
   output$lm_out <- renderPrint({
     validate(
-      need(!is.null(lm_fit$fit), "Click 'Add linear model'")
+      need(!is.null(lm_fit$fit), "Click 'Fit linear model'")
     )
     summary(lm_fit$fit)
     # summary(lm_fit$fit)
@@ -770,6 +825,188 @@ shinyServer(function(input, output, session) {
       need(!is.null(pct_msg$txt), "Click calculate")
     )
     pct_msg$txt
+  })
+
+  # Build a forecast model ----
+  output$mult_lin_reg_eqn <- renderUI({
+    validate(
+      need(!is.null(input$mult_lin_reg_vars),
+           message = "Please select predictors.")
+    )
+    idx <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars)
+    formula <- paste0("$$ wtemp =  ", paste0("\\beta_{", 1:length(idx), "} * ", lin_reg_vars$latex[idx], collapse = " + "), " + b $$")
+    withMathJax(
+      tags$p(formula)
+    )
+  })
+
+  mlr_fit <- reactiveValues(lst = list())
+  mlr_pred <- reactiveValues(lst = list())
+
+  observeEvent(input$fit_mlr, {
+    req(!is.null(input$mult_lin_reg_vars))
+
+    inp_row <- which(is.na(mlr$dt$Equation))[1]
+
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$Y,
+                      airt = airt_swt$df$X,
+                      wtemp_lag = NA, wtemp_mean = NA,
+                      airt_lag = NA, airt_mean = NA)
+    dat$wtemp_lag[-c(1:input$lag_t)] <- dat$wtemp[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
+    dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], input$mean_t, na.pad = TRUE, align = "right"))
+    dat$airt_lag[-c(1:input$lag_t)] <- dat$airt[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
+    dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], input$mean_t, na.pad = TRUE, align = "right"))
+
+    idx <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars)
+
+    dat <- dat[, c("Date", "wtemp", "airt", lin_reg_vars$var[idx])]
+
+    # Subset to training data
+    train <- dat[dat$Date >= input$train_date[1] & dat$Date <= input$train_date[2], ]
+
+    eval(parse(text = paste0("fit <- lm(wtemp ~ ", paste0(lin_reg_vars$var[idx], collapse = " + "), ", data = train)")))
+
+    mlr_out$txt <- summary(fit)
+
+    coeffs <- round(fit$coefficients, 2)
+    if(coeffs[1] > 0) {
+      b <- paste0("+", coeffs[1])
+    } else {
+      b <- coeffs[1]
+    }
+    # coeffs <- round(coeffs[c(2:(length(coeffs)), 1)], 2)
+    mod <- predict(fit, dat)
+    df2 <- data.frame(obs = dat$wtemp, mod = mod, diff = mod - dat$wtemp)
+    df2 <- na.exclude(df2)
+    r2 <- round(cor(df2$obs, df2$mod), 2)
+    err <- mean(mod - dat$wtemp, na.rm = TRUE)
+
+    if(!is.null(input$mlr_dt_rows_selected)) {
+      mlr$dt$Equation[input$mlr_dt_rows_selected] <- paste0("$$ wtemp =  ", paste0(coeffs[-1], " * ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
+      mlr$dt$lag[input$mlr_dt_rows_selected] <- input$lag_t
+      mlr$dt$mean_day[input$mlr_dt_rows_selected] <- input$mean_t
+      mlr$dt$mean_err[input$mlr_dt_rows_selected] <- r2
+      mlr_pred$lst[[input$mlr_dt_rows_selected]] <- data.frame(Date = dat$Date,
+                                            Model = mod)
+      mlr_fit$lst[[input$mlr_dt_rows_selected]] <- fit
+    } else if(inp_row <= 5) {
+      # idx <- which(is.na(lr_pars$dt$m))[1]
+      mlr$dt$Equation[inp_row] <- paste0("$$ wtemp =  ", paste0(coeffs[-1], " * ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
+      mlr$dt$lag[inp_row] <- input$lag_t
+      mlr$dt$mean_day[inp_row] <- input$mean_t
+      mlr$dt$mean_err[inp_row] <- r2
+      mlr_pred$lst[[inp_row]] <- data.frame(Date = dat$Date,
+                                            Model = mod)
+      mlr_fit$lst[[inp_row]] <- fit
+    }
+
+  })
+
+  mlr_out <- reactiveValues(txt = NULL)
+
+  output$mlr_out <- renderPrint({
+    validate(
+      need(!is.null(input$mult_lin_reg_vars),
+           message = "Please select predictors.")
+    )
+    validate(
+      need(!is.null(mlr_out$txt), "Click 'Fit model'")
+    )
+    mlr_out$txt
+  })
+
+  observeEvent(input$mult_lin_reg_vars, {
+    mlr_out$txt <- NULL
+  })
+
+
+
+  mlr <- reactiveValues(dt = data.frame(Equation = rep(NA, 5),
+                                        lag = rep(NA, 5),
+                                        mean_day = rep(NA, 5),
+                                        mean_err = rep(NA, 5))
+                        )
+
+  output$mlr_dt <- renderDT(mlr$dt, selection = "single",
+                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                           columnDefs = list(list(width = '10%', targets = "_all")) #,
+    #                                        drawcallback = JS("function( settings ) {
+    #     // MathJax.Hub.Config({
+    #     //    tex2jax: {inlineMath: [['$','$'],['\\(','\\)']]}
+    #     // });
+    #
+    #     MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
+    # }")
+                            ), colnames = c("Equation", "Lag (days)", "Mean (days)", "Cor."), rownames = TRUE,
+
+                            server = FALSE, escape = FALSE)
+
+  # Date slider for training & test data
+  output$date_train <- renderUI({
+    req(!is.null(airt_swt$df))
+    bump <- round(nrow(airt_swt$df)/2)
+    sliderInput("train_date", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(min(airt_swt$df$Date), airt_swt$df$Date[bump]))
+  })
+
+  output$date_test <- renderUI({
+    req(!is.null(airt_swt$df))
+    bump <- round(nrow(airt_swt$df)/2)
+    sliderInput("test_date", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(airt_swt$df$Date[bump+1], max(airt_swt$df$Date)))
+  })
+
+  #** Plot water temp ts with MLR model----
+  output$mlr_ts_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$df),
+           message = "Click 'Plot'")
+    )
+
+    df <- airt_swt$df
+    df$X[is.na(df$Y)] <- NA
+    df$Y[is.na(df$X)] <- NA
+
+    # separate into train & test
+    df$per <- NA
+    df$per[df$Date >= input$train_date[1] & df$Date <= input$train_date[2]] <- "Training"
+    df$per[df$Date >= input$test_date[1] & df$Date <= input$test_date[2]] <- "Testing"
+    df <- df[!is.na(df$per), ]
+    df$per <- factor(df$per, levels = c("Training", "Testing"))
+
+
+    if(nrow(na.exclude(mlr$dt)) > 0) {
+      mlt <- reshape::melt(mlr_pred$lst, id.vars = "Date")
+      colnames(mlt)[4] <- "Label"
+      mlt$Label <- as.character(mlt$Label)
+
+      # separate into train & test
+      mlt$per <- NA
+      mlt$per[mlt$Date >= input$train_date[1] & mlt$Date <= input$train_date[2]] <- "Training"
+      mlt$per[mlt$Date >= input$test_date[1] & mlt$Date <= input$test_date[2]] <- "Testing"
+      mlt <- mlt[!is.na(mlt$per), ]
+      mlt$per <- factor(mlt$per, levels = c("Training", "Testing"))
+    }
+
+    p <- ggplot() +
+      geom_hline(yintercept = 0) +
+      geom_point(data = df, aes(Date, Y, color = "Observed")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      facet_wrap(~per, scales = "free_x") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
+      theme_bw(base_size = 12)
+
+    if(nrow(na.exclude(mlr$dt)) > 0) {
+      p <- p +
+        geom_line(data = mlt, aes(Date, value, color = Label)) +
+        scale_color_manual(values = cols)
+    }
+
+    # return(p)
+    return(ggplotly(p, dynamicTicks = TRUE))
   })
 
 

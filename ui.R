@@ -80,6 +80,7 @@ ui <- function(req) {
                  data.step = 1,
                  data.intro = help_text["welcome", 1]
                ),
+               withMathJax(), # NEEDS to be here for rendering eqn's in data.table
 
                tags$style(".btn-file {
              background-color:#98CAB2;
@@ -745,14 +746,22 @@ border-color: #FFF;
                                  p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
                           ),
                           column(4,
-                                 DTOutput("lr_DT", width = "40%")
+                                 DTOutput("lr_DT", width = "40%"),
+                                 br(),
+                                 actionButton("add_lm", "Fit linear model"),
+                                 br(),
+                                 verbatimTextOutput("lm_out")
                                  ),
                           column(5,
+                                 h3("Air temperature vs. water temperature"),
                                  wellPanel(
                                    plotlyOutput("airt_swt_plot_lines")
-                                   ),
-                                 actionButton("add_lm", "Add linear model"),
-                                 verbatimTextOutput("lm_out")
+                                 ),
+                                 h3("Water temperature timeseries"),
+                                 p("When you add your models to the table, they will appear here."),
+                                 wellPanel(
+                                   plotlyOutput("lm_ts_plot")
+                                 )
                                  )
                         ),
                         #* Generate distributions for intercept & slope ----
@@ -841,6 +850,45 @@ border-color: #FFF;
                                  plotlyOutput("mod_err_uc_plot"),
                                  actionButton("clear_sel1", "Clear selection")
                                  )
+                          ),
+                        fluidRow(
+                          column(3,
+                                 h3("Build a ", tags$em("Forecasting"), " model"),
+                                 p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
+                                 p("Build a multiple regression model below and test adding different predictors and see how well your model works at forecasting water temperature."),
+                                 div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$"),
+                                 p("where \\(\\beta_{n}\\) represents the parameters in the equation, similarly to the slope in a linear regression model."),
+                                 selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
+                                 numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
+                                 numericInput("mean_t", "Mean (days)", value = 1, min = 1, max = 7, step = 1),
+                                 hr(),
+                                 h4("Training dates"),
+                                 uiOutput("date_train"),
+                                 h4("Testing dates"),
+                                 uiOutput("date_test"),
+                                 ),
+                          column(3,
+                                 h4("Fit multiple linear regression model"),
+                                 p("Use a multiple linear regression model to estimate the parameters (\\(\\beta_{n}\\)) in your model below."),
+                                 wellPanel(
+                                   uiOutput("mult_lin_reg_eqn")
+                                 ),
+                                 br(),
+                                 actionButton("fit_mlr", "Fit model"),
+                                 br(),
+                                 verbatimTextOutput("mlr_out")
+                                 ),
+                          column(6,
+                                 plotlyOutput("mlr_ts_plot"),
+                                 DT::DTOutput("mlr_dt")
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 ),
+                          column(6,
+                                 )
                           )
                         ),
 
@@ -881,12 +929,12 @@ border-color: #FFF;
                                  p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member"), "."),
                                  p(id = "txt_j", module_text["weather_forecast2", ])
                           ),
-                          column(6,
-                                 p("Some image of a weather forecast..."),
-                                 img(src = "weather_fc.png", width = "90%",
+                          column(6, align = "center",
+                                 img(src = "weather_fc.png", width = "90%", id = "bla_border",
                                      align = "center")
                                  )
                           ),
+                        hr(),
                         fluidRow(
                           column(6,
                                  h4("Observational Error"),
@@ -914,7 +962,7 @@ border-color: #FFF;
                                  checkboxInput("view_ic", "View forecast initial conditions"),
                                  conditionalPanel("input.view_ic",
                                                   numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
-                                                  p("The initial conditions have been jittered to avoid points overlapping.")
+                                                  p(tags$b("Note:"), "The initial conditions have been jittered to avoid points overlapping. All forecasts start at the same time.")
                                                   ),
                                  checkboxInput("view_day7", "View forecast 7-days ahead"),
                                  conditionalPanel("input.view_day7",
@@ -927,6 +975,14 @@ border-color: #FFF;
                                  # plotOutput("noaa_at_plot")
                                  )
                           ),
+                        fluidRow(
+                          column(6,
+                                 h3("Generate a water temperature forecast"),
+                                 p("We will use the")
+                                 ),
+                          column(6,
+                                 )
+                        ),
                         # Initial Conditions - Primary prod model ----
                         fluidRow(
                           column(3,
