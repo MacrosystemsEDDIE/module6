@@ -11,11 +11,12 @@ why_forecast,We forecast because it help us to make decisions and the informatio
 how_forecast,This module will guide you through the key steps within the forecast cycle and explain how we create ecological forecasts.
 eco_forecast1,An ecological forecast is a prediction of future environmental conditions with uncertainty.
 eco_forecast2,"An ecological forecast predicts changes in ecosystems in response to environmental drivers such as weather conditions, pollution, or habitat change. It also provides information about how people, economies, and communities may be affected. Local authorities and members of the public use these early warnings to make decisions to protect the health and well-being of a particular area."
-LO1,
-LO2,
-LO3,
-LO4,
-LO5,
+LO1,Define ecological forecast uncertainty
+LO2,"Èxplore the contributions of different sources of uncertainty (e.g., model parameters, model driver data) to total forecast uncertainty"
+LO3,Understand how multiple sources of uncertainty are quantified
+LO4,Identify ways in which uncertainty can be reduced within an ecological forecast
+LO5,Describe how forecast horizon affects forecast uncertainty
+LO6,Explain the importance of specifying uncertainty in ecological forecasts for forecast users and decision support
 workflow1,"After the instructor completes the PowerPoint presentation, students will launch the Shiny app. Students work in pairs to navigate through the upper tabs (e.g., ""Introduction"", ""Exploration"", ""Activity A"", ""Activity B"", and ""Activity C"")  to complete each of the objectives embedded within each tab. Within each activity tab, there are individual objectives which must be completed before moving onto the next one (e.g., within Activity A, Objective 1 is ""Select and view site"")."
 workflow2,There are questions in green text boxes embedded throughout the Shiny app which students can  input answers into.
 workflow3,"When all of the objectives are completed and questions are answered, navigate to the ""Generate Report"" section in the ""Introduction"" tab. This will then create a Microsoft Word document with all of the forecasts and answers embedded within, which can be downloaded and finalized before submitting to the instructor."
@@ -41,7 +42,9 @@ model3,"Alternatively, models can be extremely complex and detailed, such as a m
 mod_desc,The model we will be using in this module is the nutrient-phytoplankton (NP) model. The nutrient-phytoplankton (NP) model is a common tool in freshwater and marine research. The NP model represents the simplest sets of processes needed to model plankton dynamics.
 phyto_chla,"Phytoplankton are primary producers. They take up nitrogen and other nutrients to photosynthesize (i.e., use sunlight to make food from carbon dioxide and water). Chlorophyll-a is used as a proxy (i.e. indirect measurement) of the phytoplankton concentration in water. We will use chlorophyll-a  sensor measurements from the lake and assume the concentration of chlorophyll-a is equal to the concentration of phytoplankton for the purposes of this module."
 ens_mod1,Ensemble modelling is using multiple simulations to predict an outcome and to reduce the error of the prediction.
+uncertainty,"Uncertainty implies some  kind  of  error,  inexactness,  unreliability, and imperfection in our knowledge and understanding of the systems under investigation."
 uncert1,"Uncertainty comes from natural variation and imperfect knowledge. For example, taking replicate samples is one way to estimate uncertainty in observations  whereas imperfect knowledge is reflected in our models, such as the NP model. This model, like many other ecological models, makes assumptions that we know are simplistic representations of reality. One such assumption is that phytoplankton nutrient uptake occurs at a constant parameter rate. It is known that many different species of phytoplankton take up nitrogen at different rates but to reduce model complexity one rate is assumed for all phytoplankton. In addition to process (model) uncertainty, observational uncertainty, and parameter uncertainty, other sources of uncertainty are drivers and initial conditions."
+why_important,Forecast uncertainty is important because it allows forecast users to make informed decisions based on the potential future scenarios and prepare accordingly.
 driver_uncert,"Driver uncertainty comes from uncertainty related to the variables used to drive the model. The key driver variables of our NP model are surface water temperature and underwater photosynthetically active radiation (uPAR). To generate a forecast of future productivity, we need to forecast these driver data (using relationships between air temperature and surface water temperature and uPAR and incoming short-wave radiation) and then use those forecasted driver values  to drive the model."
 proc_uncertainty,Process uncertainty is uncertainty caused by an incomplete description of the process.
 param_uncert,"Parameter uncertainty refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used."
@@ -51,3 +54,4 @@ parameter,A parameter is a variable describing the rate of change in those state
 fc_cycle_end,"We have now stepped through each of the steps in the forecast cycle. As you can see, forecasting is an iterative process. We constantly will need to generate forecasts of the future as time moves forward. When we combine our forecasts with data, we can use this data to update our model, which will then improve our model the more forecasts we make. This is one of the key advantages of ecological forecasting."
 privacy_policy,This Shiny App does not collect or store any of your data.
 acknowledgement,"This module was initially developed by: Moore, T.N., C.C. Carey, and R.Q. Thomas. 13 October 2021. Macrosystems EDDIE: Ecological Forecast Uncertainty. Macrosystems EDDIE Module 6, Version 1. http://module6.macrosystemseddie.org. Module development was supported by NSF grants DEB-1926050 and DBI-1933016."
+distribution,A distribution in statistics is a function that shows the possible values for a variable and how often they occur.
