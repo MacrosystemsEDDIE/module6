@@ -351,11 +351,12 @@ shinyServer(function(input, output, session) {
   # Data table to store 10 lines
   lr_pars <- reactiveValues(dt = data.frame(m = rep(NA, 5), b = rep(NA, 5),
                                             start = rep(NA, 5), stop = rep(NA, 5),
-                                            mean_err = rep(NA, 5), label = rep(NA, 5)))
+                                            mean_err = rep(NA, 5),
+                                            label = rep(NA, 5)))
   output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("Slope (m)", "Intercept (b)", "Start", "Stop", "Cor.", "N"), rownames = FALSE,
+                           ), colnames = c("m", "b", "Start", "Stop", "Cor.", "N"), rownames = TRUE,
                            server = FALSE, escape = FALSE)
 
   # Add red saved lines to plot & DT
@@ -381,7 +382,7 @@ shinyServer(function(input, output, session) {
       lr_pars$dt$start[input$lr_DT_rows_selected] <- as.character(input$date1[1])
       lr_pars$dt$stop[input$lr_DT_rows_selected] <- as.character(input$date1[2])
       lr_pars$dt$mean_err[input$lr_DT_rows_selected] <- mean_err
-      lr_pars$dt$label[input$lr_DT_rows_selected] <- paste0("N=", nrow(na.exclude(airt_swt$sub)))
+      lr_pars$dt$label[input$lr_DT_rows_selected] <- nrow(na.exclude(airt_swt$sub))
     } else {
       idx <- which(is.na(lr_pars$dt$m))[1]
       lr_pars$dt$m[idx] <- input$m
@@ -389,7 +390,7 @@ shinyServer(function(input, output, session) {
       lr_pars$dt$start[idx] <- as.character(input$date1[1])
       lr_pars$dt$stop[idx] <- as.character(input$date1[2])
       lr_pars$dt$mean_err[idx] <- mean_err
-      lr_pars$dt$label[idx] <- paste0("N=", nrow(na.exclude(airt_swt$sub)))
+      lr_pars$dt$label[idx] <- nrow(na.exclude(airt_swt$sub))
     }
   })
 
@@ -426,9 +427,10 @@ shinyServer(function(input, output, session) {
     }
     pars <- na.exclude(lr_pars$dt)
     if(nrow(pars) > 0) {
+      pars$index <- factor(1:nrow(pars))
       p <- p +
         # geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
-        geom_abline(data = pars, aes(slope = m, intercept = b, color = label),
+        geom_abline(data = pars, aes(slope = m, intercept = b, color = index),
                     linetype = "solid")
     }
 
@@ -465,9 +467,10 @@ shinyServer(function(input, output, session) {
         data.frame(Date = airt_swt$df$Date,
                    Model = pars$m[x] * airt_swt$df$X + pars$b[x])
       })
-      names(mod) <- pars$label
+      # names(mod) <- pars$label
       mlt <- reshape::melt(mod, id.vars = "Date")
-      colnames(mlt)[4] <- "Label"
+      colnames(mlt)[4] <- "index"
+      mlt$index <- factor(mlt$index)
     }
 
     p <- ggplot() +
@@ -484,7 +487,7 @@ shinyServer(function(input, output, session) {
 
     if(nrow(pars) > 0) {
       p <- p +
-        geom_line(data = mlt, aes(Date, value, color = Label)) +
+        geom_line(data = mlt, aes(Date, value, color = index)) +
         scale_color_manual(values = cols)
     }
 
@@ -706,7 +709,7 @@ shinyServer(function(input, output, session) {
 
 
   output$click_dt <- renderDT(click_df$df, selection = "none",
-                            colnames = c("Air Temp.", "Observed Water Temp.", "Modelled Water Temp.", "Mod - Obs"),
+                            colnames = c("Air Temp.", "Obs. Water Temp.", "Mod. Water Temp.", "Mod - Obs"),
                             options = list(pageLength = 5),
                               rownames = FALSE,
                               server = FALSE, escape = FALSE)
@@ -991,7 +994,6 @@ shinyServer(function(input, output, session) {
     }
 
     p <- ggplot() +
-      geom_hline(yintercept = 0) +
       geom_point(data = df, aes(Date, Y, color = "Observed")) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
@@ -1113,6 +1115,10 @@ shinyServer(function(input, output, session) {
 
   output$noaa_at_loaded <- renderText({
     validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
       need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
     )
     return(paste0("Forecast loaded for ", siteID$lab))
@@ -1134,9 +1140,19 @@ shinyServer(function(input, output, session) {
     #   need(input$view_day0, "Please click 'Load observation'")
     # )
     set.seed(123)
-    fut_offset <- lubridate::days(6) + lubridate::hours(19)
+
 
     mlt <- noaa_df$airt
+
+    if(input$noaa_timestep == "Daily mean") {
+      mlt$date <- as.Date(mlt$time)
+      mlt <- plyr::ddply(mlt, c("date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+      mlt$time <- as.POSIXct(mlt$date)
+      fut_offset <- lubridate::days(6) #+ lubridate::hours(19)
+    } else if(input$noaa_timestep == "Hourly") {
+      fut_offset <- lubridate::days(6) + lubridate::hours(19)
+    }
+
     idx1 <- which(mlt$time == mlt$time[1])
     dat <- mlt[idx1, ]
     dat$time2 <- dat$time + rnorm(nrow(dat), mean = 0, sd = 6000)
@@ -1160,10 +1176,6 @@ shinyServer(function(input, output, session) {
 
     dat <- dat[dat$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
     dat2 <- dat2[dat2$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
-
-
-    if(input$noaa_n_mems > 0) {
-    }
 
     if(input$noaa_n_mems > 0 & input$view_day7) {
       cur_df <- data.frame(time = dat$time2, value = dat$value, variable = dat$variable, xend = dat2$time2, yend = dat2$value)
