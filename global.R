@@ -16,6 +16,7 @@ source("R/download_phenocam.R")
 source("R/get_html.R")
 source("R/NP_model.R")
 source("R/create_np_inputs.R")
+source("R/textAreaInput2.R")
 
 # Load in sp format with coordinates
 neon_sites <- readRDS("data/neon_sites.rds")
