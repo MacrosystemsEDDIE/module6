@@ -1,8 +1,8 @@
 ![](www/project-eddie-banner-2020_green.png)<!-- -->
-# Module 6: Understanding Ecological Forecast Uncertainty
+# Module 6: Understanding Uncertainty in Ecological Forecasts
 ## [Macrosystems EDDIE](https://serc.carleton.edu/eddie/macrosystems/index.html)
 ### Summary
-Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Ecological Forecast Uncertainty_. There is a detailed guide below for launching the R Shiny App locally on your own machine. For more details about teaching this module please visit our [website](http://module6.macrosystemseddie.org/).
+Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Uncertainty in Ecological Forecasts_. There is a detailed guide below for launching the R Shiny App locally on your own machine. For more details about teaching this module please visit our [website](http://module6.macrosystemseddie.org/).
 
 ##  Setting up the Shiny App
 ### Pre-requisites
