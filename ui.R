@@ -10,9 +10,6 @@ suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
 suppressPackageStartupMessages(library(stringr, quietly = TRUE))
 # suppressPackageStartupMessages(library(ggforce, quietly = TRUE)) # Only for geom_ellipse (doesn't work in plotly!)
 
-# Functions required
-source("R/textAreaInput2.R")
-
 # Help documentation
 help_text <- read.csv("data/help_text.csv", row.names = 1)
 
@@ -20,7 +17,7 @@ help_text <- read.csv("data/help_text.csv", row.names = 1)
 module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
 
 # Read in assessment questions
-quest <- read.csv("data/handout_questions.csv", row.names = 1)
+quest <- read.csv("data/student_questions.csv", row.names = 1)
 answers <- quest
 answers[, 1] <- NA
 
@@ -179,10 +176,21 @@ ui <- function(req) {
                           h2("Understanding Uncertainty in Ecological Forecasts"),
                           h3("Summary"),
                           p(id = "txt_j", module_text["eco_forecast", ]),
-                          p(id = "txt_j", module_text["this_module", ])
+                          p(id = "txt_j", module_text["this_module", ]),
+                          h3("Learning Outcomes"),
+                          tags$line(),
+                          tags$ul(
+                            tags$li(id = "txt_j", module_text["LO1", ]),
+                            tags$li(id = "txt_j", module_text["LO2", ]),
+                            tags$li(id = "txt_j", module_text["LO3", ]),
+                            tags$li(id = "txt_j", module_text["LO4", ]),
+                            tags$li(id = "txt_j", module_text["LO5", ]),
+                            tags$li(id = "txt_j", module_text["LO6", ])
+                          )
                    ),
                    column(5, offset = 1,
                           br(), br(), br(),
+                          h2("Module summary icon!"),
                           img(src = "mod5_viz_v2.png", height = "80%",
                               width = "80%", align = "left")
                           )
@@ -198,17 +206,17 @@ ui <- function(req) {
                           hr(),
                           column(4,
                                  h3("Presentation"),
-                                 p("The presentation accompanying this module covers the introduction to forecasting, the nutrient-phytoplankton model (NP) and the importance and relevance of ecological forecasts."),
-                                 p("What is a forecast?"),
+                                 p("The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty and the importance and relevance of quantifying uncertainty within ecological forecasts."),
+                                 p("What is forecast uncertainty?"),
                                  tags$ul(
-                                   tags$li(module_text["what_forecast", ])
+                                   tags$li(module_text["uncertainty", ])
                                  ),
-                                 p("Why do we forecast?"),
+                                 p("Where does forecast uncertainty come from?"),
                                  tags$ul(
-                                   tags$li(module_text["why_forecast", ])
+                                   tags$li(module_text["uncert1", ])
                                  ),
-                                 p("How do we generate a forecast?"),tags$ul(
-                                   tags$li(module_text["how_forecast", ])
+                                 p("Why is uncertainty important for a forecast?"),tags$ul(
+                                   tags$li(module_text["why_important", ])
                                  ),
                                  p("Click through the slides to recap some of the main points from the lecture.")
                           ),
@@ -313,6 +321,8 @@ ui <- function(req) {
                                                 h3(tags$b("Think about it!")),
                                                 p("Note: The size of these text boxes can be adjusted by clicking and dragging the bottom right of the text box."),
                                                 textAreaInput2(inputId = "q1", label = quest["q1", 1]),
+                                                textAreaInput2(inputId = "q1", label = quest["q2", 1]),
+                                                textAreaInput2(inputId = "q1", label = quest["q3", 1]),
                                                 data.step = 5, data.intro = help_text["questions", 1]
                                               )
                                        )
@@ -360,7 +370,7 @@ border-color: #FFF;
                           column(12,
                                  h3("Activity A: Visualize data from a selected NEON site"),
                                  h4("Explore Data & Understand Model"),
-                                 p("Complete objectives 1-3 to...")
+                                 p("Complete objectives 1-3 to familiarize yourself with the data from your selected site and learn about the ecological model you will be using.")
                           )
                         ),
 
@@ -437,20 +447,20 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(7, offset = 1,
                                                                    h3("Questions"),
-                                                                   h4(quest["q5", 1]),
+                                                                   h4(quest["q4", 1]),
                                                                    p("If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
                                                             )
                                                           ),
                                                           fluidRow(
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q5a", label = quest["q5a", 1] , width = "90%"),
-                                                                   textInput(inputId = "q5b", label = quest["q5b", 1], width = "90%"),
-                                                                   textInput(inputId = "q5c", label = quest["q5c", 1], width = "90%")
+                                                                   textInput(inputId = "q5a", label = quest["q4a", 1] , width = "90%"),
+                                                                   textInput(inputId = "q5b", label = quest["q4b", 1], width = "90%"),
+                                                                   textInput(inputId = "q5c", label = quest["q4c", 1], width = "90%")
                                                             ),
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q5d", label = quest["q5d", 1] , width = "90%"),
-                                                                   textInput(inputId = "q5e", label = quest["q5e", 1], width = "90%"),
-                                                                   textInput(inputId = "q5f", label = quest["q5f", 1], width = "90%")
+                                                                   textInput(inputId = "q5d", label = quest["q4d", 1] , width = "90%"),
+                                                                   textInput(inputId = "q5e", label = quest["q4e", 1], width = "90%"),
+                                                                   textInput(inputId = "q5f", label = quest["q4f", 1], width = "90%")
                                                             )
                                                           )
                                                       )
@@ -660,14 +670,14 @@ border-color: #FFF;
                                     ),
                         ),
 
-               # 5. Stats 101 ----
-               tabPanel(title = "Stats 101", value = "mtab5",
+               # 5. Activity A ----
+               tabPanel(title = "Activity A", value = "mtab5",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h3("Objective 4 - Statistics 101"),
+                                           h3("Objective 4 - Statistics & Probability"),
                                            p(module_text["obj_04", ])
                                  )
                           ),
@@ -675,18 +685,19 @@ border-color: #FFF;
                         fluidRow(
                           hr(),
                           column(4,
-                                 h3("Statistics 101"),
+                                 h3("Statistics & Probability"),
                                  p("Before we begin generating an ecological forecast with uncertainty we will explore some key statistical and probability concepts."),
-                                 p("What is a population?"),
+                                 p("What is a model?"),
                                  tags$ul(
-                                   tags$li(module_text["population", ])
+                                   tags$li(module_text["model1", ])
                                  ),
-                                 p("What is a sample?"),
+                                 p("What is a parameter"),
                                  tags$ul(
-                                   tags$li(module_text["sample", ])
-                                 ),
-                                 p("What is a statistical parameter"),tags$ul(
                                    tags$li(module_text["parameter", ])
+                                 ),
+                                 p("What is a distribution?"),
+                                 tags$ul(
+                                   tags$li(module_text["distribution", ])
                                  ),
                                  p("Click through the slides to recap some of the main points from the lecture.")
                           ),
@@ -737,17 +748,17 @@ border-color: #FFF;
                                  p("Select the range of dates for which to use to build your linear regression model."),
                                  uiOutput("date_slider1"),
                                  actionButton("plot_airt_swt2", "Plot"),
-                                 p("By adjusting the y-intercept (b) and the slope (m), draw 10 lines which represent the relationship between air temperature and surface water temperature."),
-                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
-                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
-                                 actionButton("draw_line", "Draw line"),
-                                 numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
-                                 actionButton("save_line", "Save line"),
-                                 p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
+                                 p("Adjust the y-intercept (b) and the slope (m) to draw and save 5 different lines which represent potential linear relationships between air temperature and surface water temperature."),
+                                 p("Use the date slider to save lines using less to more data.")
                           ),
                           column(4,
+                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
+                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
+                                 numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
+                                 p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
                                  DTOutput("lr_DT", width = "40%"),
                                  br(),
+                                 p("You can also fit a linear model using the 'lm()' function in R and compare the slope and intercept to the one you have estimated."),
                                  actionButton("add_lm", "Fit linear model"),
                                  br(),
                                  verbatimTextOutput("lm_out")
@@ -755,13 +766,23 @@ border-color: #FFF;
                           column(5,
                                  h3("Air temperature vs. water temperature"),
                                  wellPanel(
-                                   plotlyOutput("airt_swt_plot_lines")
+                                   plotlyOutput("airt_swt_plot_lines"),
+                                   actionButton("draw_line", "Draw line"),
+                                   actionButton("save_line", "Save line")
+                                   )
                                  ),
+                        fluidRow(
+                          column(3,
+                                 h3("Compare model performance"),
+                                 p("Some questions")
+                                 ),
+                          column(9,
                                  h3("Water temperature timeseries"),
                                  p("When you add your models to the table, they will appear here."),
                                  wellPanel(
                                    plotlyOutput("lm_ts_plot")
                                  )
+                          )
                                  )
                         ),
                         #* Generate distributions for intercept & slope ----
@@ -793,15 +814,26 @@ border-color: #FFF;
                                  p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
                                  radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                  actionButton("gen_lin_mods", "Add lines"),
+                                 p("Every time you click 'Add lines' it will generate a random sample."),
                                  conditionalPanel("input.gen_lin_mods >= 1",
-                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of"),
+                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
                                                   checkboxInput("add_dist", "Distribution plot")),
                           ),
                           column(3,
                                  DTOutput("mb_samps", width = "60%")
                                  ),
                           column(6,
-                                 plotlyOutput("add_lin_mods")
+                                 plotlyOutput("add_lin_mods"),
+                                 box(id = "box2", width = 10, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(8, offset = 1,
+                                              h3("Questions"),
+                                              # h4(quest["q4", 1]),
+                                              textAreaInput2(inputId = "q4a", label = "How does adjusting the number of samples affect the range of uncertainty?", width = "90%")
+                                              )
+                                       ),
+                                     )
                                  )
                           ),
                         hr(),
@@ -851,6 +883,7 @@ border-color: #FFF;
                                  actionButton("clear_sel1", "Clear selection")
                                  )
                           ),
+                        hr(),
                         fluidRow(
                           column(3,
                                  h3("Build a ", tags$em("Forecasting"), " model"),
@@ -892,14 +925,14 @@ border-color: #FFF;
                           )
                         ),
 
-               # 6. Activity A ----
-               tabPanel(title = "Activity A", value = "mtab7",
+               # 6. Activity B ----
+               tabPanel(title = "Activity B", value = "mtab7",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity A - Explore Uncertainty"),
+                                           h2("Activity B - Explore Uncertainty"),
                                            h3("Objective X - "),
                                            p(module_text["obj_04", ])
                                            )
@@ -909,16 +942,17 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h4("Initial Condition Uncertainty"),
-                                 p("Initial condition uncertainty is...")
+                                 p(module_text["init_uncert",])
                                  ),
                           column(6,
                                  h4("Some image for IC Uncertainty!")
                                  )
                           ),
+                        hr(),
                         fluidRow(
                           #** Weather Forecast ----
                           column(12, align = "center",
-                                 h3("Weather Forecast"), hr()
+                                 h3("Weather Forecast")
                           ),
                         ),
                         fluidRow(
@@ -939,12 +973,27 @@ border-color: #FFF;
                           column(6,
                                  h4("Observational Error"),
                                  p("If you have 3 thermometers in this room, what are the chances they would all read the EXACT same measurement?"),
-                                 p("Very unlikely! Why is that?"),
-                                 p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
-                                 p("Does this mean the instruments are wrong?"),
-                                 p("No! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
-                                 p("This is what is called ", tags$b("observational error"), ".")
-                          ),
+                                 radioButtons("obs_err1", "", choices = c("Unlikely", "50/50", "Very likely"), selected = character(0), inline = TRUE),
+                                 conditionalPanel("input.obs_err1 == '50/50'",
+                                                  p("Really?")
+                                 ),
+                                 conditionalPanel("input.obs_err1 == 'Very likely'",
+                                                  p(tags$em("Are you sure?"))
+                                 ),
+                                 conditionalPanel("input.obs_err1 == 'Unlikely'",
+                                                  p("Very unlikely! Why is that?"),
+                                                  p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
+                                                  p("Does this mean the instruments are wrong?"),
+                                                  radioButtons("obs_err2", "", choices = c("No", "Yes"), selected = character(0), inline = TRUE),
+                                                  conditionalPanel("input.obs_err2 == 'Yes'",
+                                                                   p("Well you would hope not considering how much money you spent on them!"),
+                                                  ),
+                                                  conditionalPanel("input.obs_err2 == 'No'",
+                                                                                    p("Exactly! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
+                                                                                    p("This is what is called ", tags$b("observational error"), ".")
+                                                                   )
+                                                  )
+                                 ),
                           column(6,
                                  h4("Some image for observational error [3 thermometers showing different temps]")
                                  )
@@ -952,7 +1001,9 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h4("NOAA Forecast data"),
-                                 p("NOAA forecast data comes from GEFS etc."),
+                                 p(id = "txt_j", "Here we will load in data from a ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA GEFS", target = "_blank"), " forecast for the NEON site you chose in Activity A."),
+                                 img(src = "noaa_logo.jpg", height = "20%",
+                                     width = "20%", align = "right"),
                                  actionButton("load_noaa_at", "Load forecast"),
                                  verbatimTextOutput("noaa_at_loaded"),
                                  checkboxInput("view_day0", "View observation"),
@@ -966,7 +1017,8 @@ border-color: #FFF;
                                                   ),
                                  checkboxInput("view_day7", "View forecast 7-days ahead"),
                                  conditionalPanel("input.view_day7",
-                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution"))
+                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution")),
+                                                  radioButtons("noaa_timestep", "Timestep of forecasts", choices = c("Hourly", "Daily mean"), inline = TRUE)
                                                   )
                                  ),
                           column(6,
@@ -1007,11 +1059,11 @@ border-color: #FFF;
                                  plotOutput("ic_nut_dist_plot")
                           ),
                           column(5,
-                                 h4("IC UC"),
-                                 p("Run forecast with IC UC"),
+                                 h4("Initial Conditions Uncertainty"),
+                                 p("Run forecast with initial conditions uncertainty"),
                                  actionButton("run_ic_fc", "Run forecast"),
                                  radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
-                                 h4("IC FC Plot"),
+                                 h4("Forecast generated with initial condition uncertainty"),
                                  plotlyOutput("ic_fc_plot")
                                  )
                         ),
@@ -1141,35 +1193,35 @@ border-color: #FFF;
                         )
                         ),
 
-               # 7. Activity B ----
-               tabPanel(title = "Activity B", value = "mtab8",
+               # 7. Activity C ----
+               tabPanel(title = "Activity C", value = "mtab8",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity B - Explore Uncertainty"),
+                                           h2("Activity C - Managing Uncertainty"),
                                            h3("Objective X - "),
                                            p(module_text["obj_04", ])
                                            )
                                  ),
                           )
-                        ),
+                        ) #,
 
-               # 8. Activity C ----
-               tabPanel(title = "Activity C", value = "mtab9",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
-                        fluidRow(
-                          column(12,
-                                 wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity C - Explore Uncertainty"),
-                                           h3("Objective X - "),
-                                           p(module_text["obj_04", ])
-                                           )
-                                 )
-                          )
-                        )
+               # # 8. Activity C ----
+               # tabPanel(title = "Activity C", value = "mtab9",
+               #          img(src = "project-eddie-banner-2020_green.png", height = 100,
+               #              width = 1544, top = 5),
+               #          fluidRow(
+               #            column(12,
+               #                   wellPanel(style = paste0("background: ", obj_bg),
+               #                             h2("Activity C - Explore Uncertainty"),
+               #                             h3("Objective X - "),
+               #                             p(module_text["obj_04", ])
+               #                             )
+               #                   )
+               #            )
+               #          )
                )
     )
   }
