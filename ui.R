@@ -770,23 +770,28 @@ border-color: #FFF;
                                    actionButton("draw_line", "Draw line"),
                                    actionButton("save_line", "Save line")
                                    )
-                                 ),
+                                 )
+                        ),
                         fluidRow(
                           column(3,
                                  h3("Compare model performance"),
-                                 p("Some questions")
+                                 p("Q. How did using less data to fit your model affect its overall performance?"),
+                                 textAreaInput2("q100", ""),
+                                 p("Q. Which model performed best? Why do you think that is?"),
+                                 textAreaInput2("q101", ""),
+                                 p("Q. Do you think you could use this model for a forecast? Why/why not?"),
+                                 textAreaInput2("q103", "")
                                  ),
                           column(9,
                                  h3("Water temperature timeseries"),
                                  p("When you add your models to the table, they will appear here."),
                                  wellPanel(
                                    plotlyOutput("lm_ts_plot")
+                                   )
                                  )
-                          )
-                                 )
-                        ),
-                        #* Generate distributions for intercept & slope ----
+                          ),
                         hr(),
+                        #* Generate distributions for intercept & slope ----
                         fluidRow(
                           column(6,
                                  h3("Generate distributions for intercept & slope"),
@@ -849,7 +854,9 @@ border-color: #FFF;
                                  DTOutput("click_dt", width = "90%"),
                                  br(),
                                  actionButton("calc_err", "Calculate"),
-                                 textOutput("mean_err"),
+                                 wellPanel(
+                                   textOutput("mean_err")
+                                 ),
                                  br(),
                                  p("Calculate the model error (difference between modelled water temperature and observed temperature) at varying intervals (0-10, 10-20, 20-30, 30-40). Which interval has the largest error? Why do you think that is?, What does the sign in front of the error tell you?")
                           ),
@@ -913,7 +920,24 @@ border-color: #FFF;
                                  ),
                           column(6,
                                  plotlyOutput("mlr_ts_plot"),
-                                 DT::DTOutput("mlr_dt")
+                                 DT::DTOutput("mlr_dt"),
+                                 br(),
+                                 box(id = "box1", width = 10, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(8, offset = 1,
+                                              h3("Questions"),
+                                              p("Which multiple linear regression model performed best? Why?"),
+                                              textAreaInput2(inputId = "q104", label = ""),
+
+                                              p("Which do you think would be the better predictor of tomorrow's water temperature: yesterdays temperature (lag = 1) or the rolling average of the previous 3 days (mean = 3)?"),
+                                              p("Use the model to help you answer this question."),
+                                              textAreaInput2(inputId = "q104", label = ""),
+                                              p("Why is it important to have a training and testing dataset for models such as these?"),
+                                              textAreaInput2(inputId = "q105", label = "")
+                                              )
+                                       )
+                                     )
                                  )
                           ),
                         hr(),
@@ -1024,17 +1048,22 @@ border-color: #FFF;
                           column(6,
                                  h4("Air temperature forecast"),
                                  plotlyOutput("noaa_at_plot")
-                                 # plotOutput("noaa_at_plot")
                                  )
                           ),
+                        # Forecasting water temperature ----
+                        br(),
                         fluidRow(
                           column(6,
                                  h3("Generate a water temperature forecast"),
-                                 p("We will use the")
+                                 p("We will use the models that we developed in Activity A to generate 7-day forecasts of water temperature."),
+                                 h4("Coming soon...")
                                  ),
                           column(6,
+                                 h4("Water temperature forecasts"),
+                                 plotlyOutput("wtemp_fcast_plot1")
                                  )
                         ),
+                        br(),
                         # Initial Conditions - Primary prod model ----
                         fluidRow(
                           column(3,
@@ -1086,7 +1115,7 @@ border-color: #FFF;
                                  p("Phytoplankton concentration tomorrow is equalt to phytoplankton concentration today ", tags$b("plus"), " nutrient uptake and ", tags$b("minus"), " mortality."),
                                  p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
                                  p("where process noise is equal a random number with a mean of zero and some standard deviation."), br(),
-                                 p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
+                                 p("First we will explore how the model responds to differing levels of process uncertainty. Run the models with each of the differing levels multiple time and observe how the forecast outcome changes."),
                                  radioButtons("proc_uc0", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
                                  actionButton("run_mod0", "Run model")
                           ),
