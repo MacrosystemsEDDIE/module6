@@ -26,6 +26,23 @@ sketch1 = htmltools::withTags(table(
   )
 ))
 
+sketch2 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(colspan = 2, 'Slope (m)'),
+      th(colspan = 2, 'Intercept (b)'),
+      th(colspan = 2, '')
+    ),
+    tr(
+      lapply(rep(c('Estimate', 'Std. Error'), 2), th),
+      th("R-squared"),
+      th("%")
+    )
+  )
+))
+
+
 shinyServer(function(input, output, session) {
 
   # NEON Sites datatable ----
@@ -331,13 +348,15 @@ shinyServer(function(input, output, session) {
 
   output$date_slider1 <- renderUI({
     req(!is.null(airt_swt$df))
-    sliderInput("date1", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(min(airt_swt$df$Date), min(airt_swt$df$Date) + 100))
+    df <- na.exclude(airt_swt$df)
+    sliderInput("date1", "Date", min = min(df$Date), max = max(df$Date), step = 1, value = c(min(df$Date), min(df$Date) + 100))
   })
 
   # Reset plot when adjusting dates
   observeEvent(input$date1, {
     airt_swt$sub <- NULL
     lm_fit$fit <- NULL
+    lm_fit$plt_orig <- TRUE
   })
 
   # Add dashed lines to build reg plot
@@ -349,50 +368,51 @@ shinyServer(function(input, output, session) {
   })
 
   # Data table to store 10 lines
-  lr_pars <- reactiveValues(dt = data.frame(m = rep(NA, 5), b = rep(NA, 5),
-                                            start = rep(NA, 5), stop = rep(NA, 5),
-                                            mean_err = rep(NA, 5),
-                                            label = rep(NA, 5)))
+  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 4), m_se = rep(NA, 4),
+                                            b_est = rep(NA, 4), b_se = rep(NA, 4),
+                                            r2 = rep(NA, 4), Percentage = rep(NA, 4)))
   output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("m", "b", "Start", "Stop", "Cor.", "N"), rownames = TRUE,
+                           ), colnames = c("m (Est.)", "m (SE)", "b (Est.)", "b (SE)", "R-square", "%"),
+                           rownames =F, # c("25%", "50%", "75%", "100%"),
+                           # container = sketch2,
                            server = FALSE, escape = FALSE)
 
   # Add red saved lines to plot & DT
-  observeEvent(input$save_line, {
-    req(!is.null(airt_swt$sub))
-    req(!is.na(input$m))
-    req(!is.na(input$b))
-    if(input$save_line == 1) {
-      sav_lines$m <- input$m
-      sav_lines$b <- input$b
-    } else {
-      sav_lines$m <- c(sav_lines$m, input$m)
-      sav_lines$b <- c(sav_lines$b, input$b)
-    }
-    mod <- (input$m * airt_swt$sub$X) + input$b
-    df <- data.frame(obs = airt_swt$sub$Y, mod = mod)
-    df <- na.exclude(df)
-    # mean_err <- round(mean(mod - airt_swt$sub$Y, na.rm = TRUE), 2)
-    mean_err <- round(cor(df$obs, df$mod), 2)
-    if(!is.null(input$lr_DT_rows_selected)) {
-      lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
-      lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
-      lr_pars$dt$start[input$lr_DT_rows_selected] <- as.character(input$date1[1])
-      lr_pars$dt$stop[input$lr_DT_rows_selected] <- as.character(input$date1[2])
-      lr_pars$dt$mean_err[input$lr_DT_rows_selected] <- mean_err
-      lr_pars$dt$label[input$lr_DT_rows_selected] <- nrow(na.exclude(airt_swt$sub))
-    } else {
-      idx <- which(is.na(lr_pars$dt$m))[1]
-      lr_pars$dt$m[idx] <- input$m
-      lr_pars$dt$b[idx] <- input$b
-      lr_pars$dt$start[idx] <- as.character(input$date1[1])
-      lr_pars$dt$stop[idx] <- as.character(input$date1[2])
-      lr_pars$dt$mean_err[idx] <- mean_err
-      lr_pars$dt$label[idx] <- nrow(na.exclude(airt_swt$sub))
-    }
-  })
+  # observeEvent(input$save_line, {
+  #   req(!is.null(airt_swt$sub))
+  #   req(!is.na(input$m))
+  #   req(!is.na(input$b))
+  #   if(input$save_line == 1) {
+  #     sav_lines$m <- input$m
+  #     sav_lines$b <- input$b
+  #   } else {
+  #     sav_lines$m <- c(sav_lines$m, input$m)
+  #     sav_lines$b <- c(sav_lines$b, input$b)
+  #   }
+  #   mod <- (input$m * airt_swt$sub$X) + input$b
+  #   df <- data.frame(obs = airt_swt$sub$Y, mod = mod)
+  #   df <- na.exclude(df)
+  #   # mean_err <- round(mean(mod - airt_swt$sub$Y, na.rm = TRUE), 2)
+  #   mean_err <- round(cor(df$obs, df$mod), 2)
+  #   if(!is.null(input$lr_DT_rows_selected)) {
+  #     lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
+  #     lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
+  #     lr_pars$dt$start[input$lr_DT_rows_selected] <- as.character(input$date1[1])
+  #     lr_pars$dt$stop[input$lr_DT_rows_selected] <- as.character(input$date1[2])
+  #     lr_pars$dt$mean_err[input$lr_DT_rows_selected] <- mean_err
+  #     lr_pars$dt$label[input$lr_DT_rows_selected] <- nrow(na.exclude(airt_swt$sub))
+  #   } else {
+  #     idx <- which(is.na(lr_pars$dt$m))[1]
+  #     lr_pars$dt$m[idx] <- input$m
+  #     lr_pars$dt$b[idx] <- input$b
+  #     lr_pars$dt$start[idx] <- as.character(input$date1[1])
+  #     lr_pars$dt$stop[idx] <- as.character(input$date1[2])
+  #     lr_pars$dt$mean_err[idx] <- mean_err
+  #     lr_pars$dt$label[idx] <- nrow(na.exclude(airt_swt$sub))
+  #   }
+  # })
 
   # Plot with regression lines
   output$airt_swt_plot_lines <- renderPlotly({
@@ -401,43 +421,55 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.na(reg_line$m), "Ensure numeric values in the 'Slope (m)' box. (Check for spaces!)")
-    )
-    validate(
-      need(!is.na(reg_line$b), "Ensure numeric values in the 'Intercept (b)' box. (Check for spaces!)")
-    )
-    validate(
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot'")
     )
     df <- na.exclude(airt_swt$sub)
+    validate(
+      need(nrow(df) > 0,
+           message = "No points in selected dates. Please adjust the dates.")
+    )
 
     p <- ggplot() +
       geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      geom_point(data = df, aes(X, Y), color = "black") +
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Air temperature (\u00B0C)") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 12)
 
-    if(input$draw_line > 0) {
-      p <- p +
-        geom_abline(slope = reg_line$m, intercept = reg_line$b, color = "gray", linetype = "dashed")
-    }
     pars <- na.exclude(lr_pars$dt)
-    if(nrow(pars) > 0) {
-      pars$index <- factor(1:nrow(pars))
+    # if(nrow(pars) > 0) {
+    #   pars$Percentage <- factor(pars$Percentage)
+    #   p <- p +
+    #     geom_abline(data = pars, aes(slope = m_est, intercept = b_est,
+    #                                  color = Percentage),
+    #                 linetype = "solid")
+    # }
+
+    if(length(lm_fit$df_lst) > 0) {
+      mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "wtemp", "airt", "Percentage"))
+      mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
+      lvls <- levels(mlt$Percentage)
+      ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
+      # Reorder levels in ascending order
+      mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
+
       p <- p +
-        # geom_abline(slope = lr_pars$dt$m, intercept = lr_pars$dt$b, color = "red", linetype = "solid")
-        geom_abline(data = pars, aes(slope = m, intercept = b, color = index),
-                    linetype = "solid")
+        geom_point(data = mlt, aes(airt, wtemp, color = Percentage)) +
+        geom_smooth(data = mlt, aes(airt, wtemp, color = Percentage), method = "lm", formula = "y ~ x",
+                    se = FALSE) + scale_color_manual(values = cols)
     }
 
-    if(!is.null(lm_fit$fit)) {
+    if(lm_fit$plt_orig) {
       p <- p +
-        geom_smooth(data = df, aes(X, Y), method = "lm", formula = "y ~ x")
+        geom_point(data = df, aes(X, Y), color = "black")
     }
+
+    # if(!is.null(lm_fit$fit)) {
+    #   p <- p +
+    #     geom_smooth(data = df, aes(X, Y), method = "lm", formula = "y ~ x", )
+    # }
 
     return(ggplotly(p, dynamicTicks = TRUE))
   })
@@ -452,10 +484,10 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$df),
            message = "Click 'Plot'")
     )
-    validate(
-      need(input$plot_airt_swt > 0,
-           message = "Click 'Plot'")
-    )
+    # validate(
+    #   need(input$plot_airt_swt > 0,
+    #        message = "Click 'Plot'")
+    # )
     df <- airt_swt$df
     df$X[is.na(df$Y)] <- NA
     df$Y[is.na(df$X)] <- NA
@@ -465,21 +497,23 @@ shinyServer(function(input, output, session) {
     if(nrow(pars) > 0) {
       mod <- lapply(1:nrow(pars), function(x) {
         data.frame(Date = airt_swt$df$Date,
-                   Model = pars$m[x] * airt_swt$df$X + pars$b[x])
+                   Model = pars$m_est[x] * airt_swt$df$X + pars$b_est[x],
+                   Percentage = pars$Percentage[x])
       })
       # names(mod) <- pars$label
-      mlt <- reshape::melt(mod, id.vars = "Date")
-      colnames(mlt)[4] <- "index"
-      mlt$index <- factor(mlt$index)
+      mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
+
+      mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
+      lvls <- levels(mlt$Percentage)
+      ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
+      # Reorder levels in ascending order
+      mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
     }
 
     p <- ggplot() +
-      # geom_vline(xintercept = 0) +
       geom_hline(yintercept = 0) +
-      # geom_line(data = df, aes(Date, X, color = "Air temperature")) +
-      geom_point(data = df, aes(Date, Y, color = "Observed")) +
-      # scale_color_manual(values = cols[5:6]) +
-      # geom_point(data = airt_swt$df, aes(X, Y), color = "black") +
+      # geom_point(data = df, aes(Date, Y, color = "Observed")) +
+      geom_point(data = df, aes(Date, Y), color = "black") +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
       guides(color = guide_legend(override.aes = list(size = 3))) +
@@ -487,7 +521,7 @@ shinyServer(function(input, output, session) {
 
     if(nrow(pars) > 0) {
       p <- p +
-        geom_line(data = mlt, aes(Date, value, color = index)) +
+        geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
         scale_color_manual(values = cols)
     }
 
@@ -496,12 +530,44 @@ shinyServer(function(input, output, session) {
   })
 
   # Add lm fit
-  lm_fit <- reactiveValues(fit = NULL)
+  lm_fit <- reactiveValues(fit = NULL, df_lst = list(), plt_orig = TRUE)
   observeEvent(input$add_lm, {
     req(!is.null(airt_swt$sub))
+    tot_rows <- nrow(na.exclude(airt_swt$df))
     df <- airt_swt$sub
+    df <- na.exclude(df)
     colnames(df)[2:3] <- c("airt", "wtemp")
-    lm_fit$fit <- lm(wtemp ~ airt, data = df)
+    fit <- lm(wtemp ~ airt, data = df)
+    out <- summary(fit)
+
+    if(!is.null(input$lr_DT_rows_selected)) {
+      lr_pars$dt$m_est[input$lr_DT_rows_selected] <- round(out$coefficients[2, 1], 2)
+      lr_pars$dt$b_est[input$lr_DT_rows_selected] <- round(out$coefficients[1, 1], 2)
+      lr_pars$dt$m_se[input$lr_DT_rows_selected] <- round(out$coefficients[2, 2], 2)
+      lr_pars$dt$b_se[input$lr_DT_rows_selected] <- round(out$coefficients[1, 2], 2)
+      lr_pars$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
+      lr_pars$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
+    } else {
+      idx <- which(is.na(lr_pars$dt$m_est))[1]
+      lr_pars$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
+      lr_pars$dt$b_est[idx] <- round(out$coefficients[1, 1], 2)
+      lr_pars$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
+      lr_pars$dt$b_se[idx] <- round(out$coefficients[1, 2], 2)
+      lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
+      lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
+    }
+
+    df$Percentage <- round((100 * nrow(df) / tot_rows))
+    if(!is.null(input$lr_DT_rows_selected)) {
+      lm_fit$df_lst[[input$lr_DT_rows_selected]] <- df
+    } else {
+      idx <- length(lm_fit$df_lst) + 1
+      lm_fit$df_lst[[idx]] <- df
+    }
+
+    lm_fit$plt_orig <- FALSE
+
+    lm_fit$fit <- fit
   })
 
   output$lm_out <- renderPrint({
@@ -518,13 +584,13 @@ shinyServer(function(input, output, session) {
                                                "Mean (b)" = 0,
                                                "Std. Dev (b)" = 0))
   observeEvent(input$calc_stats, {
-    req(sum(!is.na(lr_pars$dt$m)) > 1)
-    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m, na.rm = TRUE),
-                     "Std. Dev (m)" = sd(lr_pars$dt$m, na.rm = TRUE),
-                     "Mean (b)" = mean(lr_pars$dt$b, na.rm = TRUE),
-                     "Std. Dev (b)" = sd(lr_pars$dt$b, na.rm = TRUE))
+    req(sum(!is.na(lr_pars$dt$m_est)) > 1)
+    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m_est, na.rm = TRUE),
+                     "Std. Dev (m)" = sd(lr_pars$dt$m_est, na.rm = TRUE),
+                     "Mean (b)" = mean(lr_pars$dt$b_est, na.rm = TRUE),
+                     "Std. Dev (b)" = sd(lr_pars$dt$b_est, na.rm = TRUE))
     updateSliderInput(session, "m_std", value = df[1, 2])
-    updateSliderInput(session, "b_std", value = df[1, 4])
+    updateSliderInput(session, "b_std", value = df[1, 4], max = max(1, (df[1, 4] + 0.5)))
     linr_stats$dt <- signif(df, 3)
   })
 
@@ -553,16 +619,19 @@ shinyServer(function(input, output, session) {
     )
     df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
 
+    xlims <- c(min(0, lr_dist_plot$m), max(2, lr_dist_plot$m))
+
     p <- ggplot(df) +
       geom_vline(xintercept = linr_stats$dt[1, 1]) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = c(0, 2), ylim = c(0, 5)) +
+      coord_cartesian(xlim = xlims, ylim = c(0, 6)) +
       ylab("Density") +
       xlab("Value") +
       ggtitle("Slope (m)") +
       theme_bw(base_size = 22)
     return(p)
   })
+
   output$lr_b_dist_plot <- renderPlot({
     validate(
       need(input$table01_rows_selected != "",
@@ -573,10 +642,12 @@ shinyServer(function(input, output, session) {
     )
     df <- data.frame(par = "Intercept (b)", value = lr_dist_plot$b)
 
+    xlims <- c(min(-2.5, lr_dist_plot$m), max(10, lr_dist_plot$b))
+
     p <- ggplot(df) +
       geom_vline(xintercept = linr_stats$dt[1, 3]) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = c(-2, 10), ylim = c(0, 5)) +
+      coord_cartesian(xlim = xlims, ylim = c(0, 6)) +
       ylab("Density") +
       xlab("Value") +
       ggtitle("Intercept (b)") +
@@ -600,12 +671,15 @@ shinyServer(function(input, output, session) {
                              p125 = apply(y, 1, function(x) quantile(x, 0.125)),
                              p875 = apply(y, 1, function(x) quantile(x, 0.875)),
                              p975 = apply(y, 1, function(x) quantile(x, 0.975)),
-                             mean = apply(y, 1, function(x) mean(x)))
+                             mean = apply(y, 1, function(x) mean(x)),
+                             median = apply(y, 1, function(x) median(x)))
   })
   output$mb_samps <- renderDT(mb_samples$df, selection = "none",
-                              # options = list(searching = FALSE, paging = TRUE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                              #                columnDefs = list(list(width = '10%', targets = "_all"))
-                              # ),
+                              options = list(searching = FALSE, paging = TRUE, ordering= FALSE,
+                                             # dom = "t",
+                                             autoWidth = TRUE,
+                                             pageLength = 5
+                              ),
                               colnames = c("Slope (m)", "Intercept (b)"),
                               rownames = FALSE,
                               server = FALSE, escape = FALSE)
@@ -635,15 +709,15 @@ shinyServer(function(input, output, session) {
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 16)
 
-    if(!is.null(mb_samples$df) & !input$add_dist) {
+    if(!is.null(mb_samples$df) & input$plot_type1 == "Line") {
       p <- p +
         geom_abline(slope = mb_samples$df$m, intercept = mb_samples$df$b, color = "gray", linetype = "solid")
     }
-    if(input$add_dist) {
+    if(input$plot_type1 == "Distribution") {
       p <- p +
         geom_ribbon(data = lm_dist$df, aes(x, ymin = p025, ymax = p975, fill = "95%"), alpha = 0.3) +
         geom_ribbon(data = lm_dist$df, aes(x, ymin = p125, ymax = p875, fill = "75%"), alpha = 0.3) +
-        geom_line(data = lm_dist$df, aes(x, mean, color = "Mean")) +
+        geom_line(data = lm_dist$df, aes(x, median, color = "Median")) +
         scale_fill_manual(values = l.cols)
     }
     gp <- ggplotly(p, dynamicTicks = TRUE)
@@ -726,8 +800,12 @@ shinyServer(function(input, output, session) {
       need(!is.null(click_df$df), "Please select points on the plot.")
     )
     validate(
+      need(nrow(click_df$df) > 0, "No points in the current selection. Please try again.")
+    )
+    validate(
       need(!is.null(mean_err$val), "Click calculate.")
     )
+
     paste0("The mean model error is ", round(mean_err$val, 1), " \u00B0C.")
   })
 
@@ -837,7 +915,8 @@ shinyServer(function(input, output, session) {
            message = "Please select predictors.")
     )
     idx <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars)
-    formula <- paste0("$$ wtemp =  ", paste0("\\beta_{", 1:length(idx), "} * ", lin_reg_vars$latex[idx], collapse = " + "), " + b $$")
+    formula <- paste0("$$\\begin{align} \\ wtemp &=  ", paste0("\\beta_{", 1:length(idx), "} * ", lin_reg_vars$latex[idx], collapse = "\\\\ \\ &+ "), "+ b \\end{align} $$")
+
     withMathJax(
       tags$p(formula)
     )
@@ -932,7 +1011,8 @@ shinyServer(function(input, output, session) {
 
   output$mlr_dt <- renderDT(mlr$dt, selection = "single",
                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                                           columnDefs = list(list(width = '10%', targets = "_all")) #,
+                                           columnDefs = list(list(width = '10%', targets = "_all")),
+                                           scrollX = TRUE #,
     #                                        drawcallback = JS("function( settings ) {
     #     // MathJax.Hub.Config({
     #     //    tex2jax: {inlineMath: [['$','$'],['\\(','\\)']]}
@@ -940,7 +1020,7 @@ shinyServer(function(input, output, session) {
     #
     #     MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
     # }")
-                            ), colnames = c("Equation", "Lag (days)", "Mean (days)", "Cor."), rownames = TRUE,
+                            ), colnames = c("Equation", "Lag (days)", "Mean (days)", "R-squared"), rownames = TRUE,
 
                             server = FALSE, escape = FALSE)
 
@@ -948,13 +1028,13 @@ shinyServer(function(input, output, session) {
   output$date_train <- renderUI({
     req(!is.null(airt_swt$df))
     bump <- round(nrow(airt_swt$df)/2)
-    sliderInput("train_date", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(min(airt_swt$df$Date), airt_swt$df$Date[bump]))
+    sliderInput("train_date", "Training Dates", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(min(airt_swt$df$Date), airt_swt$df$Date[bump]))
   })
 
   output$date_test <- renderUI({
     req(!is.null(airt_swt$df))
     bump <- round(nrow(airt_swt$df)/2)
-    sliderInput("test_date", "Date", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(airt_swt$df$Date[bump+1], max(airt_swt$df$Date)))
+    sliderInput("test_date", "Testing Dates", min = min(airt_swt$df$Date), max = max(airt_swt$df$Date), step = 1, value = c(airt_swt$df$Date[bump+1], max(airt_swt$df$Date)))
   })
 
   #** Plot water temp ts with MLR model----
@@ -994,7 +1074,7 @@ shinyServer(function(input, output, session) {
     }
 
     p <- ggplot() +
-      geom_point(data = df, aes(Date, Y, color = "Observed")) +
+      geom_point(data = df, aes(Date, Y), color = "black") +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
       facet_wrap(~per, scales = "free_x") +

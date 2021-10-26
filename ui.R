@@ -502,16 +502,16 @@ border-color: #FFF;
                                                column(8,
                                                       h3("Data Plot"),
                                                       p("All plots in this Shiny app are generated using Plotly. This allows you to hover your mouse over the plot to get information from each of the plots. You can inspect the data closely by clicking and zooming into particular areas. There is a tool box at the top of the plot which has the selection function required for Q6."),
+                                                      selectizeInput("view_var", "Select variable",
+                                                                     choices = unique(neon_vars$Short_name),
+                                                                     options = list(
+                                                                       placeholder = 'Please select a variable',
+                                                                       onInitialize = I('function() { this.setValue(""); }')),
+                                                      ),
                                                       plotlyOutput("var_plot"),
                                                       useShinyjs(),  # Set up shinyjs
                                                       # splitLayout(cellWidths = c("75%", "25%"),
-                                                                  selectizeInput("view_var", "Select variable",
-                                                                                 choices = unique(neon_vars$Short_name),
-                                                                                 options = list(
-                                                                                   placeholder = 'Please select a variable',
-                                                                                   onInitialize = I('function() { this.setValue(""); }')),
-                                                                  ),
-                                                                  actionButton("clear_sel1", "Clear Selection"),
+                                                      actionButton("clear_sel1", "Clear Selection"),
                                                       # ),
                                                       wellPanel(
                                                         h4("Variable Description"),
@@ -718,8 +718,8 @@ border-color: #FFF;
                                  p("We will explore the relationship between air temperature and surface water temperature."),
                                  p("First, we will look at a time series of the data."),
                                  actionButton("plot_airt_swt", "Plot"),
-                                 radioButtons("lin_reg_q1", "Do you think there is a linear relationship between air temperature and water temperature?", choices = c("Yes", "No"), selected = character(0), inline = TRUE),
-                                 conditionalPanel("input.lin_reg_q1 == 'Yes'",
+                                 radioButtons("q12", quest["q12", ], choices = c("Yes", "No"), selected = character(0), inline = TRUE),
+                                 conditionalPanel("input.q12 == 'Yes'",
                                                   p(tags$b("Good job!")),
                                                   p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
                                                   br(),
@@ -729,7 +729,7 @@ border-color: #FFF;
                                                   div("$$wtemp = m * airtemp + b$$"),
                                                   p("where ", tags$em("m"), "is the slope and ", tags$em("b"), " is the intercept")
                                                   ),
-                                 conditionalPanel("input.lin_reg_q1 == 'No'",
+                                 conditionalPanel("input.q12 == 'No'",
                                                   p(tags$em("Are you sure?"))
                                                   )
                                  ),
@@ -744,8 +744,9 @@ border-color: #FFF;
                         hr(),
                         fluidRow(
                           column(3,
-                                 h3("Build your own linear regression"),
-                                 p("Select the range of dates for which to use to build your linear regression model."),
+                                 h3("Investigate how data availability affects linear regression"),
+                                 p("Fit a linear model with 25%, 50%, 75% and 100% of the data and see how it affects the estimation of the parameters 'm' and 'b'."),
+                                 p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates."),
                                  uiOutput("date_slider1"),
                                  actionButton("plot_airt_swt2", "Plot"),
                                  p("Adjust the y-intercept (b) and the slope (m) to draw and save 5 different lines which represent potential linear relationships between air temperature and surface water temperature."),
@@ -753,38 +754,54 @@ border-color: #FFF;
                           ),
                           column(4,
                                  p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
-                                 numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
-                                 numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
+                                 # numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
+                                 # numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
                                  p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
                                  DTOutput("lr_DT", width = "40%"),
                                  br(),
-                                 p("You can also fit a linear model using the 'lm()' function in R and compare the slope and intercept to the one you have estimated."),
+                                 p("We will fit a linear model using the 'lm()' function in R."),
+                                 p("You do not need to get the percentages exactly right, but close enough will work fine."),
                                  actionButton("add_lm", "Fit linear model"),
-                                 br(),
-                                 verbatimTextOutput("lm_out")
+                                 br(), br(),
+                                 box(id = "box2", width = 12, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(10, offset = 1,
+                                              # h3("Questions"),
+                                              textAreaInput2(inputId = "q13", label = quest["q13", ], width = "90%"),
+                                              textAreaInput2(inputId = "q14", label = quest["q14", ], width = "90%")
+                                              )
+                                       ),
+                                 )
+                                 # verbatimTextOutput("lm_out")
                                  ),
                           column(5,
                                  h3("Air temperature vs. water temperature"),
                                  wellPanel(
-                                   plotlyOutput("airt_swt_plot_lines"),
-                                   actionButton("draw_line", "Draw line"),
-                                   actionButton("save_line", "Save line")
+                                   plotlyOutput("airt_swt_plot_lines")#,
+                                   # actionButton("draw_line", "Draw line"),
+                                   # actionButton("save_line", "Save line")
                                    )
                                  )
                         ),
                         fluidRow(
                           column(3,
                                  h3("Compare model performance"),
-                                 p("Q. How did using less data to fit your model affect its overall performance?"),
-                                 textAreaInput2("q100", ""),
-                                 p("Q. Which model performed best? Why do you think that is?"),
-                                 textAreaInput2("q101", ""),
-                                 p("Q. Do you think you could use this model for a forecast? Why/why not?"),
-                                 textAreaInput2("q103", "")
+                                 box(id = "box2", width = 12, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(10, offset = 1,
+                                              # h3("Questions"),
+                                              textAreaInput2(inputId = "q15", label = quest["q15", ], width = "90%"),
+                                              textAreaInput2(inputId = "q16", label = quest["q16", ], width = "90%")
+                                              )
+                                       ),
+                                     )
                                  ),
                           column(9,
                                  h3("Water temperature timeseries"),
-                                 p("When you add your models to the table, they will appear here."),
+                                 p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
+                                 p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
                                  wellPanel(
                                    plotlyOutput("lm_ts_plot")
                                    )
@@ -793,22 +810,35 @@ border-color: #FFF;
                         hr(),
                         #* Generate distributions for intercept & slope ----
                         fluidRow(
-                          column(6,
-                                 h3("Generate distributions for intercept & slope"),
+                          column(12,
+                                 h3("Generate distributions for intercept & slope")
+                          ),
+                          column(4,
                                  p("Using the values from the lines you drew above, you will calculate a normal distribution for the parameters."),
                                  p("Calculate the mean and standard deviation of the parameters"),
                                  actionButton("calc_stats", "Calculate!"),
+                                 # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
                                  DTOutput("lr_stats", width = "60%"),
-                                 hr(),
                                  p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
-                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
-                                 sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05),
-                                 actionButton("gen_lr_dist_plot", "Generate plot!")
+                                 actionButton("gen_lr_dist_plot", "Generate plot!"),
+                                 br(), br(),
+                                 box(id = "box2", width = 12, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(10, offset = 1,
+                                              textAreaInput2(inputId = "q17", label = quest["q17", ], width = "90%"),
+                                              )
+                                       ),
+                                     ),
+                                 p("You will use the sliders to answer Q 18-20.")
                                  ),
-                          column(6,
+                          column(4, align = "center",
                                  plotOutput("lr_m_dist_plot"),
-                                 hr(),
-                                 plotOutput("lr_b_dist_plot")
+                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01)
+                                 ),
+                          column(4, align = "center",
+                                 plotOutput("lr_b_dist_plot"),
+                                 sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05)
                                  )
                           ),
                         hr(),
@@ -822,22 +852,36 @@ border-color: #FFF;
                                  p("Every time you click 'Add lines' it will generate a random sample."),
                                  conditionalPanel("input.gen_lin_mods >= 1",
                                                   p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
-                                                  checkboxInput("add_dist", "Distribution plot")),
+                                                  radioButtons("plot_type1", "Plot type", c("Line", "Distribution"),
+                                                               inline = TRUE)
+                                 )
+                                                  # checkboxInput("add_dist", "Distribution plot"))
                           ),
                           column(3,
-                                 DTOutput("mb_samps", width = "60%")
+                                 DTOutput("mb_samps", width = "80%")
                                  ),
                           column(6,
-                                 plotlyOutput("add_lin_mods"),
-                                 box(id = "box2", width = 10, status = "primary",
+                                 plotlyOutput("add_lin_mods")
+                          )
+                        ),
+                        fluidRow(
+                          column(12,
+                                 box(id = "box2", width = 12, status = "primary",
                                      solidHeader = TRUE,
                                      fluidRow(
-                                       column(8, offset = 1,
-                                              h3("Questions"),
-                                              # h4(quest["q4", 1]),
-                                              textAreaInput2(inputId = "q4a", label = "How does adjusting the number of samples affect the range of uncertainty?", width = "90%")
-                                              )
+                                       column(12,
+                                              h4("Questions")
+                                              ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q18", label = quest["q18", ], width = "90%")
+                                              ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q19", label = quest["q19", ], width = "90%")
                                        ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q20", label = quest["q20", ], width = "90%")
+                                              )
+                                       )
                                      )
                                  )
                           ),
@@ -868,6 +912,25 @@ border-color: #FFF;
                                             )),
                                  )
                           ),
+                        fluidRow(
+                          column(12,
+                                 box(id = "box2", width = 12, status = "primary",
+                                     solidHeader = TRUE,
+                                     fluidRow(
+                                       column(12,
+                                              h4("Questions"),
+                                              p("Calculate the model error (difference between modelled water temperature and observed temperature) at varying intervals (0-10, 10-20, 20-30, 30-40). Which interval has the largest error? Why do you think that is?, What does the sign in front of the error tell you?")
+                                              ),
+                                       column(6,
+                                              textAreaInput2(inputId = "q21", label = quest["q21", ], width = "90%")
+                                       ),
+                                       column(6,
+                                              textAreaInput2(inputId = "q22", label = quest["q22", ], width = "90%")
+                                       )
+                                     )
+                                 )
+                          )
+                        ),
                         hr(),
                         #* Calculation model error - probabilistic ----
                         fluidRow(
@@ -892,20 +955,28 @@ border-color: #FFF;
                           ),
                         hr(),
                         fluidRow(
-                          column(3,
+                          column(12,
                                  h3("Build a ", tags$em("Forecasting"), " model"),
+                                 ),
+                          column(3,
                                  p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
+                                 ),
+                          column(3,
+                                 p("We are going to build a model that uses historical data, which will allow us to use historical data to forecast water temperature."),
+                                 p("We will use historical air temperature and water temperaure. You will have the option of either using them with a lag (e.g. a lag of 1 would be using data from 1 day ago) or a rolling mean (e.g. a mean of 3 would be using a the average over the last 3 days).")
+                                 ),
+                          column(6,
+                                 h3("PLACEHOLDER")
+                                 )
+                        ),
+                        fluidRow(
+                          column(3,
                                  p("Build a multiple regression model below and test adding different predictors and see how well your model works at forecasting water temperature."),
                                  div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$"),
                                  p("where \\(\\beta_{n}\\) represents the parameters in the equation, similarly to the slope in a linear regression model."),
                                  selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
                                  numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
                                  numericInput("mean_t", "Mean (days)", value = 1, min = 1, max = 7, step = 1),
-                                 hr(),
-                                 h4("Training dates"),
-                                 uiOutput("date_train"),
-                                 h4("Testing dates"),
-                                 uiOutput("date_test"),
                                  ),
                           column(3,
                                  h4("Fit multiple linear regression model"),
@@ -915,29 +986,53 @@ border-color: #FFF;
                                  ),
                                  br(),
                                  actionButton("fit_mlr", "Fit model"),
-                                 br(),
-                                 verbatimTextOutput("mlr_out")
-                                 ),
+                                 uiOutput("date_train"),
+                                 uiOutput("date_test")
+                          ),
                           column(6,
-                                 plotlyOutput("mlr_ts_plot"),
-                                 DT::DTOutput("mlr_dt"),
-                                 br(),
-                                 box(id = "box1", width = 10, status = "primary",
+                                 plotlyOutput("mlr_ts_plot")
+                          )
+                        ),
+                        fluidRow(
+                          column(6,
+                                 box(id = "box2", width = 12, status = "primary",
                                      solidHeader = TRUE,
                                      fluidRow(
-                                       column(8, offset = 1,
-                                              h3("Questions"),
-                                              p("Which multiple linear regression model performed best? Why?"),
-                                              textAreaInput2(inputId = "q104", label = ""),
-
-                                              p("Which do you think would be the better predictor of tomorrow's water temperature: yesterdays temperature (lag = 1) or the rolling average of the previous 3 days (mean = 3)?"),
-                                              p("Use the model to help you answer this question."),
-                                              textAreaInput2(inputId = "q104", label = ""),
-                                              p("Why is it important to have a training and testing dataset for models such as these?"),
-                                              textAreaInput2(inputId = "q105", label = "")
+                                       column(12,
+                                              h4("Questions")
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(4,
+                                              textAreaInput2(inputId = "q23", label = quest["q23", ], width = "90%")
+                                       ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q24", label = quest["q24", ], width = "90%")
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(4,
+                                              textAreaInput2(inputId = "q25", label = quest["q25", ], width = "90%")
+                                       ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q26", label = quest["q26", ], width = "90%")
+                                       ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q27", label = quest["q27", ], width = "90%")
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(4,
+                                              textAreaInput2(inputId = "q28", label = quest["q28", ], width = "90%")
+                                       ),
+                                       column(4,
+                                              textAreaInput2(inputId = "q29", label = quest["q29", ], width = "90%")
                                               )
                                        )
                                      )
+                                 ),
+                          column(6,
+                                 DT::DTOutput("mlr_dt")
                                  )
                           ),
                         hr(),
@@ -1041,7 +1136,7 @@ border-color: #FFF;
                                                   ),
                                  checkboxInput("view_day7", "View forecast 7-days ahead"),
                                  conditionalPanel("input.view_day7",
-                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Actual data", "Distribution")),
+                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Forecast members", "Forecast distribution")),
                                                   radioButtons("noaa_timestep", "Timestep of forecasts", choices = c("Hourly", "Daily mean"), inline = TRUE)
                                                   )
                                  ),
