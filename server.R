@@ -368,14 +368,21 @@ shinyServer(function(input, output, session) {
   })
 
   # Data table to store 10 lines
-  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 4), m_se = rep(NA, 4),
-                                            b_est = rep(NA, 4), b_se = rep(NA, 4),
-                                            r2 = rep(NA, 4), Percentage = rep(NA, 4)))
+  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 6), m_se = rep(NA, 6),
+                                            b_est = rep(NA, 6), b_se = rep(NA, 6),
+                                            r2 = rep(NA, 6), Percentage = rep(NA, 6)))
   output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("m (Est.)", "m (SE)", "b (Est.)", "b (SE)", "R-square", "%"),
-                           rownames =F, # c("25%", "50%", "75%", "100%"),
+                           ), colnames = c("m (Est.)", "m (SE)", "b (Est.)", "b (SE)", "R-squared", "%"),
+                           rownames = FALSE, # c("25%", "50%", "75%", "100%"),
+                           # container = sketch2,
+                           server = FALSE, escape = FALSE)
+  output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "b_est", "r2", "Percentage")], selection = "multiple",
+                           options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                          columnDefs = list(list(width = '10%', targets = "_all"))
+                           ), colnames = c("m", "b", "R-squared", "%"),
+                           rownames = FALSE, # c("25%", "50%", "75%", "100%"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
 
@@ -575,7 +582,6 @@ shinyServer(function(input, output, session) {
       need(!is.null(lm_fit$fit), "Click 'Fit linear model'")
     )
     summary(lm_fit$fit)
-    # summary(lm_fit$fit)
   })
 
   # Calculate statistics from the lines drawn
@@ -585,12 +591,14 @@ shinyServer(function(input, output, session) {
                                                "Std. Dev (b)" = 0))
   observeEvent(input$calc_stats, {
     req(sum(!is.na(lr_pars$dt$m_est)) > 1)
-    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m_est, na.rm = TRUE),
-                     "Std. Dev (m)" = sd(lr_pars$dt$m_est, na.rm = TRUE),
-                     "Mean (b)" = mean(lr_pars$dt$b_est, na.rm = TRUE),
-                     "Std. Dev (b)" = sd(lr_pars$dt$b_est, na.rm = TRUE))
+    req(input$lr_DT2_rows_selected != "")
+
+    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m_est[input$lr_DT2_rows_selected], na.rm = TRUE),
+                     "Std. Dev (m)" = sd(lr_pars$dt$m_est[input$lr_DT2_rows_selected], na.rm = TRUE),
+                     "Mean (b)" = mean(lr_pars$dt$b_est[input$lr_DT2_rows_selected], na.rm = TRUE),
+                     "Std. Dev (b)" = sd(lr_pars$dt$b_est[input$lr_DT2_rows_selected], na.rm = TRUE))
     updateSliderInput(session, "m_std", value = df[1, 2])
-    updateSliderInput(session, "b_std", value = df[1, 4], max = max(1, (df[1, 4] + 0.5)))
+    updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
     linr_stats$dt <- signif(df, 3)
   })
 
@@ -608,6 +616,19 @@ shinyServer(function(input, output, session) {
     lr_dist_plot$m <- rnorm(500, mean = linr_stats$dt[1, 1], sd = input$m_std)
     lr_dist_plot$b <- rnorm(500, mean = linr_stats$dt[1, 3], sd = input$b_std)
   })
+  observeEvent(input$b_std, {
+    lr_dist_plot$m <- NULL
+    lr_dist_plot$b <- NULL
+    mb_samples$df <- NULL
+  })
+  observeEvent(input$m_std, {
+    lr_dist_plot$m <- NULL
+    lr_dist_plot$b <- NULL
+    mb_samples$df <- NULL
+  })
+  observeEvent(input$n_samp, {
+    mb_samples$df <- NULL
+  })
 
   output$lr_m_dist_plot <- renderPlot({
     validate(
@@ -616,6 +637,9 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$gen_lr_dist_plot > 0, "Click 'Generate plot!'")
+    )
+    validate(
+      need(!is.null(lr_dist_plot$m), "Click 'Generate plot!'")
     )
     df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
 
@@ -640,6 +664,9 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$gen_lr_dist_plot > 0, "Click 'Generate plot!'")
     )
+    validate(
+      need(!is.null(lr_dist_plot$b), "Click 'Generate plot!'")
+    )
     df <- data.frame(par = "Intercept (b)", value = lr_dist_plot$b)
 
     xlims <- c(min(-2.5, lr_dist_plot$m), max(10, lr_dist_plot$b))
@@ -660,6 +687,8 @@ shinyServer(function(input, output, session) {
   lm_dist <- reactiveValues(df = NULL)
   observeEvent(input$gen_lin_mods, {
     req(!is.null(input$n_samp))
+    req(!is.null(lr_dist_plot$m))
+    req(!is.null(lr_dist_plot$b))
     mb_samples$df <- signif(data.frame("m" = sample(lr_dist_plot$m, input$n_samp),
                                 "b" = sample(lr_dist_plot$b, input$n_samp)), 3)
     # Create summary data frame
@@ -691,13 +720,6 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$n_samp), "Select number of samples")
-    )
-    validate(
-      need(input$plot_airt_swt > 0,
-           message = "Click 'Plot'")
     )
 
     p <- ggplot() +
@@ -737,16 +759,9 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(input$n_samp), "Select number of samples")
+      need(!is.null(lm_dist$df), "Click 'Add lines' in the plot above")
     )
-    validate(
-      need(input$plot_airt_swt > 0,
-           message = "Click 'Plot'")
-    )
-    validate(
-      need(input$gen_lin_mods > 0,
-           message = "Add lines")
-    )
+
 
 
     p <- ggplot(data = airt_swt$df, aes(X, Y)) +
@@ -908,6 +923,39 @@ shinyServer(function(input, output, session) {
     pct_msg$txt
   })
 
+  #* Persistence model ----
+  persist_df <- reactiveValues(df = NULL)
+  observeEvent(input$plot_persist, {
+    req(input$table01_rows_selected != "")
+    df <- airt_swt$df
+    df$Mod <- c(NA, df$Y[-nrow(df)])
+    persist_df$df <- df
+  })
+
+  output$persist_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(persist_df$df), "Click 'Plot'")
+    )
+
+    df <- persist_df$df
+
+    p <- ggplot(df) +
+      geom_point(aes(Date, Y, color = "Obs")) +
+      geom_line(aes(Date, Mod, color = "Mod")) +
+      ylab("Water temperature (\u00B0C)") +
+      xlab("Time") +
+      scale_color_manual(values = c(cols[1], "black")) +
+      theme_bw(base_size = 16)
+
+    ggplotly(p, dynamicTick = TRUE)
+
+
+  })
+
   # Build a forecast model ----
   output$mult_lin_reg_eqn <- renderUI({
     validate(
@@ -915,7 +963,7 @@ shinyServer(function(input, output, session) {
            message = "Please select predictors.")
     )
     idx <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars)
-    formula <- paste0("$$\\begin{align} \\ wtemp &=  ", paste0("\\beta_{", 1:length(idx), "} * ", lin_reg_vars$latex[idx], collapse = "\\\\ \\ &+ "), "+ b \\end{align} $$")
+    formula <- paste0("$$\\begin{align} \\ wtemp_{t} &=  ", paste0("\\beta_{", 1:length(idx), "} * ", lin_reg_vars$latex[idx], collapse = "\\\\ \\ &+ "), "+ b \\end{align} $$")
 
     withMathJax(
       tags$p(formula)
@@ -951,7 +999,7 @@ shinyServer(function(input, output, session) {
     mlr_out$txt <- summary(fit)
 
     coeffs <- round(fit$coefficients, 2)
-    if(coeffs[1] > 0) {
+    if(coeffs[1] >= 0) {
       b <- paste0("+", coeffs[1])
     } else {
       b <- coeffs[1]
@@ -971,7 +1019,7 @@ shinyServer(function(input, output, session) {
       mlr_pred$lst[[input$mlr_dt_rows_selected]] <- data.frame(Date = dat$Date,
                                             Model = mod)
       mlr_fit$lst[[input$mlr_dt_rows_selected]] <- fit
-    } else if(inp_row <= 5) {
+    } else if(!is.na(inp_row)) {
       # idx <- which(is.na(lr_pars$dt$m))[1]
       mlr$dt$Equation[inp_row] <- paste0("$$ wtemp =  ", paste0(coeffs[-1], " * ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
       mlr$dt$lag[inp_row] <- input$lag_t
@@ -982,9 +1030,11 @@ shinyServer(function(input, output, session) {
       mlr_fit$lst[[inp_row]] <- fit
     }
 
+    # mlr_out$invis <- mlr_out$txt # Just to trigger re-rendering
+
   })
 
-  mlr_out <- reactiveValues(txt = NULL)
+  mlr_out <- reactiveValues(txt = NULL, invis = NULL)
 
   output$mlr_out <- renderPrint({
     validate(
@@ -995,6 +1045,13 @@ shinyServer(function(input, output, session) {
       need(!is.null(mlr_out$txt), "Click 'Fit model'")
     )
     mlr_out$txt
+  })
+
+  output$mlr_invis <- renderPrint({
+    validate(
+      need(!is.null(mlr_out$invis), "Click 'Fit model'")
+    )
+    mlr_out$invis
   })
 
   observeEvent(input$mult_lin_reg_vars, {
@@ -1058,6 +1115,10 @@ shinyServer(function(input, output, session) {
     df$per[df$Date >= input$test_date[1] & df$Date <= input$test_date[2]] <- "Testing"
     df <- df[!is.na(df$per), ]
     df$per <- factor(df$per, levels = c("Training", "Testing"))
+    validate(
+      need(nrow(df) > 1,
+           message = "Select Training and Testing periods which have water temperature data.")
+    )
 
 
     if(nrow(na.exclude(mlr$dt)) > 0) {
@@ -1091,10 +1152,84 @@ shinyServer(function(input, output, session) {
     return(ggplotly(p, dynamicTicks = TRUE))
   })
 
+  # Activity AB ----
+  #* Run wtemp forecasts - Model Uncertainty ----
 
-  # Activity A ----
+  wtemp_fc_data <- reactiveValues(df = NULL)
+  observe({
+    req(input$table01_rows_selected != "")
+    req(input$mod_selec_tab_rows_selected != "")
+    # req(!is.na(mlr$dt$lag[input$mod_selec_tab_rows_selected]))
 
-  # Load NOAA airT
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$Y,
+                      airt = airt_swt$df$X,
+                      wtemp_lag = NA, wtemp_mean = NA,
+                      airt_lag = NA, airt_mean = NA)
+
+    if(input$mod_selec_tab_rows_selected != "" & !is.na(mlr$dt$lag[input$mod_selec_tab_rows_selected])) {
+      dat$wtemp_lag[-c(1:mlr$dt$lag[input$mod_selec_tab_rows_selected])] <- dat$wtemp[-c((nrow(dat)+1-mlr$dt$lag[input$mod_selec_tab_rows_selected]):nrow(dat))]
+      dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], mlr$dt$mean_day[input$mod_selec_tab_rows_selected],
+                                            na.pad = TRUE, align = "right"))
+      dat$airt_lag[-c(1:mlr$dt$lag[input$mod_selec_tab_rows_selected])] <- dat$airt[-c((nrow(dat)+1-mlr$dt$lag[input$mod_selec_tab_rows_selected]):nrow(dat))]
+      dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], mlr$dt$mean_day[input$mod_selec_tab_rows_selected],
+                                           na.pad = TRUE, align = "right"))
+    }
+
+    dat <- dat[dat$Date <= fc_date & dat$Date >= "2020-09-18", ]
+
+    df <- data.frame(Date = seq.Date(as.Date("2020-09-18"), as.Date("2020-10-02"), by = 1),
+                     forecast = NA)
+    df <- merge(dat, df, by = "Date", all.y = TRUE)
+    print(df)
+    wtemp_fc_data$df <- df
+  })
+
+  output$mod_selec_tab <- renderDT(mlr$dt, selection = "single",
+                                   options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                                  columnDefs = list(list(width = '10%', targets = "_all")),
+                                                  scrollX = TRUE),
+                                   colnames = c("Equation", "Lag (days)", "Mean (days)", "R-squared"), rownames = TRUE,
+                                   server = FALSE, escape = FALSE)
+
+  observeEvent(input$run_wtemp_fc1, {
+    req(input$mod_selec_tab_rows_selected != "")
+
+    df <- wtemp_fc_data$df
+    for(i in 1:nrow(df)) {
+
+      df$forecast[i] <- predict(mlr_fit$lst[[input$mod_selec_tab_rows_selected]], df[i])
+      if(i > 8) {
+        # df$wtemp[i] <-
+      }
+    }
+
+
+  })
+
+  output$wtemp_fc1 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+
+    xlims <- c(min(wtemp_fc_data$df$Date), (max(wtemp_fc_data$df$Date) + 7))
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$df, aes(Date, airt, color = "Air temp.")) +
+      geom_point(data = wtemp_fc_data$df, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      coord_cartesian(xlim = xlims) +
+      theme_bw(base_size = 12)
+
+    return(ggplotly(p, dynamicTicks = TRUE))
+
+  })
+
+
+  # Activity B ----
+
+  #** Load NOAA airT ----
   noaa_df <- reactiveValues(airt = NULL, swr = NULL)
   observeEvent(input$load_noaa_at, {
 
@@ -1204,7 +1339,7 @@ shinyServer(function(input, output, session) {
     return(paste0("Forecast loaded for ", siteID$lab))
   })
 
-  # output$noaa_at_plot <- renderPlot({
+  #** NOAA Air temperature plot ----
   output$noaa_at_plot <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1351,7 +1486,7 @@ shinyServer(function(input, output, session) {
     return(gp)
   })
 
-  # Run forecasts with IC UC ----
+  # Run chl-A forecasts with IC UC ----
   # Generate Initial condition distribution plots
   ic_dist_plot <- reactiveValues(phy = NULL, nut = NULL, phy_xlims = NULL, nut_xlims = NULL)
   observeEvent(input$gen_ic_dist, {

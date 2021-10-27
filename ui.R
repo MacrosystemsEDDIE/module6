@@ -745,8 +745,8 @@ border-color: #FFF;
                         fluidRow(
                           column(3,
                                  h3("Investigate how data availability affects linear regression"),
-                                 p("Fit a linear model with 25%, 50%, 75% and 100% of the data and see how it affects the estimation of the parameters 'm' and 'b'."),
-                                 p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates."),
+                                 p("Fit a linear model with six varying amounts of data (1-100%) and add them to the parameter table."),
+                                 p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
                                  uiOutput("date_slider1"),
                                  actionButton("plot_airt_swt2", "Plot"),
                                  p("Adjust the y-intercept (b) and the slope (m) to draw and save 5 different lines which represent potential linear relationships between air temperature and surface water temperature."),
@@ -816,6 +816,7 @@ border-color: #FFF;
                           column(4,
                                  p("Using the values from the lines you drew above, you will calculate a normal distribution for the parameters."),
                                  p("Calculate the mean and standard deviation of the parameters"),
+                                 DTOutput("lr_DT2", width = "40%"),
                                  actionButton("calc_stats", "Calculate!"),
                                  # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
                                  DTOutput("lr_stats", width = "60%"),
@@ -858,7 +859,7 @@ border-color: #FFF;
                                                   # checkboxInput("add_dist", "Distribution plot"))
                           ),
                           column(3,
-                                 DTOutput("mb_samps", width = "80%")
+                                 DTOutput("mb_samps", width = "50%")
                                  ),
                           column(6,
                                  plotlyOutput("add_lin_mods")
@@ -956,7 +957,25 @@ border-color: #FFF;
                         hr(),
                         fluidRow(
                           column(12,
-                                 h3("Build a ", tags$em("Forecasting"), " model"),
+                                 h3("Create a Forecast model"),
+                          ),
+                          column(3,
+                                 p("The model we have built depends on the current air temperature to predict the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
+                                 p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as todays"),
+                                 wellPanel(
+                                   div("$$wtemp_{t} = wtemp_{t-1}$$")
+                                 ),
+                                 p("Let's plot this model"),
+                                 actionButton("plot_persist", "Plot")
+                          ),
+                          column(9,
+                                 plotlyOutput("persist_plot")
+                                 )
+                        ),
+                        hr(),
+                        fluidRow(
+                          column(12,
+                                 h3("Build a ", tags$em("Better"), " model"),
                                  ),
                           column(3,
                                  p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
@@ -972,7 +991,9 @@ border-color: #FFF;
                         fluidRow(
                           column(3,
                                  p("Build a multiple regression model below and test adding different predictors and see how well your model works at forecasting water temperature."),
-                                 div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$"),
+                                 wellPanel(
+                                   div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$")
+                                 ),
                                  p("where \\(\\beta_{n}\\) represents the parameters in the equation, similarly to the slope in a linear regression model."),
                                  selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
                                  numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
@@ -984,6 +1005,7 @@ border-color: #FFF;
                                  wellPanel(
                                    uiOutput("mult_lin_reg_eqn")
                                  ),
+                                 # verbatimTextOutput("mlr_invis"),
                                  br(),
                                  actionButton("fit_mlr", "Fit model"),
                                  uiOutput("date_train"),
@@ -1032,7 +1054,7 @@ border-color: #FFF;
                                      )
                                  ),
                           column(6,
-                                 DT::DTOutput("mlr_dt")
+                                 withMathJax(DTOutput("mlr_dt"))
                                  )
                           ),
                         hr(),
@@ -1043,6 +1065,64 @@ border-color: #FFF;
                                  )
                           )
                         ),
+               # 6. Activity B ----
+               tabPanel(title = "Activity AB", value = "mtab7",
+                        img(src = "project-eddie-banner-2020_green.png", height = 100,
+                            width = 1544, top = 5),
+                        fluidRow(
+                          column(12,
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h2("Activity B - Explore Uncertainty"),
+                                           h3("Objective X - Generate forecasts with Model Uncertainty"),
+                                           p(module_text["obj_04", ])
+                                 )
+                          ),
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h3("Model Uncertainty"),
+                                 p("We will now generate forecasts of water temperature."),
+                                 p("We will use the models that you developed in the last Objective to explore model uncertainty,"),
+                                 p("There are three types of uncertainty associated with model uncertainty"),
+                                 tags$ol(
+                                   tags$li("Model selection"),
+                                   tags$li("Process"),
+                                   tags$li("Parameter")
+                                   )
+                                 ),
+                          column(6,
+                                 h2("IMAGE OF MODEL UNCERTAINTY!")
+                                 )
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h3("Model Selection Uncertainty"),
+                                 p(module_text["mod_selec_uc", ]),
+                                 p("To account for model selection uncertainty we will use three different models, which you developed in the last objective, to generate 7-day forecasts of water temperature at your site."),
+                                 p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
+                                 p("Depending on your model selection, the necessary required driving variables are shown."),
+                                 withMathJax(DTOutput("mod_selec_tab"))
+                                 ),
+                          column(6,
+                                 wellPanel(
+                                   plotlyOutput("wtemp_fc1")
+                                 ),
+                                 actionButton("run_wtemp_fc1", "Run forecast")
+                                 )
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h3("Model Process Uncertainty"),
+                                 p(module_text["proc_uc", ]),
+                                 p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
+                                 uiOutput("mod_selec_fc2"),
+                                 actionButton("run_wtemp_fc2", "Run forecast")
+                          ),
+                          column(6,
+                                 plotlyOutput("wtemp_fc2")
+                          )
+                        )
+               ),
 
                # 6. Activity B ----
                tabPanel(title = "Activity B", value = "mtab7",
