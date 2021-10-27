@@ -83,4 +83,7 @@ mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = ele
 lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
                          fileEncoding = "UTF-8-BOM")
 
+# Forecast Date
+fc_date <- "2020-09-25"
+
 # end
