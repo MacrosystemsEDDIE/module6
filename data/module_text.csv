@@ -57,3 +57,4 @@ fc_cycle_end,"We have now stepped through each of the steps in the forecast cycl
 privacy_policy,This Shiny App does not collect or store any of your data.
 acknowledgement,"This module was initially developed by: Moore, T.N., C.C. Carey, and R.Q. Thomas. 13 October 2021. Macrosystems EDDIE: Ecological Forecast Uncertainty. Macrosystems EDDIE Module 6, Version 1. http://module6.macrosystemseddie.org. Module development was supported by NSF grants DEB-1926050 and DBI-1933016."
 distribution,A distribution in statistics is a function that shows the possible values for a variable and how often they occur.
+r_squared, is a goodness-of-fit measure for linear regression models. This statistic indicates the percentage of the variance in the dependent variable that the independent variables explain collectively. R-squared measures the strength of the relationship between your model and the dependent variable on a convenient -1 to 1 scale.
