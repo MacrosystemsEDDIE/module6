@@ -1,5 +1,5 @@
 ﻿Name,var,latex
-Air temperature lag,airt_lag,airt_{lag}
-Water temperature lag,wtemp_lag,wtemp_{lag}
-Average water temperature,wtemp_mean,wtemp_{mean}
-Average air temperature,airt_mean,airt_{mean}
+Air temperature lag,airt_lag,airt\_lag
+Water temperature lag,wtemp_lag,wtemp\_lag
+Mean water temperature,wtemp_mean,wtemp\_mean
+Mean air temperature,airt_mean,airt\_mean
