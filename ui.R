@@ -724,10 +724,11 @@ border-color: #FFF;
                                                   p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
                                                   br(),
                                                   h4("Linear Regression"),
-                                                  div("The formula for a linear regression is: $$y = mx + b$$"),
+                                                  div("The formula for a linear regression is: $$y = m*x + b$$"),
                                                   p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
                                                   div("$$wtemp = m * airtemp + b$$"),
-                                                  p("where ", tags$em("m"), "is the slope and ", tags$em("b"), " is the intercept")
+                                                  p("where ", tags$em("m"), "is the slope and ", tags$em("b"), " is the intercept"),
+                                                  p(tags$b("R-squared"), module_text["r_squared", ])
                                                   ),
                                  conditionalPanel("input.q12 == 'No'",
                                                   p(tags$em("Are you sure?"))
@@ -762,6 +763,9 @@ border-color: #FFF;
                                  p("We will fit a linear model using the 'lm()' function in R."),
                                  p("You do not need to get the percentages exactly right, but close enough will work fine."),
                                  actionButton("add_lm", "Fit linear model"),
+                                 wellPanel(
+                                   uiOutput("lm_mod")
+                                 ),
                                  br(), br(),
                                  box(id = "box2", width = 12, status = "primary",
                                      solidHeader = TRUE,
@@ -817,6 +821,8 @@ border-color: #FFF;
                                  p("Using the values from the lines you drew above, you will calculate a normal distribution for the parameters."),
                                  p("Calculate the mean and standard deviation of the parameters"),
                                  DTOutput("lr_DT2", width = "40%"),
+                                 br(),
+                                 p("You must select rows in the data table before you can calculate the statistics."),
                                  actionButton("calc_stats", "Calculate!"),
                                  # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
                                  DTOutput("lr_stats", width = "60%"),
@@ -965,11 +971,14 @@ border-color: #FFF;
                                  wellPanel(
                                    div("$$wtemp_{t} = wtemp_{t-1}$$")
                                  ),
-                                 p("Let's plot this model"),
-                                 actionButton("plot_persist", "Plot")
+                                 p("Let's plot this model. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
+                                 uiOutput("date_persist")
                           ),
                           column(9,
-                                 plotlyOutput("persist_plot")
+                                 wellPanel(
+                                   plotlyOutput("persist_plot"),
+                                   verbatimTextOutput("persist_r2")
+                                   )
                                  )
                         ),
                         hr(),
@@ -1012,7 +1021,10 @@ border-color: #FFF;
                                  uiOutput("date_test")
                           ),
                           column(6,
-                                 plotlyOutput("mlr_ts_plot")
+                                 plotlyOutput("mlr_ts_plot"),
+                                 wellPanel(
+                                   uiOutput("mlr_mod")
+                                 )
                           )
                         ),
                         fluidRow(
@@ -1054,7 +1066,7 @@ border-color: #FFF;
                                      )
                                  ),
                           column(6,
-                                 withMathJax(DTOutput("mlr_dt"))
+                                 DTOutput("mlr_dt")
                                  )
                           ),
                         hr(),
@@ -1100,8 +1112,9 @@ border-color: #FFF;
                                  p(module_text["mod_selec_uc", ]),
                                  p("To account for model selection uncertainty we will use three different models, which you developed in the last objective, to generate 7-day forecasts of water temperature at your site."),
                                  p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
+                                 div("$$ wtemp_{t+1} = ?? $$"),
                                  p("Depending on your model selection, the necessary required driving variables are shown."),
-                                 withMathJax(DTOutput("mod_selec_tab"))
+                                 DTOutput("mod_selec_tab")
                                  ),
                           column(6,
                                  wellPanel(
