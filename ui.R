@@ -724,10 +724,10 @@ border-color: #FFF;
                                                   p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
                                                   br(),
                                                   h4("Linear Regression"),
-                                                  div("The formula for a linear regression is: $$y = m*x + b$$"),
+                                                  div("The formula for a linear regression is: $$y = m \\times x + b$$"),
                                                   p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
-                                                  div("$$wtemp = m * airtemp + b$$"),
-                                                  p("where ", tags$em("m"), "is the slope and ", tags$em("b"), " is the intercept"),
+                                                  div("$$wtemp = m \\times airtemp + b$$"),
+                                                  p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
                                                   p(tags$b("R-squared"), module_text["r_squared", ])
                                                   ),
                                  conditionalPanel("input.q12 == 'No'",
@@ -1078,7 +1078,7 @@ border-color: #FFF;
                           )
                         ),
                # 6. Activity B ----
-               tabPanel(title = "Activity AB", value = "mtab7",
+               tabPanel(title = "Activity B", value = "mtab7",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1174,8 +1174,8 @@ border-color: #FFF;
                           )
                         ),
 
-               # 6. Activity B ----
-               tabPanel(title = "Activity B", value = "mtab7",
+               # 6. Activity C ----
+               tabPanel(title = "Activity C", value = "mtab7",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1443,39 +1443,9 @@ border-color: #FFF;
                           ),
                           column(5, offset = 1,
                                  h4("Primary Productivity Forecast"),
+                                 )
                           )
                         )
-                        ),
-
-               # 7. Activity C ----
-               tabPanel(title = "Activity C", value = "mtab8",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
-                        fluidRow(
-                          column(12,
-                                 wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity C - Managing Uncertainty"),
-                                           h3("Objective X - "),
-                                           p(module_text["obj_04", ])
-                                           )
-                                 ),
-                          )
-                        ) #,
-
-               # # 8. Activity C ----
-               # tabPanel(title = "Activity C", value = "mtab9",
-               #          img(src = "project-eddie-banner-2020_green.png", height = 100,
-               #              width = 1544, top = 5),
-               #          fluidRow(
-               #            column(12,
-               #                   wellPanel(style = paste0("background: ", obj_bg),
-               #                             h2("Activity C - Explore Uncertainty"),
-               #                             h3("Objective X - "),
-               #                             p(module_text["obj_04", ])
-               #                             )
-               #                   )
-               #            )
-               #          )
                )
     )
   }

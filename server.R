@@ -567,7 +567,7 @@ shinyServer(function(input, output, session) {
       lr_pars$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
       lr_pars$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
 
-      lr_eqn$dt$eqn[input$lr_DT_rows_selected] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "*airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
+      lr_eqn$dt$eqn[input$lr_DT_rows_selected] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
       lr_eqn$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
       lr_eqn$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
     } else {
@@ -579,7 +579,7 @@ shinyServer(function(input, output, session) {
       lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
       lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
 
-      lr_eqn$dt$eqn[idx] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "*airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
+      lr_eqn$dt$eqn[idx] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
       lr_eqn$dt$r2[idx] <- round(out$r.squared, 2)
       lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
     }
@@ -596,10 +596,10 @@ shinyServer(function(input, output, session) {
 
     lm_fit$fit <- fit
 
-    lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "*airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
+    lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
 
     # For model selection table
-    mod_selec_tab$dt$eqn[1] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "*airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
+    mod_selec_tab$dt$eqn[1] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
     mod_selec_tab$dt$r2[1] <- round(out$r.squared, 2)
 
 
@@ -1066,12 +1066,12 @@ shinyServer(function(input, output, session) {
     if(any(grepl("lag", input$mult_lin_reg_vars))) {
       idx <- grep("lag", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
-      lag_terms <- paste0("\\beta_{%s} * ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "\\\\ \\ &+ ")
+      lag_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "\\\\ \\ &+ ")
     }
     if(any(grepl("Mean", input$mult_lin_reg_vars))) {
       idx <- grep("Mean", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
-      mean_terms <- paste0("\\beta_{%s} * ", lin_reg_vars$latex[idx2], "_{t-", input$mean_t, "}", collapse = "\\\\ \\ &+ ")
+      mean_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$mean_t, "}", collapse = "\\\\ \\ &+ ")
     }
 
     formula <- paste0("$$\\begin{align} \\ wtemp_{t} &=  ", paste0(c(lag_terms, mean_terms), collapse = "\\\\ \\ &+ "), "+ b \\end{align} $$")
@@ -1131,12 +1131,12 @@ shinyServer(function(input, output, session) {
     if(any(grepl("lag", input$mult_lin_reg_vars))) {
       idx <- grep("lag", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
-      lag_terms <- paste0("%s * ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "+ ")
+      lag_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "+ ")
     }
     if(any(grepl("Mean", input$mult_lin_reg_vars))) {
       idx <- grep("Mean", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
-      mean_terms <- paste0("%s * ", lin_reg_vars$latex[idx2], "_{t-", input$mean_t, "}", collapse = "+ ")
+      mean_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$mean_t, "}", collapse = "+ ")
     }
 
     formula <- paste0("$$wtemp_{t} =  ", paste0(c(lag_terms, mean_terms), collapse = "+ "), b, " $$")
@@ -1144,7 +1144,7 @@ shinyServer(function(input, output, session) {
     text <- do.call(sprintf, as.list(c(formula, coeffs[-1])))
 
     if(!is.null(input$mlr_dt_rows_selected)) {
-      mlr$dt$Equation[input$mlr_dt_rows_selected] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " * ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
+      mlr$dt$Equation[input$mlr_dt_rows_selected] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
       mlr$dt$lag[input$mlr_dt_rows_selected] <- input$lag_t
       mlr$dt$mean_day[input$mlr_dt_rows_selected] <- input$mean_t
       mlr$dt$mean_err[input$mlr_dt_rows_selected] <- r2
@@ -1167,7 +1167,7 @@ shinyServer(function(input, output, session) {
 
     } else if(!is.na(inp_row)) {
       # idx <- which(is.na(lr_pars$dt$m))[1]
-      mlr$dt$Equation[inp_row] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " * ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
+      mlr$dt$Equation[inp_row] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
       mlr$dt$lag[inp_row] <- input$lag_t
       mlr$dt$mean_day[inp_row] <- input$mean_t
       mlr$dt$mean_err[inp_row] <- r2
@@ -1821,14 +1821,14 @@ shinyServer(function(input, output, session) {
         # geom_curve(data = cur_df, aes(time, value, group = variable, xend = xend, yend = yend),
         #            curvature = -0.2) # Connecting curves
       }
-      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Actual data") {
+      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Forecast members") {
 
         mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
         p <- p +
           geom_line(data = mlt[mlt$time <= xlims[2], ], aes(time, value, group = variable),
                     color = "gray", alpha = 0.6)
       }
-      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Distribution") {
+      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Forecast distribution") {
 
         validate(
           need(input$noaa_n_mems >= 2, "Number of members must be greater than 1.")
