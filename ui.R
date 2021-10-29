@@ -1120,22 +1120,59 @@ border-color: #FFF;
                                  wellPanel(
                                    plotlyOutput("wtemp_fc1")
                                  ),
+                                 actionButton("load_driv1", "Load driver data"),
                                  actionButton("run_wtemp_fc1", "Run forecast")
                                  )
                         ),
+                        hr(),
+                        #** Model Process Uncertainty ----
                         fluidRow(
                           column(6,
                                  h3("Model Process Uncertainty"),
                                  p(module_text["proc_uc", ]),
-                                 p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
-                                 uiOutput("mod_selec_fc2"),
-                                 actionButton("run_wtemp_fc2", "Run forecast")
+                                 p("Below is a description of our \"simple\" model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
+                                 p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} $$")),
+                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our equation:"),
+                                 p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} + W_t $$")),
+                                 p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
+                                 p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
+                                 p("where process noise is equal to a random number with a mean of zero and some standard deviation."), br(),
+                                 p("First we will explore how the model responds to differing levels of process uncertainty. Run the model with each of the differing levels multiple time and observe how the forecast outcome changes."),
+                                 radioButtons("proc_uc1", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
+                                 conditionalPanel("input.proc_uc1 != ''",
+                                                  p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. Using multiple model runs is called an ", tags$b("ensemble"), ". Each individual run is referred to as a ", tags$b("member"), "."),
+                                                  p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
+                                                  sliderInput("n_mem1", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                                  )
                           ),
                           column(6,
-                                 plotlyOutput("wtemp_fc2")
+                                 plotlyOutput("wtemp_fc2"),
+                                 actionButton("run_wtemp_fc2", "Run forecast"),
+                                 conditionalPanel("input.run_wtemp_fc2 > 0",
+                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                  radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
+                                                               inline = TRUE)
+                                                  )
+                                 )
+                          ),
+                        hr(),
+                        #** Model Parameter Uncertainty ----
+                        fluidRow(
+                          column(6,
+                                 h3("Model Parameter Uncertainty"),
+                                 p(module_text["param_uc", ]),
+                          ),
+                          column(6,
+                                 plotlyOutput("wtemp_fc3"),
+                                 actionButton("run_wtemp_fc3", "Run forecast"),
+                                 conditionalPanel("input.run_wtemp_fc3 > 0",
+                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                  radioButtons("plot_type3", "Plot type", c("Line", "Distribution"),
+                                                               inline = TRUE)
+                                                  )
+                                 )
                           )
-                        )
-               ),
+                        ),
 
                # 6. Activity B ----
                tabPanel(title = "Activity B", value = "mtab7",
@@ -1183,7 +1220,7 @@ border-color: #FFF;
                         hr(),
                         fluidRow(
                           column(6,
-                                 h4("Observational Error"),
+                                 h4("Observational Uncertainty"),
                                  p("If you have 3 thermometers in this room, what are the chances they would all read the EXACT same measurement?"),
                                  radioButtons("obs_err1", "", choices = c("Unlikely", "50/50", "Very likely"), selected = character(0), inline = TRUE),
                                  conditionalPanel("input.obs_err1 == '50/50'",
@@ -1202,12 +1239,12 @@ border-color: #FFF;
                                                   ),
                                                   conditionalPanel("input.obs_err2 == 'No'",
                                                                                     p("Exactly! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
-                                                                                    p("This is what is called ", tags$b("observational error"), ".")
+                                                                                    p("This is what is called ", tags$b("observational uncertainty"), ".")
                                                                    )
                                                   )
                                  ),
                           column(6,
-                                 h4("Some image for observational error [3 thermometers showing different temps]")
+                                 h4("Some image for observational uncertainty [3 thermometers showing different temps]")
                                  )
                           ),
                         fluidRow(

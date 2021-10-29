@@ -210,6 +210,17 @@ shinyServer(function(input, output, session) {
     airt_swt$df <- df
     df$Mod <- c(NA, df$wtemp[-nrow(df)])
     persist_df$df <- df
+
+
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp, airt = airt_swt$df$airt)
+
+    wtemp_fc_data$hist <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-18", ]
+    wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date > as.Date("2020-09-25")] <- NA
+    wtemp_fc_data$hist$airt[wtemp_fc_data$hist$Date > as.Date("2020-09-25")] <- NA
+    wtemp_fc_data$fut <- dat[dat$Date > as.Date("2020-09-25") & dat$Date <= "2020-10-02", ]
+    wtemp_fc_data$fut$airt[wtemp_fc_data$fut$Date > as.Date("2020-09-25")] <- NA
+
+
   })
 
   # Read in site data ----
@@ -1141,11 +1152,17 @@ shinyServer(function(input, output, session) {
                                             Model = mod)
       mlr_fit$lst[[input$mlr_dt_rows_selected]] <- fit
 
-      if(input$mlr_dt_rows_selected == 5) {
+      if(input$mlr_dt_rows_selected == 4) {
         mod_selec_tab$dt$eqn[3] <- text
         mod_selec_tab$dt$r2[3] <- r2
         mod_selec_tab$dt$mean[3] <- input$mean_t
         mod_selec_tab$dt$lag[3] <- input$lag_t
+      }
+      if(input$mlr_dt_rows_selected == 5) {
+        mod_selec_tab$dt$eqn[4] <- text
+        mod_selec_tab$dt$r2[4] <- r2
+        mod_selec_tab$dt$mean[4] <- input$mean_t
+        mod_selec_tab$dt$lag[4] <- input$lag_t
       }
 
     } else if(!is.na(inp_row)) {
@@ -1158,11 +1175,17 @@ shinyServer(function(input, output, session) {
                                             Model = mod)
       mlr_fit$lst[[inp_row]] <- fit
 
-      if(inp_row == 5) {
+      if(inp_row == 4) {
         mod_selec_tab$dt$eqn[3] <- text
         mod_selec_tab$dt$r2[3] <- r2
         mod_selec_tab$dt$mean[3] <- input$mean_t
         mod_selec_tab$dt$lag[3] <- input$lag_t
+      }
+      if(inp_row == 5) {
+        mod_selec_tab$dt$eqn[4] <- text
+        mod_selec_tab$dt$r2[4] <- r2
+        mod_selec_tab$dt$mean[4] <- input$mean_t
+        mod_selec_tab$dt$lag[4] <- input$lag_t
       }
     }
 
@@ -1349,27 +1372,30 @@ shinyServer(function(input, output, session) {
   # Activity AB ----
   #* Run wtemp forecasts - Model Uncertainty ----
 
-  wtemp_fc_data <- reactiveValues(df = NULL)
-  observeEvent(input$fit_mlr, {
+  wtemp_fc_data <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
+  observeEvent(input$load_driv1, {
     req(input$table01_rows_selected != "")
-    req(input$mlr_dt_tab_rows_selected == "5")
+    req(input$mod_selec_tab_rows_selected != "")
+    idx <- input$mod_selec_tab_rows_selected
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                       airt = airt_swt$df$airt,
                       wtemp_lag = NA, wtemp_mean = NA,
                       airt_lag = NA, airt_mean = NA)
+    print(mod_selec_tab$dt)
+    print(idx)
 
-    dat$wtemp_lag[-c(1:mlr$dt$lag[5])] <- dat$wtemp[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
-    dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], mlr$dt$mean_day[5],
+    dat$wtemp_lag[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], mod_selec_tab$dt$lag[idx],
                                           na.pad = TRUE, align = "right"))
-    dat$airt_lag[-c(1:mlr$dt$lag[5])] <- dat$airt[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
-    dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], mlr$dt$mean_day[5],
+    dat$airt_lag[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], mod_selec_tab$dt$lag[idx],
                                          na.pad = TRUE, align = "right"))
 
 
     print(tail(dat, 10))
 
-    lag_date <- (as.Date(fc_date) + mlr$dt$lag[5])
+    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
     mn_date <- (as.Date(fc_date) + 1)
 
     dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-18", ]
@@ -1381,14 +1407,14 @@ shinyServer(function(input, output, session) {
     df <- data.frame(Date = seq.Date(as.Date("2020-09-18"), as.Date("2020-10-02"), by = 1),
                      forecast = NA)
     df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data$df <- df
+    wtemp_fc_data$lst[[idx]] <- df
     print("Done")
   })
 
-  mod_selec_tab <- reactiveValues(dt = data.frame(eqn = rep(NA, 3),
-                                                  mean = rep(NA, 3),
-                                                  lag = rep(NA, 3),
-                                                  r2 = rep(NA, 3)))
+  mod_selec_tab <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
+                                                  mean = rep(0, 4),
+                                                  lag = rep(0, 4),
+                                                  r2 = rep(NA, 4)))
 
 
   output$mod_selec_tab <- renderDT({
@@ -1409,7 +1435,7 @@ shinyServer(function(input, output, session) {
     print(input$mod_selec_tab_rows_selected)
     req(input$mod_selec_tab_rows_selected != "")
 
-    df <- wtemp_fc_data$df
+    df <- wtemp_fc_data$lst[[input$mod_selec_tab_rows_selected]]
     if(input$mod_selec_tab_rows_selected == 1) {
       showModal(modalDialog(
         title = "Uh oh!",
@@ -1420,22 +1446,21 @@ shinyServer(function(input, output, session) {
       wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]] <- df[, c("Date", "forecast")]
     } else if(input$mod_selec_tab_rows_selected == 3) {
       for(i in 1:nrow(df)) {
+        df$forecast[i] <- predict(mlr_fit$lst[[4]], df[i, ])
+      }
+      wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]] <- df[, c("Date", "forecast")]
+    } else if(input$mod_selec_tab_rows_selected == 4) {
+      for(i in 1:nrow(df)) {
         df$forecast[i] <- predict(mlr_fit$lst[[5]], df[i, ])
       }
       wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]] <- df[, c("Date", "forecast")]
     }
-
-
   })
 
   output$wtemp_fc1 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(wtemp_fc_data$df),
-           message = "Please complete Objective X in Activity A...")
     )
 
     if(any(!is.na(wtemp_fc_out1$lst))) {
@@ -1446,14 +1471,15 @@ shinyServer(function(input, output, session) {
       print(head(mlt))
     }
 
-    xlims <- c(min(wtemp_fc_data$df$Date), (max(wtemp_fc_data$df$Date) + 7))
+    xlims <- c(min(wtemp_fc_data$hist$Date), (max(wtemp_fc_data$hist$Date) + 7))
+    print(class(xlims))
 
     p <- ggplot() +
-      geom_point(data = wtemp_fc_data$df, aes(Date, airt, color = "Air temp.")) +
-      geom_point(data = wtemp_fc_data$df, aes(Date, wtemp, color = "Water temp.")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      coord_cartesian(xlim = xlims) +
+      # coord_cartesian(xlim = c(as.Date("2020-09-18"), as.Date("2020"))) +
       theme_bw(base_size = 12)
 
     if(any(!is.na(wtemp_fc_out1$lst))) {
@@ -1462,6 +1488,116 @@ shinyServer(function(input, output, session) {
     }
 
     return(ggplotly(p, dynamicTicks = TRUE))
+
+  })
+
+  #** Model Process Uncertainty - wtemp model ----
+  wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)))
+
+  observeEvent(input$run_wtemp_fc2, {
+    req(input$table01_rows_selected != "")
+
+    idx <- which(c("None", "Low", "Medium", "High") %in% input$proc_uc1)
+
+    df <- wtemp_fc_data$lst[[2]]
+    if(input$proc_uc1 == "None") {
+      std <- 0
+      nmem <- 1
+    } else if(input$proc_uc1 == "Low") {
+      std <- 0.1
+      nmem <- input$n_mem1
+    } else if(input$proc_uc1 == "Medium") {
+      std <- 0.2
+      nmem <- input$n_mem1
+    } else if(input$proc_uc1 == "High") {
+      std <- 0.3
+      nmem <- input$n_mem1
+    }
+
+    mat <- matrix(NA, 8, nmem)
+    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+    for(i in 2:nrow(mat)) {
+      mat[i, ] <- mat[i-1, ] + rnorm(nmem, 0, std)
+    }
+
+    # Calculate distributions
+    dat <- apply(mat, 1, function(x){
+      quantile(x, c(0.05, 0.5, 0.95))
+    })
+    dat <- as.data.frame(t(dat))
+    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    dat$Level <- input$proc_uc1
+    wtemp_fc_out2$dist[[idx]] <- dat
+
+    df2 <- as.data.frame(mat)
+    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    mlt <- reshape::melt(df2, id.vars = "Date")
+    mlt$Level <- input$proc_uc1
+    wtemp_fc_out2$mlt[[idx]] <- mlt
+
+  })
+
+  output$wtemp_fc2 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.na(wtemp_fc_data$lst[[2]]), "Complete the forecast above first.")
+    )
+    validate(
+      need(input$proc_uc1 != "", "Select a Level of process uncertainty")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out2$mlt)),
+           message = "Click 'Run forecast'.")
+    )
+
+    if(any(!is.na(wtemp_fc_out1$lst))) {
+      sub_lst <- wtemp_fc_out1$lst[!is.null(wtemp_fc_out1$lst)]
+      mlt <- reshape::melt(sub_lst, id.vars = "Date")
+      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+      mlt$Label <- as.character(mlt$Label)
+    }
+
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12)
+
+    if(input$plot_type2 == "Line") {
+      if(any(!is.na(wtemp_fc_out2$mlt))) {
+        sub_lst <- wtemp_fc_out2$mlt[!is.null(wtemp_fc_out2$mlt)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
+      }
+    } else if(input$plot_type2 == "Distribution") {
+      if(any(!is.na(wtemp_fc_out2$dist))) {
+        sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level))
+      }
+    }
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+
+    return(gp)
 
   })
 
