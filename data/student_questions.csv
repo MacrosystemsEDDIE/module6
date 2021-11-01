@@ -1,6 +1,6 @@
 q_no,Question
 q1,Q1. What is meant by the term 'uncertainty' in the context of ecological forecasting?
-q2,Q2. Why is uncertainty important when generating ecological forecasts?
+q2,"Q2. How do you think knowing the uncertainty in a forecast helps natural resource managers? For example, if a drinking water manager received a toxic algal bloom forecast with high vs. low uncertainty in a bloom prediction, how might that affect their decision-making?"
 q3,Q3. How do you think uncertainty helps natural resource managers when using a forecast? E.g. water resource manager using an algal bloom forecast.
 q4,Q4. Fill out information about your selected NEON site:
 q4a,a. Name of selected site:
@@ -17,15 +17,15 @@ q10,Q10. Classify the following as either a state variable or a parameter by dra
 q11,Q11. We are using chlorophyll-a as a proxy of aquatic primary productivity. Select how you envision each parameter to affect chlorophyll-a concentrations:
 q11a,a. Nutrient uptake by phytoplankton
 q11b,b. Phytoplankton mortality
-q12,Q12. Do you think there is a linear relationship between air temperature and water temperature?
+q12,Q12. Do you think there is a linear relationship between air temperature and water temperature at this lake?
 q13,Q13. How does the amount of data used to calculate the linear regression affect the estimation of the parameters 'm' and 'b'?
-q14,Q14. How did using less data to fit your model affect its overall performance?
+q14,Q14. How did using less data to fit your model affect its overall performance  (as determined by its R-squared value)?
 q15,Q15. Which model performed best? Why do you think that is?
 q16,Q16. Do you think you could use this model for a forecast? Why/why not?
 q17,Q17. Which parameter (m or b) has a higher level of uncertainty? How can you tell?
-q18,Q18. How does adjusting the number of samples affect the range of uncertainty?
-q19,Q19. Regenerate the parameter distributions with high uncertainty for the slope (m) and low uncertainty for the intercept (b). How does the level of uncertainty change for air temperatures greater than 20 degC?
-q20,Q20. Regenerate the parameter distributions with low uncertainty for the slope (m) and high uncertainty for the intercept (b). How does the level of uncertainty change for air temperatures less than 10 degC?
+q18,"Q18. How does adjusting the number of samples affect the range of uncertainty in the model, as determined by the variation in the lines?"
+q19,"Q19. Regenerate the parameter distributions with high uncertainty for the slope (m) and low uncertainty for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
+q20,"Q20. Regenerate the parameter distributions with low uncertainty for the slope (m) and high uncertainty for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures less than 10 degC, as measured by the range of the confidence intervals?"
 q21,Q21. Which interval has the largest error? Why do you think that is?
 q22,Q22. What does the sign in front of the error tell you?
 q23,Q23. Why do you think it is important to separate the data into an training and testing dataset?
