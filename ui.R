@@ -207,15 +207,16 @@ ui <- function(req) {
                           column(4,
                                  h3("Presentation"),
                                  p("The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty and the importance and relevance of quantifying uncertainty within ecological forecasts."),
-                                 p("What is forecast uncertainty?"),
+                                 p("What is ecological forecast uncertainty?"),
                                  tags$ul(
                                    tags$li(module_text["uncertainty", ])
                                  ),
-                                 p("Where does forecast uncertainty come from?"),
+                                 p("Where does ecological forecast uncertainty come from?"),
                                  tags$ul(
                                    tags$li(module_text["uncert1", ])
                                  ),
-                                 p("Why is uncertainty important for a forecast?"),tags$ul(
+                                 p("Why is uncertainty important to quantify for an ecological forecast?"),
+                                 tags$ul(
                                    tags$li(module_text["why_important", ])
                                  ),
                                  p("Click through the slides to recap some of the main points from the lecture.")
@@ -258,7 +259,7 @@ ui <- function(req) {
                         fluidRow(
                           column(7, offset = 1,
                                  h3("Student Activities"),
-                                 p("Within Introduction, Exploration and Activities A, B and C tabs there are questions for students to complete as part of this module. These can be completed by writing your answers into the text boxes within the green boxes. If you do not complete the module in one continuous sitting you can download a file with your responses saved which you can then upload when you return. When you finish the module, you can generate a report which will embed your answers and saved plots into a Word (.docx) file which you can download and make further edits to before submitting to your instructor."),
+                                 p("Within the Introduction, Exploration, and Activities A, B and C tabs, there are questions for students to complete as part of this module. These can be completed by writing your answers into the text boxes within the green boxes. If you do not complete the module in one continuous sitting, you can download a file with your responses saved, which you can then upload when you return. When you finish the module, you can generate a report which will embed your answers and saved plots into a Word (.docx) file which you can download and make further edits to before submitting to your instructor."),
                                  box(width = 12, status = "warning",
                                      solidHeader = TRUE,
                                      p(tags$b("WARNING:"), " The Shiny app will disconnect from the server if it is left idle for 15 minutes. If this happens you will lose all your inputs into the app. It is recommended to download the user input at the end of the class, but you can also download throughout the class."),
@@ -321,8 +322,8 @@ ui <- function(req) {
                                                 h3(tags$b("Think about it!")),
                                                 p("Note: The size of these text boxes can be adjusted by clicking and dragging the bottom right of the text box."),
                                                 textAreaInput2(inputId = "q1", label = quest["q1", 1]),
-                                                textAreaInput2(inputId = "q1", label = quest["q2", 1]),
-                                                textAreaInput2(inputId = "q1", label = quest["q3", 1]),
+                                                textAreaInput2(inputId = "q2", label = quest["q2", 1]),
+                                                # textAreaInput2(inputId = "q1", label = quest["q3", 1]),
                                                 data.step = 5, data.intro = help_text["questions", 1]
                                               )
                                        )
@@ -335,7 +336,7 @@ ui <- function(req) {
                         fluidRow(
                           column(6,
                                  h3("Data sources"),
-                                 p(HTML(paste0('This module will introduce key concepts within Ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model and then generating a short-term ecological forecast.")))
+                                 p(HTML(paste0('This module will introduce key concepts within Ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model, and then generating a short-term ecological forecast.")))
                           ),
                           column(6, align = "center",
                                  a(
@@ -469,7 +470,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will explore the data which has been measured at this site by NEON.."))
+                                                      p("We will explore the data which has been measured at this site by NEON."))
                                              )
                                     ),
                                     #* Objective 2 - Explore data
@@ -686,8 +687,8 @@ border-color: #FFF;
                           hr(),
                           column(4,
                                  h3("Statistics & Probability"),
-                                 p("Before we begin generating an ecological forecast with uncertainty we will explore some key statistical and probability concepts."),
-                                 p("What is a model?"),
+                                 p("Before we begin generating an ecological forecast with uncertainty we will explore some key basic statistical and probability concepts relevant to ecology."),
+                                 p("What is an ecological model?"),
                                  tags$ul(
                                    tags$li(module_text["model1", ])
                                  ),
@@ -695,7 +696,7 @@ border-color: #FFF;
                                  tags$ul(
                                    tags$li(module_text["parameter", ])
                                  ),
-                                 p("What is a distribution?"),
+                                 p("What is a parameter distribution?"),
                                  tags$ul(
                                    tags$li(module_text["distribution", ])
                                  ),
@@ -714,9 +715,9 @@ border-color: #FFF;
                         #* Linear regression ----
                         fluidRow(
                           column(6,
-                                 h3("Investigate variable relationship"),
-                                 p("We will explore the relationship between air temperature and surface water temperature."),
-                                 p("First, we will look at a time series of the data."),
+                                 h3("Investigate variable relationships"),
+                                 p("We will explore the relationship between air temperature and surface water temperature for a lake site."),
+                                 p("First, we will look at a time series of the real air and water temperature data measured at the lake you chose in the “Site selection” tab."),
                                  actionButton("plot_airt_swt", "Plot"),
                                  radioButtons("q12", quest["q12", ], choices = c("Yes", "No"), selected = character(0), inline = TRUE),
                                  conditionalPanel("input.q12 == 'Yes'",
@@ -725,7 +726,7 @@ border-color: #FFF;
                                                   br(),
                                                   h4("Linear Regression"),
                                                   div("The formula for a linear regression is: $$y = m \\times x + b$$"),
-                                                  p("In our case we will be using ", tags$b("air temperature"), " to model ", tags$b("water temperature"), "."),
+                                                  p("In our case we will be using ", tags$b("air temperature"), " (airtemp) to model ", tags$b("water temperature"), " (wtemp) using the following model equation:"),
                                                   div("$$wtemp = m \\times airtemp + b$$"),
                                                   p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
                                                   p(tags$b("R-squared"), module_text["r_squared", ])
@@ -736,7 +737,7 @@ border-color: #FFF;
                                  ),
                           column(6,
                                  h4("Time series of air temperature and water temperature"),
-                                 p("Plot the time series of the air temperature and the surface water temperature. Compare the seasonal cycles."),
+                                 p("Click on “Plot” to graph the time series of the air temperature and the surface water temperature. Compare the seasonal cycles of both the dependent variable (air temperature) and independent variable (water temperature)."),
                                  wellPanel(
                                    plotOutput("airt_swt_plot")
                                    )
@@ -745,24 +746,20 @@ border-color: #FFF;
                         hr(),
                         fluidRow(
                           column(3,
-                                 h3("Investigate how data availability affects linear regression"),
-                                 p("Fit a linear model with six varying amounts of data (1-100%) and add them to the parameter table."),
+                                 h3("Investigate how collecting more data affects your model"),
+                                 p("As we collect more and more data at our lake site, the parameters for our linear model will likely change, affecting the model performance (assessed by the R-squared value). Fit a linear model with six varying amounts of data coverage and add each model’s parameter set to the parameter table."),
                                  p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
                                  uiOutput("date_slider1"),
                                  actionButton("plot_airt_swt2", "Plot"),
-                                 p("Adjust the y-intercept (b) and the slope (m) to draw and save 5 different lines which represent potential linear relationships between air temperature and surface water temperature."),
-                                 p("Use the date slider to save lines using less to more data.")
+                                 p("Use the date slider to choose how much data is used to go into your model.")
                           ),
                           column(4,
-                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters"), "."),
-                                 # numericInput("m", "Slope (m)", value = 1, min = -2, max = 2, step = 0.01),
-                                 # numericInput("b", "Intercept (b)", value = 0, min = -15, max = 15, step = 0.1),
+                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
                                  p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
                                  DTOutput("lr_DT", width = "40%"),
                                  br(),
-                                 p("We will fit a linear model using the 'lm()' function in R."),
-                                 p("You do not need to get the percentages exactly right, but close enough will work fine."),
-                                 actionButton("add_lm", "Fit linear model"),
+                                 # p("You do not need to get the percentages exactly right, but close enough will work fine."),
+                                 actionButton("add_lm", "Get model parameters"),
                                  wellPanel(
                                    uiOutput("lm_mod")
                                  ),
@@ -783,8 +780,6 @@ border-color: #FFF;
                                  h3("Air temperature vs. water temperature"),
                                  wellPanel(
                                    plotlyOutput("airt_swt_plot_lines")#,
-                                   # actionButton("draw_line", "Draw line"),
-                                   # actionButton("save_line", "Save line")
                                    )
                                  )
                         ),
@@ -803,7 +798,7 @@ border-color: #FFF;
                                      )
                                  ),
                           column(9,
-                                 h3("Water temperature timeseries"),
+                                 h3("Water temperature time series"),
                                  p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
                                  p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
                                  wellPanel(
@@ -818,7 +813,7 @@ border-color: #FFF;
                                  h3("Generate distributions for intercept & slope")
                           ),
                           column(4,
-                                 p("Using the values from the lines you drew above, you will calculate a normal distribution for the parameters."),
+                                 p("Using the values from the model parameters you fit above, you will calculate a normal distribution for the parameters."),
                                  p("Calculate the mean and standard deviation of the parameters"),
                                  DTOutput("lr_DT2", width = "40%"),
                                  br(),
@@ -827,6 +822,8 @@ border-color: #FFF;
                                  # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
                                  DTOutput("lr_stats", width = "60%"),
                                  p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
+                                 module_text["density_plots", ],
+                                 p("Density plots are a variation of histograms and they are better at determining the distribution shape."),
                                  actionButton("gen_lr_dist_plot", "Generate plot!"),
                                  br(), br(),
                                  box(id = "box2", width = 12, status = "primary",
@@ -837,7 +834,7 @@ border-color: #FFF;
                                               )
                                        ),
                                      ),
-                                 p("You will use the sliders to answer Q 18-20.")
+                                 p("You will use the parameter sliders to answer Q 19-20.")
                                  ),
                           column(4, align = "center",
                                  plotOutput("lr_m_dist_plot"),
@@ -852,11 +849,11 @@ border-color: #FFF;
                         #* Adding multiple lines ----
                         fluidRow(
                           column(3,
-                                 h3("Create multiple lines"),
-                                 p("Using the distributions you have created above, you are going to randomnly draw lines by sampling values for the slope (m) and the intercept (b) from the distributions you have defined."),
+                                 h3("Create multiple models"),
+                                 p("Using the distributions you have created above, you are going to randomly create models by sampling values for the slope (m) and the intercept (b) from the distributions you have defined above for each parameter."),
                                  radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
-                                 actionButton("gen_lin_mods", "Add lines"),
-                                 p("Every time you click 'Add lines' it will generate a random sample."),
+                                 actionButton("gen_lin_mods", "Add models"),
+                                 p("Every time you click 'Add models' it will generate models randomly from the sample distributions."),
                                  conditionalPanel("input.gen_lin_mods >= 1",
                                                   p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
                                                   radioButtons("plot_type1", "Plot type", c("Line", "Distribution"),
@@ -897,9 +894,7 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h3("Calculating model error"),
-                                 p("If you look at our linear model, we can see that the points do not fall exactly on our line. Does this mean our model does not predict surface water temperature well? How can we tell how 'good' or 'bad' our model us?"),
-                                 br(),
-                                 p("We can compare our model results to actual observations. Select points on the graph and the table below will display how far off the model was from the observation."),
+                                 p("If you look at our linear model, we can see that the points do not fall exactly on our model’s predicted line. We can compare our model results to actual observations to determine how “good” the model is. Select points on the graph and the table below will display how far off the model was from the observations by calculating model error (difference between modelled water temperature and observed temperature)."),
                                  h4("Selected points"),
                                  p("Select a point on the plot by clicking on it or select multiple points by clicking and dragging the selection pane."),
                                  DTOutput("click_dt", width = "90%"),
@@ -907,10 +902,8 @@ border-color: #FFF;
                                  actionButton("calc_err", "Calculate"),
                                  wellPanel(
                                    textOutput("mean_err")
+                                   )
                                  ),
-                                 br(),
-                                 p("Calculate the model error (difference between modelled water temperature and observed temperature) at varying intervals (0-10, 10-20, 20-30, 30-40). Which interval has the largest error? Why do you think that is?, What does the sign in front of the error tell you?")
-                          ),
                           column(6,
                                  plotOutput("mod_err_plot",
                                             click = "mod_err_plot_click",
@@ -926,7 +919,7 @@ border-color: #FFF;
                                      fluidRow(
                                        column(12,
                                               h4("Questions"),
-                                              p("Calculate the model error (difference between modelled water temperature and observed temperature) at varying intervals (0-10, 10-20, 20-30, 30-40). Which interval has the largest error? Why do you think that is?, What does the sign in front of the error tell you?")
+                                              p("Calculate the model error (difference between modelled water temperature and observed water temperature) at varying intervals (0-10, 10-20, 20-30, 30-40 degC).")
                                               ),
                                        column(6,
                                               textAreaInput2(inputId = "q21", label = quest["q21", ], width = "90%")
@@ -943,7 +936,7 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h3("Calculating model error with uncertainty"),
-                                 p("Earlier when fitting our lines to the data we noticed that there were multiple lines that could potentially fit our data and this allowed us to create a plot with confidence intervals. Now we will assess how many of these points fall within our confidence intervals and this will give us a measure of how 'good' our model is."),
+                                 p("In Objective X, we noticed that there were multiple models that could potentially fit our data and this allowed us to create a plot with confidence intervals. Now we will assess how many of these observations fall within our confidence intervals, giving us a measure of how 'good' our model is."),
                                  p("Use the 'Lasso select' tool to highlight points outside of the confidence interval and input the number below."),
                                  textOutput("sel_points"),
                                  textOutput("total_points"),
@@ -966,12 +959,12 @@ border-color: #FFF;
                                  h3("Create a Forecast model"),
                           ),
                           column(3,
-                                 p("The model we have built depends on the current air temperature to predict the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
-                                 p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as todays"),
+                                 p("The model we have built uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
+                                 p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature, with t = tomorrow and t-1 = today:"),
                                  wellPanel(
                                    div("$$wtemp_{t} = wtemp_{t-1}$$")
                                  ),
-                                 p("Let's plot this model. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
+                                 p("Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
                                  uiOutput("date_persist")
                           ),
                           column(9,
@@ -1090,12 +1083,14 @@ border-color: #FFF;
                                  )
                           ),
                         ),
+                        #* Model Uncertainty ----
+                        #** Process Uncertainty ----
                         fluidRow(
                           column(6,
                                  h3("Model Uncertainty"),
                                  p("We will now generate forecasts of water temperature."),
                                  p("We will use the models that you developed in the last Objective to explore model uncertainty,"),
-                                 p("There are three types of uncertainty associated with model uncertainty"),
+                                 p("We will focus on three types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
                                  tags$ol(
                                    tags$li("Model selection"),
                                    tags$li("Process"),
@@ -1110,7 +1105,7 @@ border-color: #FFF;
                           column(6,
                                  h3("Model Selection Uncertainty"),
                                  p(module_text["mod_selec_uc", ]),
-                                 p("To account for model selection uncertainty we will use three different models, which you developed in the last objective, to generate 7-day forecasts of water temperature at your site."),
+                                 p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
                                  p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
                                  div("$$ wtemp_{t+1} = ?? $$"),
                                  p("Depending on your model selection, the necessary required driving variables are shown."),
@@ -1120,8 +1115,11 @@ border-color: #FFF;
                                  wellPanel(
                                    plotlyOutput("wtemp_fc1")
                                  ),
-                                 actionButton("load_driv1", "Load driver data"),
-                                 actionButton("run_wtemp_fc1", "Run forecast")
+                                 wellPanel(
+                                   actionButton("load_driv1", "Load driver data"),
+                                   actionButton("run_wtemp_fc1", "Run forecast"),
+                                   textOutput("txt_fc_out")
+                                   )
                                  )
                         ),
                         hr(),
@@ -1140,7 +1138,7 @@ border-color: #FFF;
                                  p("First we will explore how the model responds to differing levels of process uncertainty. Run the model with each of the differing levels multiple time and observe how the forecast outcome changes."),
                                  radioButtons("proc_uc1", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
                                  conditionalPanel("input.proc_uc1 != ''",
-                                                  p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. Using multiple model runs is called an ", tags$b("ensemble"), ". Each individual run is referred to as a ", tags$b("member"), "."),
+                                                  p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
                                                   p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
                                                   sliderInput("n_mem1", "No. of members", min = 1, max = 100, value = 5, step = 5)
                                                   )
@@ -1151,7 +1149,8 @@ border-color: #FFF;
                                  conditionalPanel("input.run_wtemp_fc2 > 0",
                                                   p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                   radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
-                                                               inline = TRUE)
+                                                               inline = TRUE),
+                                                  p("Click on items in the legend to show/hide them from the plot.")
                                                   )
                                  )
                           ),
@@ -1160,18 +1159,97 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h3("Model Parameter Uncertainty"),
-                                 p(module_text["param_uc", ]),
+                                 p(module_text["param_uncert", ]),
                           ),
                           column(6,
-                                 plotlyOutput("wtemp_fc3"),
-                                 actionButton("run_wtemp_fc3", "Run forecast"),
-                                 conditionalPanel("input.run_wtemp_fc3 > 0",
+                                 h2("Some image of parameter uncertainty")
+                                 ),
+                        ),
+                        fluidRow(
+                          column(6,
+                                 h3("Forecasting with linear regression model"),
+                                 p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
+                                 actionButton("view_at_fc", "View forecast"),
+                                 p("With this air temperature forecast we can use the linear regression model we built in Objective X, to forecast water temperature:"),
+                                 wellPanel(
+                                   uiOutput("lr_mod_eqn")
+                                   )
+                                 ),
+                          column(6,
+                                 plotlyOutput("airt1_fc_plot"),
+                                 actionButton("run_wtemp_fc3a", "Run forecast")
+                                 ),
+                        ),
+                        fluidRow(
+                          column(3,
+                                 h3("Forecasting with Parameter Uncertainty"),
+                                 p("But we know from Objective X, that when we used different sets of data to build our model that we got slightly different values for our model parameters ", tags$em("m"), " and ", tags$em("b"), ". To account for this ", tags$b("uncertainty"), " we built distributions for parameter that we can sample from."),
+                                 p("We will revisit those samples and generate an ", tags$b("ensemble forecast"), " using multiple different potential parameters."),
+                                 sliderInput("n_mem3b", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                 ),
+                          column(3,
+                                 plotOutput("param_fcast3b"),
+                                 p("Select the number of parameter to be used in the forecast ensemble.")
+                                 ),
+                          column(6,
+                                 plotlyOutput("wtemp_fc3b"),
+                                 actionButton("run_wtemp_fc3b", "Run forecast"),
+                                 conditionalPanel("input.run_wtemp_fc3b > 0",
                                                   p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                  radioButtons("plot_type3", "Plot type", c("Line", "Distribution"),
+                                                  radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
                                                                inline = TRUE)
                                                   )
                                  )
-                          )
+                          ),
+                        hr(),
+                        #* Initial Conditions Uncertainty ----
+                        fluidRow(
+                          column(3,
+                                 h3("Initial Condition Uncertainty"),
+                                 p(module_text["init_uncert", ]),
+                                 p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. To account for this we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
+                                 p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
+                                 sliderInput("ic_uc", "Standard deviation", min = 0.01, max = 0.5, value = 0.1, step = 0.05),
+                                 actionButton("gen_ic", "Generate distribution")
+                          ),
+                          column(3,
+                                 plotOutput("ic_uc_plot"),
+                                 sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                 ),
+                          column(6,
+                                 wellPanel(
+                                   plotlyOutput("wtemp_fc4"),
+                                 ),
+                                 actionButton("run_wtemp_fc4", "Run forecast"),
+                                 conditionalPanel("input.run_wtemp_fc4 > 0",
+                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                  radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
+                                                               inline = TRUE)
+                                                  )
+                                 )
+                          ),
+                        hr(),
+                        #* Driver Uncertainty ----
+                        fluidRow(
+                          column(6,
+                                 h3("Driver Uncertainty"),
+                                 p(module_text["driver_uncert", ]),
+                                 p("Load the NOAA ensemble forecast for air temperature below."),
+                                 actionButton("load_noaa_at", "Load forecast"),
+                                 verbatimTextOutput("noaa_at_loaded"),
+                                 p("You can adjust the number of ensemble members plotted and these are what you will use to drive your model."),
+                                 numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
+                                 ),
+                          column(6,
+                                 wellPanel(
+                                   plotlyOutput("airt_fc5"),
+                                   actionButton("run_wtemp_fc5", "Run forecast"),
+                                   radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                inline = TRUE),
+                                   plotlyOutput("wtemp_fc5")
+                                   )
+                                 )
+                        )
                         ),
 
                # 6. Activity C ----
@@ -1253,15 +1331,15 @@ border-color: #FFF;
                                  p(id = "txt_j", "Here we will load in data from a ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA GEFS", target = "_blank"), " forecast for the NEON site you chose in Activity A."),
                                  img(src = "noaa_logo.jpg", height = "20%",
                                      width = "20%", align = "right"),
-                                 actionButton("load_noaa_at", "Load forecast"),
-                                 verbatimTextOutput("noaa_at_loaded"),
+                                 # actionButton("load_noaa_at", "Load forecast"),
+                                 # verbatimTextOutput("noaa_at_loaded"),
                                  checkboxInput("view_day0", "View observation"),
                                  conditionalPanel("input.view_day0",
                                                   checkboxInput("add_obs_uc", "Add observational uncertainty")
                                                   ),
                                  checkboxInput("view_ic", "View forecast initial conditions"),
                                  conditionalPanel("input.view_ic",
-                                                  numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
+                                                  # numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
                                                   p(tags$b("Note:"), "The initial conditions have been jittered to avoid points overlapping. All forecasts start at the same time.")
                                                   ),
                                  checkboxInput("view_day7", "View forecast 7-days ahead"),
