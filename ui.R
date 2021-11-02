@@ -690,14 +690,17 @@ border-color: #FFF;
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 3 - Build a water temperature model"),
-                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                                p(id = "txt_j", module_text["obj_03", ])
                                                       ))
                                              ),
                                              fluidRow(
-                                               hr(),
-                                               column(4,
+                                               column(5,
                                                       h3("Statistics & Probability"),
-                                                      p("Before we begin generating an ecological forecast with uncertainty we will explore some key basic statistical and probability concepts relevant to ecology."),
+                                                      p("Before we begin generating an ecological forecast with uncertainty we will define some key basic statistical and probability concepts relevant to ecology.")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(5, offset = 1,
                                                       p("What is an ecological model?"),
                                                       tags$ul(
                                                         tags$li(module_text["model1", ])
@@ -709,10 +712,24 @@ border-color: #FFF;
                                                       p("What is a parameter distribution?"),
                                                       tags$ul(
                                                         tags$li(module_text["distribution", ])
-                                                      ),
-                                                      p("Click through the slides to recap some of the main points from the lecture.")
+                                                      )
                                                ),
-                                               column(8, offset = 0, align = "center",
+                                               column(5, offset = 1,
+                                                      p("What is a linear relationship?"),
+                                                      tags$ul(
+                                                        tags$li(module_text["linear_relationship", ])
+                                                      ),
+                                                      p("In our example, water temperature is the dependent variable and air temperature is the independent variable."),
+                                                      p("What is model error"),
+                                                      tags$ul(
+                                                        tags$li(module_text["mod_error", ])
+                                                      ),
+                                                      p("What is a parameter distribution?"),
+                                                      tags$ul(
+                                                        tags$li(module_text["distribution", ])
+                                                      )
+                                                      ),
+                                               column(4, offset = 0, align = "center",
                                                       h3("Key Figures",
                                                          align = "center"),
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -758,15 +775,17 @@ border-color: #FFF;
                                                column(3,
                                                       h3("Investigate how collecting more data affects your model"),
                                                       p("As we collect more and more data at our lake site, the parameters for our linear model will likely change, affecting the model performance (assessed by the R-squared value). Fit a linear model with six varying amounts of data coverage and add each model’s parameter set to the parameter table."),
-                                                      p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
-                                                      uiOutput("date_slider1"),
-                                                      actionButton("plot_airt_swt2", "Plot"),
-                                                      p("Use the date slider to choose how much data is used to go into your model.")
+                                                      p("Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
+                                                      # " Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
+                                                      radioButtons("samp_freq", "Data collection frequency:", choices = samp_freq),
+                                                      # uiOutput("date_slider1"),
+                                                      actionButton("plot_airt_swt2", "Plot")
+                                                      # p("Use the date slider to choose how much data is used to go into your model.")
                                                ),
                                                column(4,
                                                       p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
                                                       p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
-                                                      DTOutput("lr_DT", width = "40%"),
+                                                      DTOutput("lr_DT", width = "100%"),
                                                       br(),
                                                       # p("You do not need to get the percentages exactly right, but close enough will work fine."),
                                                       actionButton("add_lm", "Get model parameters"),
@@ -835,16 +854,14 @@ border-color: #FFF;
                                                column(4,
                                                       p("Using the values from the model parameters you fit above, you will calculate a normal distribution for the parameters."),
                                                       p("Calculate the mean and standard deviation of the parameters"),
-                                                      DTOutput("lr_DT2", width = "40%"),
+                                                      DTOutput("lr_DT2", width = "100%"),
                                                       br(),
                                                       p("You must select rows in the data table before you can calculate the statistics."),
-                                                      actionButton("calc_stats", "Calculate!"),
+                                                      # actionButton("calc_stats", "Calculate!"),
                                                       # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
-                                                      DTOutput("lr_stats", width = "60%"),
                                                       p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
                                                       module_text["density_plots", ],
                                                       p("Density plots are a variation of histograms and they are better at determining the distribution shape."),
-                                                      actionButton("gen_lr_dist_plot", "Generate plot!"),
                                                       br(), br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
@@ -858,7 +875,8 @@ border-color: #FFF;
                                                ),
                                                column(4, align = "center",
                                                       plotOutput("lr_m_dist_plot"),
-                                                      sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01)
+                                                      sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
+                                                      actionButton("gen_lr_dist_plot", "Generate plot!")
                                                ),
                                                column(4, align = "center",
                                                       plotOutput("lr_b_dist_plot"),
@@ -882,6 +900,7 @@ border-color: #FFF;
                                                       # checkboxInput("add_dist", "Distribution plot"))
                                                ),
                                                column(3,
+                                                      DTOutput("lr_stats", width = "100%"),
                                                       DTOutput("mb_samps", width = "50%")
                                                ),
                                                column(6,
@@ -1023,7 +1042,7 @@ border-color: #FFF;
                                                ),
                                                column(3,
                                                       p("We are going to build a model that uses historical data, which will allow us to use historical data to forecast water temperature."),
-                                                      p("We will use historical air temperature and water temperature. You will have the option of either using them with a lag (e.g. a lag of 1 would be using data from 1 day ago) or a rolling mean (e.g. a mean of 3 would be using a the average over the last 3 days).")
+                                                      p("We will use historical air temperature and water temperature. You will have the option of either using them with days ahead (e.g. days ahead of 1 would be using data from 1 day ago to predict today's value) or a rolling mean (e.g. a mean of 3 would be using a the average over the previous 3 days).")
                                                ),
                                                column(6,
                                                       h3("PLACEHOLDER")
@@ -1037,7 +1056,7 @@ border-color: #FFF;
                                                       ),
                                                       p("where \\(\\beta_{n}\\) represents the parameters in the model, similarly to the slope in a linear regression model."),
                                                       selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
-                                                      numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
+                                                      numericInput("lag_t", "Days ahead", value = 1, min = 1, max = 7, step = 1),
                                                       numericInput("mean_t", "Mean (days)", value = 1, min = 1, max = 7, step = 1),
                                                ),
                                                column(3,
@@ -1153,6 +1172,7 @@ border-color: #FFF;
                                                       p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
                                                       div("$$ wtemp_{t+1} = ?? $$"),
                                                       p("Depending on your model selection, the necessary required driving variables are shown."),
+                                                      actionButton("load_mods", "Load models"),
                                                       DTOutput("mod_selec_tab")
                                                ),
                                                column(6,
@@ -1162,6 +1182,7 @@ border-color: #FFF;
                                                       wellPanel(
                                                         actionButton("load_driv1", "Load driver data"),
                                                         actionButton("run_wtemp_fc1", "Run forecast"),
+                                                        uiOutput("sel_mod"),
                                                         textOutput("txt_fc_out")
                                                       )
                                                )
@@ -1196,18 +1217,6 @@ border-color: #FFF;
                                                                                     inline = TRUE),
                                                                        p("Click on items in the legend to show/hide them from the plot.")
                                                                        )
-                                                      )
-                                               ),
-                                             hr(),
-                                             ),
-                                    #* Objective 8 - Parameter Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Parameter Uncertainty", value = "obj8",
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 8 - Parameter Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_08", ])
-                                                                )
                                                       )
                                                ),
                                              #** Model Parameter Uncertainty ----
@@ -1257,13 +1266,13 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                    #* Objective 9 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 9 - Initial Conditions Uncertainty", value = "obj10",
+                                    #* Objective 8 - Initial Conditions Uncertainty ====
+                                    tabPanel(title = "Objective 8 - Initial Conditions Uncertainty", value = "obj08",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 9 - Initial Conditions Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_09", ])
+                                                                h3("Objective 8 - Initial Conditions Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_08", ])
                                                                 )
                                                       )
                                                ),
@@ -1293,13 +1302,13 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                    #* Objective 10 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 10 - Driver Uncertainty", value = "obj10",
+                                    #* Objective 9 - Driver Uncertainty ====
+                                    tabPanel(title = "Objective 9 - Driver Uncertainty", value = "obj09",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 10 - Driver Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_10", ])
+                                                                p(id = "txt_j", module_text["obj_09", ])
                                                       )
                                                )
                                              ),

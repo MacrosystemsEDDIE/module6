@@ -37,7 +37,7 @@ sketch2 = htmltools::withTags(table(
     tr(
       lapply(rep(c('Estimate', 'Std. Error'), 2), th),
       th("R-squared"),
-      th("%")
+      th("N")
     )
   )
 ))
@@ -284,6 +284,8 @@ shinyServer(function(input, output, session) {
     validate(
       need(nrow(df) > 0, message = "No variables at matching timesteps.")
     )
+    df$month <- lubridate::month(df$Date)
+    df <- df[(df$month %in% 5:10), 1:3]
     colnames(df)[-1] <- c("airt", "wtemp")
     airt_swt$df <- df
     df$Mod <- c(NA, df$wtemp[-nrow(df)])
@@ -292,7 +294,7 @@ shinyServer(function(input, output, session) {
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp, airt = airt_swt$df$airt)
 
-    wtemp_fc_data$hist <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-18", ]
+    wtemp_fc_data$hist <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
     wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date > as.Date("2020-09-25")] <- NA
     wtemp_fc_data$hist$airt[wtemp_fc_data$hist$Date > as.Date("2020-09-25")] <- NA
     wtemp_fc_data$fut <- dat[dat$Date > as.Date("2020-09-25") & dat$Date <= "2020-10-02", ]
@@ -400,7 +402,20 @@ shinyServer(function(input, output, session) {
   observeEvent(input$plot_airt_swt2, { # view_var
 
     req(!is.null(airt_swt$df))
-    airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
+    # Date slider
+    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
+
+    if(input$samp_freq == "Monthly") {
+      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 month")
+    } else if(input$samp_freq == "Weekly") {
+      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 week")
+    } else if(input$samp_freq == "Fortnightly") {
+      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "2 week")
+    } else if(input$samp_freq == "Daily") {
+      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
+    }
+
+    airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
   })
 
   observe({
@@ -452,6 +467,14 @@ shinyServer(function(input, output, session) {
     lm_fit$eqn <- NULL
   })
 
+  # Reset plot when adjusting dates
+  observeEvent(input$samp_freq, {
+    airt_swt$sub <- NULL
+    lm_fit$fit <- NULL
+    lm_fit$plt_orig <- TRUE
+    lm_fit$eqn <- NULL
+  })
+
   # Add dashed lines to build reg plot
   reg_line <- reactiveValues(m = 1, b = 0)
   sav_lines <- reactiveValues(m = 1, b = 0)
@@ -461,9 +484,9 @@ shinyServer(function(input, output, session) {
   })
 
   # Data table to store 10 lines
-  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 6), m_se = rep(NA, 6),
-                                            b_est = rep(NA, 6), b_se = rep(NA, 6),
-                                            r2 = rep(NA, 6), Percentage = rep(NA, 6)))
+  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 4), m_se = rep(NA, 4),
+                                            b_est = rep(NA, 4), b_se = rep(NA, 4),
+                                            r2 = rep(NA, 4), N = rep(NA, 4)))
   # output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
   #                          options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
   #                                         columnDefs = list(list(width = '10%', targets = "_all"))
@@ -471,20 +494,22 @@ shinyServer(function(input, output, session) {
   #                          rownames = FALSE, # c("25%", "50%", "75%", "100%"),
   #                          # container = sketch2,
   #                          server = FALSE, escape = FALSE)
-  lr_eqn <- reactiveValues(dt = data.frame(eqn = rep(NA, 6),
-                                            r2 = rep(NA, 6), Percentage = rep(NA, 6)))
-  output$lr_DT <- renderDT(lr_eqn$dt, selection = "single",
+  lr_eqn <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
+                                            r2 = rep(NA, 4), N = rep(NA, 4)))
+  output$lr_DT <- renderDT(lr_eqn$dt, selection = "none",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                                          columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("Model", "R-squared", "Data used (%)"),
-                           rownames = FALSE, # c("25%", "50%", "75%", "100%"),
+                                          columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                           ), colnames = c("Model", "R-squared", "N"),
+                           rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
-  output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "b_est", "r2", "Percentage")], selection = "multiple",
+  output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "m_se", "b_est", "b_se", "r2", "N")], selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                                          columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("m", "b", "R-squared", "%"),
-                           rownames = FALSE, # c("25%", "50%", "75%", "100%"),
+                                          columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                           ),
+                           # colnames = c("m", "b", "R-squared", "N"),
+                           colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "R-squared", "N"),
+                           rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
 
@@ -540,8 +565,9 @@ shinyServer(function(input, output, session) {
     )
 
     p <- ggplot() +
-      geom_vline(xintercept = 0) +
-      geom_hline(yintercept = 0) +
+      # geom_vline(xintercept = 0) +
+      # geom_hline(yintercept = 0) +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Air temperature (\u00B0C)") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
@@ -550,17 +576,23 @@ shinyServer(function(input, output, session) {
     pars <- na.exclude(lr_pars$dt)
 
     if(length(lm_fit$df_lst) > 0) {
-      mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "wtemp", "airt", "Percentage"))
-      mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
-      lvls <- levels(mlt$Percentage)
-      ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
-      # Reorder levels in ascending order
-      mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
+      # mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "wtemp", "airt", "Percentage"))
+      # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
+      # lvls <- levels(mlt$Percentage)
+      # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
+      # # Reorder levels in ascending order
+      # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
+      # mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "Frequency", "N"))
+      mlt <- do.call(rbind, lm_fit$df_lst)
+      mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
+      # levels(mlt$Frequency) <- samp_freq
 
       p <- p +
-        geom_point(data = mlt, aes(airt, wtemp, color = Percentage)) +
-        geom_smooth(data = mlt, aes(airt, wtemp, color = Percentage), method = "lm", formula = "y ~ x",
-                    se = FALSE) + scale_color_manual(values = cols)
+        geom_point(data = mlt, aes(airt, wtemp, color = Frequency)) +
+        geom_smooth(data = mlt, aes(airt, wtemp, color = Frequency), method = "lm", formula = "y ~ x",
+                    se = FALSE) +
+        scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
+        labs(color = "Frequency")
     }
 
     if(lm_fit$plt_orig) {
@@ -590,21 +622,25 @@ shinyServer(function(input, output, session) {
     df$wtemp[is.na(df$airt)] <- NA
 
     pars <- na.exclude(lr_pars$dt)
+    print(pars)
 
     if(nrow(pars) > 0) {
       mod <- lapply(1:nrow(pars), function(x) {
         data.frame(Date = airt_swt$df$Date,
                    Model = pars$m_est[x] * airt_swt$df$airt + pars$b_est[x],
-                   Percentage = pars$Percentage[x])
+                   Frequency = samp_freq[x])
       })
       # names(mod) <- pars$label
-      mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
+      # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
+      mlt <- do.call(rbind, mod)
+      mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
 
-      mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
-      lvls <- levels(mlt$Percentage)
-      ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
-      # Reorder levels in ascending order
-      mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
+      # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
+      # mlt$Percentage <- factor(as.character(mlt$N))
+      # lvls <- levels(mlt$Percentage)
+      # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
+      # # Reorder levels in ascending order
+      # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
     }
 
     p <- ggplot() +
@@ -618,9 +654,10 @@ shinyServer(function(input, output, session) {
 
     if(nrow(pars) > 0) {
       p <- p +
-        geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
-        scale_color_manual(values = cols) +
-        labs(color = "Data used in model (%)")
+        # geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
+        geom_line(data = mlt, aes(Date, Model, color = Frequency)) +
+        scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
+        labs(color = "Frequency")
     }
 
     # return(p)
@@ -638,38 +675,47 @@ shinyServer(function(input, output, session) {
     fit <- lm(wtemp ~ airt, data = df)
     out <- summary(fit)
 
-    if(!is.null(input$lr_DT_rows_selected)) {
-      lr_pars$dt$m_est[input$lr_DT_rows_selected] <- round(out$coefficients[2, 1], 2)
-      lr_pars$dt$b_est[input$lr_DT_rows_selected] <- round(out$coefficients[1, 1], 2)
-      lr_pars$dt$m_se[input$lr_DT_rows_selected] <- round(out$coefficients[2, 2], 2)
-      lr_pars$dt$b_se[input$lr_DT_rows_selected] <- round(out$coefficients[1, 2], 2)
-      lr_pars$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
-      lr_pars$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
-
-      lr_eqn$dt$eqn[input$lr_DT_rows_selected] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
-      lr_eqn$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
-      lr_eqn$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
-    } else {
-      idx <- which(is.na(lr_pars$dt$m_est))[1]
+    # if(!is.null(input$lr_DT_rows_selected)) {
+    #   lr_pars$dt$m_est[input$lr_DT_rows_selected] <- round(out$coefficients[2, 1], 2)
+    #   lr_pars$dt$b_est[input$lr_DT_rows_selected] <- round(out$coefficients[1, 1], 2)
+    #   lr_pars$dt$m_se[input$lr_DT_rows_selected] <- round(out$coefficients[2, 2], 2)
+    #   lr_pars$dt$b_se[input$lr_DT_rows_selected] <- round(out$coefficients[1, 2], 2)
+    #   lr_pars$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
+    #   lr_pars$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
+    #
+    #   lr_eqn$dt$eqn[input$lr_DT_rows_selected] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
+    #   lr_eqn$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
+    #   lr_eqn$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
+    # } else {
+    # Old version with ability to re-fit models
+      # idx <- which(is.na(lr_pars$dt$m_est))[1]
+      idx <- which(samp_freq %in% input$samp_freq)
       lr_pars$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
       lr_pars$dt$b_est[idx] <- round(out$coefficients[1, 1], 2)
       lr_pars$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
       lr_pars$dt$b_se[idx] <- round(out$coefficients[1, 2], 2)
       lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
-      lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
+      # lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
+      lr_pars$dt$N[idx] <- nrow(df)
 
       lr_eqn$dt$eqn[idx] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
       lr_eqn$dt$r2[idx] <- round(out$r.squared, 2)
-      lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
-    }
+      # lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
+      lr_eqn$dt$N[idx] <- nrow(df)
+      # }
 
-    df$Percentage <- round((100 * nrow(df) / tot_rows))
-    if(!is.null(input$lr_DT_rows_selected)) {
-      lm_fit$df_lst[[input$lr_DT_rows_selected]] <- df
-    } else {
-      idx <- length(lm_fit$df_lst) + 1
+      df$N <- nrow(df)
+      df$Frequency <- samp_freq[idx]
+
       lm_fit$df_lst[[idx]] <- df
-    }
+
+    # df$Percentage <- round((100 * nrow(df) / tot_rows))
+    # if(!is.null(input$lr_DT_rows_selected)) {
+    #   lm_fit$df_lst[[input$lr_DT_rows_selected]] <- df
+    # } else {
+    #   idx <- length(lm_fit$df_lst) + 1
+    #   lm_fit$df_lst[[idx]] <- df
+    # }
 
     lm_fit$plt_orig <- FALSE
 
@@ -733,15 +779,14 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  observeEvent(input$calc_stats, {
-    req(sum(!is.na(lr_pars$dt$m_est)) > 1)
-    req(input$lr_DT2_rows_selected != "")
+  observeEvent(input$lr_DT2_rows_selected, {
+    req(sum(!is.na(lr_pars$dt$m_est)) > 0)
 
-    df <- data.frame("Mean (m)" = mean(lr_pars$dt$m_est[input$lr_DT2_rows_selected], na.rm = TRUE),
-                     "Std. Dev (m)" = sd(lr_pars$dt$m_est[input$lr_DT2_rows_selected], na.rm = TRUE),
-                     "Mean (b)" = mean(lr_pars$dt$b_est[input$lr_DT2_rows_selected], na.rm = TRUE),
-                     "Std. Dev (b)" = sd(lr_pars$dt$b_est[input$lr_DT2_rows_selected], na.rm = TRUE))
-    updateSliderInput(session, "m_std", value = df[1, 2])
+    df <- data.frame("Mean (m)" = lr_pars$dt$m_est[input$lr_DT2_rows_selected],
+                     "Std. Dev (m)" = lr_pars$dt$m_se[input$lr_DT2_rows_selected],
+                     "Mean (b)" = lr_pars$dt$b_est[input$lr_DT2_rows_selected],
+                     "Std. Dev (b)" = lr_pars$dt$b_se[input$lr_DT2_rows_selected])
+    updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
     updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
     linr_stats$dt <- signif(df, 3)
   })
@@ -1115,9 +1160,9 @@ shinyServer(function(input, output, session) {
   # Build a forecast model ----
 
   observe({
-    if((all(input$mult_lin_reg_vars %in% c("Water temperature lag", "Mean water temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2)) {
+    if((all(input$mult_lin_reg_vars %in% c("Water temperature days ahead", "Mean water temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2)) {
       shinyjs::disable("fit_mlr")
-    } else if((all(input$mult_lin_reg_vars %in% c("Air temperature lag", "Mean air temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2)) {
+    } else if((all(input$mult_lin_reg_vars %in% c("Air temperature days ahead", "Mean air temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2)) {
       shinyjs::disable("fit_mlr")
     } else if(length(input$mult_lin_reg_vars) == 0) {
       shinyjs::disable("fit_mlr")
@@ -1132,18 +1177,18 @@ shinyServer(function(input, output, session) {
            message = "Please select predictors.")
     )
     validate(
-      need(!(all(input$mult_lin_reg_vars %in% c("Water temperature lag", "Mean water temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2),
-           message = "Water temperature mean of 1 and lag of 1 are the same and can not be included in the model.\nAdd another predictor or adjust the lag/mean")
+      need(!(all(input$mult_lin_reg_vars %in% c("Water temperature days ahead", "Mean water temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2),
+           message = "Water temperature mean of 1 and days ahead of 1 are the same and can not be included in the model.\nAdd another predictor or adjust the days ahead/mean")
     )
     validate(
-      need(!(all(input$mult_lin_reg_vars %in% c("Air temperature lag", "Mean air temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2),
-           message = "Air temperature mean of 1 and lag of 1 are the same and can not be included in the model.\nAdd another predictor or adjust the lag/mean")
+      need(!(all(input$mult_lin_reg_vars %in% c("Air temperature days ahead", "Mean air temperature")) & input$mean_t == 1 & input$lag_t == 1 & length(input$mult_lin_reg_vars) == 2),
+           message = "Air temperature mean of 1 and days ahead of 1 are the same and can not be included in the model.\nAdd another predictor or adjust the days ahead/mean")
     )
     mean_terms <- NULL
     lag_terms <- NULL
 
-    if(any(grepl("lag", input$mult_lin_reg_vars))) {
-      idx <- grep("lag", input$mult_lin_reg_vars)
+    if(any(grepl("ahead", input$mult_lin_reg_vars))) {
+      idx <- grep("ahead", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       lag_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "\\\\ \\ &+ ")
     }
@@ -1172,11 +1217,11 @@ shinyServer(function(input, output, session) {
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                       airt = airt_swt$df$airt,
-                      wtemp_lag = NA, wtemp_mean = NA,
-                      airt_lag = NA, airt_mean = NA)
-    dat$wtemp_lag[-c(1:input$lag_t)] <- dat$wtemp[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
+                      wtemp_days_ahead = NA, wtemp_mean = NA,
+                      airt_days_ahead = NA, airt_mean = NA)
+    dat$wtemp_days_ahead[-c(1:input$lag_t)] <- dat$wtemp[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
     dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], input$mean_t, na.pad = TRUE, align = "right"))
-    dat$airt_lag[-c(1:input$lag_t)] <- dat$airt[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
+    dat$airt_days_ahead[-c(1:input$lag_t)] <- dat$airt[-c((nrow(dat)+1-input$lag_t):nrow(dat))]
     dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], input$mean_t, na.pad = TRUE, align = "right"))
 
     idx <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars)
@@ -1207,8 +1252,9 @@ shinyServer(function(input, output, session) {
     mean_terms <- NULL
     lag_terms <- NULL
 
-    if(any(grepl("lag", input$mult_lin_reg_vars))) {
-      idx <- grep("lag", input$mult_lin_reg_vars)
+    if(any(grepl("ahead", input$mult_lin_reg_vars))) {
+      idx <- grep("ahead", input$mult_lin_reg_vars)
+      print(idx)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       lag_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], "_{t-", input$lag_t, "}", collapse = "+ ")
     }
@@ -1274,13 +1320,13 @@ shinyServer(function(input, output, session) {
       if(input$mlr_dt_rows_selected == 5) {
         dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                           airt = airt_swt$df$airt,
-                          wtemp_lag = NA, wtemp_mean = NA,
-                          airt_lag = NA, airt_mean = NA)
+                          wtemp_days_ahead = NA, wtemp_mean = NA,
+                          airt_days_ahead = NA, airt_mean = NA)
 
-        dat$wtemp_lag[-c(1:mlr$dt$lag[5])] <- dat$wtemp[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
+        dat$wtemp_days_ahead[-c(1:mlr$dt$lag[5])] <- dat$wtemp[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
         dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], mlr$dt$mean_day[5],
                                               na.pad = TRUE, align = "right"))
-        dat$airt_lag[-c(1:mlr$dt$lag[5])] <- dat$airt[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
+        dat$airt_days_ahead[-c(1:mlr$dt$lag[5])] <- dat$airt[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
         dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], mlr$dt$mean_day[5],
                                              na.pad = TRUE, align = "right"))
 
@@ -1336,6 +1382,20 @@ shinyServer(function(input, output, session) {
     )
     withMathJax(
       tags$p(mlr$eqn)
+    )
+  })
+
+  output$sel_mod <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab_rows_selected != "",
+           message = "Select a model in the table.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab_rows_selected])
     )
   })
 
@@ -1459,15 +1519,15 @@ shinyServer(function(input, output, session) {
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                       airt = airt_swt$df$airt,
-                      wtemp_lag = NA, wtemp_mean = NA,
-                      airt_lag = NA, airt_mean = NA)
+                      wtemp_days_ahead = NA, wtemp_mean = NA,
+                      airt_days_ahead = NA, airt_mean = NA)
     print(mod_selec_tab$dt)
     print(idx)
 
-    dat$wtemp_lag[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$wtemp_days_ahead[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
     dat$wtemp_mean <- c(NA, zoo::rollmean(dat$wtemp[-nrow(dat)], mod_selec_tab$dt$lag[idx],
                                           na.pad = TRUE, align = "right"))
-    dat$airt_lag[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$airt_days_ahead[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
     dat$airt_mean <- c(NA, zoo::rollmean(dat$airt[-nrow(dat)], mod_selec_tab$dt$lag[idx],
                                          na.pad = TRUE, align = "right"))
 
@@ -1500,6 +1560,10 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$load_mods > 0,
+           message = "Please click 'Load models'.")
     )
     mod_selec_tab$dt[, c(1, 4)]
   }, selection = "single",
