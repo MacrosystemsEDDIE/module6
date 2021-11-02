@@ -86,4 +86,7 @@ lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
 # Forecast Date
 fc_date <- "2020-09-25"
 
+# Sampling frequency
+samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
+
 # end
