@@ -476,7 +476,7 @@ shinyServer(function(input, output, session) {
   output$lr_DT <- renderDT(lr_eqn$dt, selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '10%', targets = "_all"))
-                           ), colnames = c("Equation", "R-squared", "Data used (%)"),
+                           ), colnames = c("Model", "R-squared", "Data used (%)"),
                            rownames = FALSE, # c("25%", "50%", "75%", "100%"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
@@ -619,7 +619,8 @@ shinyServer(function(input, output, session) {
     if(nrow(pars) > 0) {
       p <- p +
         geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
-        scale_color_manual(values = cols)
+        scale_color_manual(values = cols) +
+        labs(color = "Data used in model (%)")
     }
 
     # return(p)
@@ -896,7 +897,7 @@ shinyServer(function(input, output, session) {
     return(gp)
   })
 
-  # Investigate model error
+  #** Investigate model error ----
   output$mod_err_plot <- renderPlot({
     validate(
       need(input$table01_rows_selected != "",
@@ -947,7 +948,7 @@ shinyServer(function(input, output, session) {
                               rownames = FALSE,
                               server = FALSE, escape = FALSE)
 
-  # Calculate mean error
+  #** Calculate mean error ----
   mean_err <- reactiveValues(val = NULL)
   observeEvent(input$calc_err, {
     req(!is.null(click_df$df))
@@ -968,7 +969,7 @@ shinyServer(function(input, output, session) {
     paste0("The mean model error is ", round(mean_err$val, 1), " \u00B0C.")
   })
 
-  # Calculate error w/ UC
+  #** Calculate error w/ UC ----
   output$mod_err_uc_plot <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1370,7 +1371,7 @@ shinyServer(function(input, output, session) {
     #
     #     MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
     # }")
-                            ), colnames = c("Equation", "R-squared"), rownames = TRUE,
+                            ), colnames = c("Model", "R-squared"), rownames = TRUE,
 
                             server = FALSE, escape = FALSE)
 
@@ -1505,7 +1506,7 @@ shinyServer(function(input, output, session) {
                                    options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                                                   columnDefs = list(list(width = '10%', targets = "_all")),
                                                   scrollX = TRUE),
-                                   colnames = c("Equation", "R-squared"), rownames = TRUE,
+                                   colnames = c("Model", "R-squared"), rownames = TRUE,
                                    server = FALSE, escape = FALSE)
 
   wtemp_fc_out1 <- reactiveValues(lst = as.list(rep(NA, 3)))
@@ -1590,6 +1591,9 @@ shinyServer(function(input, output, session) {
       p <- p +
         geom_line(data = mlt, aes(Date, value, color = Label))
     }
+
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2], "1" = cols[3], "2" = cols[4], "3" = cols[5], "4" = cols[6]))
 
     return(ggplotly(p, dynamicTicks = TRUE))
 

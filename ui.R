@@ -678,397 +678,431 @@ border-color: #FFF;
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h3("Objective 4 - Statistics & Probability"),
-                                           p(module_text["obj_04", ])
+                                           h2("Activity A - Build A Model With Uncertainty"),
+                                           p(module_text["obj_03", ])
                                  )
                           ),
                         ),
-                        fluidRow(
-                          hr(),
-                          column(4,
-                                 h3("Statistics & Probability"),
-                                 p("Before we begin generating an ecological forecast with uncertainty we will explore some key basic statistical and probability concepts relevant to ecology."),
-                                 p("What is an ecological model?"),
-                                 tags$ul(
-                                   tags$li(module_text["model1", ])
-                                 ),
-                                 p("What is a parameter"),
-                                 tags$ul(
-                                   tags$li(module_text["parameter", ])
-                                 ),
-                                 p("What is a parameter distribution?"),
-                                 tags$ul(
-                                   tags$li(module_text["distribution", ])
-                                 ),
-                                 p("Click through the slides to recap some of the main points from the lecture.")
-                          ),
-                          column(8, offset = 0, align = "center",
-                                 h3("Key Figures",
-                                    align = "center"),
-                                 h5("Click the arrows to navigate through the slides", align = "center"),
-                                 wellPanel(
-                                   # slickROutput("slides", width = "600px", height = "450px")
-                                   )
-                                 )
-                          ),
-                        hr(),
-                        #* Linear regression ----
-                        fluidRow(
-                          column(6,
-                                 h3("Investigate variable relationships"),
-                                 p("We will explore the relationship between air temperature and surface water temperature for a lake site."),
-                                 p("First, we will look at a time series of the real air and water temperature data measured at the lake you chose in the “Site selection” tab."),
-                                 actionButton("plot_airt_swt", "Plot"),
-                                 radioButtons("q12", quest["q12", ], choices = c("Yes", "No"), selected = character(0), inline = TRUE),
-                                 conditionalPanel("input.q12 == 'Yes'",
-                                                  p(tags$b("Good job!")),
-                                                  p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
-                                                  br(),
-                                                  h4("Linear Regression"),
-                                                  div("The formula for a linear regression is: $$y = m \\times x + b$$"),
-                                                  p("In our case we will be using ", tags$b("air temperature"), " (airtemp) to model ", tags$b("water temperature"), " (wtemp) using the following model equation:"),
-                                                  div("$$wtemp = m \\times airtemp + b$$"),
-                                                  p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
-                                                  p(tags$b("R-squared"), module_text["r_squared", ])
-                                                  ),
-                                 conditionalPanel("input.q12 == 'No'",
-                                                  p(tags$em("Are you sure?"))
-                                                  )
-                                 ),
-                          column(6,
-                                 h4("Time series of air temperature and water temperature"),
-                                 p("Click on “Plot” to graph the time series of the air temperature and the surface water temperature. Compare the seasonal cycles of both the dependent variable (air temperature) and independent variable (water temperature)."),
-                                 wellPanel(
-                                   plotOutput("airt_swt_plot")
-                                   )
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(3,
-                                 h3("Investigate how collecting more data affects your model"),
-                                 p("As we collect more and more data at our lake site, the parameters for our linear model will likely change, affecting the model performance (assessed by the R-squared value). Fit a linear model with six varying amounts of data coverage and add each model’s parameter set to the parameter table."),
-                                 p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
-                                 uiOutput("date_slider1"),
-                                 actionButton("plot_airt_swt2", "Plot"),
-                                 p("Use the date slider to choose how much data is used to go into your model.")
-                          ),
-                          column(4,
-                                 p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
-                                 p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
-                                 DTOutput("lr_DT", width = "40%"),
-                                 br(),
-                                 # p("You do not need to get the percentages exactly right, but close enough will work fine."),
-                                 actionButton("add_lm", "Get model parameters"),
-                                 wellPanel(
-                                   uiOutput("lm_mod")
-                                 ),
-                                 br(), br(),
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(10, offset = 1,
-                                              # h3("Questions"),
-                                              textAreaInput2(inputId = "q13", label = quest["q13", ], width = "90%"),
-                                              textAreaInput2(inputId = "q14", label = quest["q14", ], width = "90%")
-                                              )
-                                       ),
-                                 )
-                                 # verbatimTextOutput("lm_out")
-                                 ),
-                          column(5,
-                                 h3("Air temperature vs. water temperature"),
-                                 wellPanel(
-                                   plotlyOutput("airt_swt_plot_lines")#,
-                                   )
-                                 )
-                        ),
-                        fluidRow(
-                          column(3,
-                                 h3("Compare model performance"),
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(10, offset = 1,
-                                              # h3("Questions"),
-                                              textAreaInput2(inputId = "q15", label = quest["q15", ], width = "90%"),
-                                              textAreaInput2(inputId = "q16", label = quest["q16", ], width = "90%")
-                                              )
-                                       ),
-                                     )
-                                 ),
-                          column(9,
-                                 h3("Water temperature time series"),
-                                 p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
-                                 p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
-                                 wellPanel(
-                                   plotlyOutput("lm_ts_plot")
-                                   )
-                                 )
-                          ),
-                        hr(),
-                        #* Generate distributions for intercept & slope ----
-                        fluidRow(
-                          column(12,
-                                 h3("Generate distributions for intercept & slope")
-                          ),
-                          column(4,
-                                 p("Using the values from the model parameters you fit above, you will calculate a normal distribution for the parameters."),
-                                 p("Calculate the mean and standard deviation of the parameters"),
-                                 DTOutput("lr_DT2", width = "40%"),
-                                 br(),
-                                 p("You must select rows in the data table before you can calculate the statistics."),
-                                 actionButton("calc_stats", "Calculate!"),
-                                 # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
-                                 DTOutput("lr_stats", width = "60%"),
-                                 p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
-                                 module_text["density_plots", ],
-                                 p("Density plots are a variation of histograms and they are better at determining the distribution shape."),
-                                 actionButton("gen_lr_dist_plot", "Generate plot!"),
-                                 br(), br(),
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(10, offset = 1,
-                                              textAreaInput2(inputId = "q17", label = quest["q17", ], width = "90%"),
-                                              )
-                                       ),
-                                     ),
-                                 p("You will use the parameter sliders to answer Q 19-20.")
-                                 ),
-                          column(4, align = "center",
-                                 plotOutput("lr_m_dist_plot"),
-                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01)
-                                 ),
-                          column(4, align = "center",
-                                 plotOutput("lr_b_dist_plot"),
-                                 sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05)
-                                 )
-                          ),
-                        hr(),
-                        #* Adding multiple lines ----
-                        fluidRow(
-                          column(3,
-                                 h3("Create multiple models"),
-                                 p("Using the distributions you have created above, you are going to randomly create models by sampling values for the slope (m) and the intercept (b) from the distributions you have defined above for each parameter."),
-                                 radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
-                                 actionButton("gen_lin_mods", "Add models"),
-                                 p("Every time you click 'Add models' it will generate models randomly from the sample distributions."),
-                                 conditionalPanel("input.gen_lin_mods >= 1",
-                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
-                                                  radioButtons("plot_type1", "Plot type", c("Line", "Distribution"),
-                                                               inline = TRUE)
-                                 )
-                                                  # checkboxInput("add_dist", "Distribution plot"))
-                          ),
-                          column(3,
-                                 DTOutput("mb_samps", width = "50%")
-                                 ),
-                          column(6,
-                                 plotlyOutput("add_lin_mods")
-                          )
-                        ),
-                        fluidRow(
-                          column(12,
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(12,
-                                              h4("Questions")
-                                              ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q18", label = quest["q18", ], width = "90%")
-                                              ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q19", label = quest["q19", ], width = "90%")
-                                       ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q20", label = quest["q20", ], width = "90%")
-                                              )
-                                       )
-                                     )
-                                 )
-                          ),
-                        hr(),
-                        #* Calculation model error - deterministic ----
-                        fluidRow(
-                          column(6,
-                                 h3("Calculating model error"),
-                                 p("If you look at our linear model, we can see that the points do not fall exactly on our model’s predicted line. We can compare our model results to actual observations to determine how “good” the model is. Select points on the graph and the table below will display how far off the model was from the observations by calculating model error (difference between modelled water temperature and observed temperature)."),
-                                 h4("Selected points"),
-                                 p("Select a point on the plot by clicking on it or select multiple points by clicking and dragging the selection pane."),
-                                 DTOutput("click_dt", width = "90%"),
-                                 br(),
-                                 actionButton("calc_err", "Calculate"),
-                                 wellPanel(
-                                   textOutput("mean_err")
-                                   )
-                                 ),
-                          column(6,
-                                 plotOutput("mod_err_plot",
-                                            click = "mod_err_plot_click",
-                                            brush = brushOpts(
-                                              id = "mod_err_plot_brush"
-                                            )),
-                                 )
-                          ),
-                        fluidRow(
-                          column(12,
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(12,
-                                              h4("Questions"),
-                                              p("Calculate the model error (difference between modelled water temperature and observed water temperature) at varying intervals (0-10, 10-20, 20-30, 30-40 degC).")
-                                              ),
-                                       column(6,
-                                              textAreaInput2(inputId = "q21", label = quest["q21", ], width = "90%")
-                                       ),
-                                       column(6,
-                                              textAreaInput2(inputId = "q22", label = quest["q22", ], width = "90%")
-                                       )
-                                     )
-                                 )
-                          )
-                        ),
-                        hr(),
-                        #* Calculation model error - probabilistic ----
-                        fluidRow(
-                          column(6,
-                                 h3("Calculating model error with uncertainty"),
-                                 p("In Objective X, we noticed that there were multiple models that could potentially fit our data and this allowed us to create a plot with confidence intervals. Now we will assess how many of these observations fall within our confidence intervals, giving us a measure of how 'good' our model is."),
-                                 p("Use the 'Lasso select' tool to highlight points outside of the confidence interval and input the number below."),
-                                 textOutput("sel_points"),
-                                 textOutput("total_points"),
-                                 numericInput("points_above", "Number of points above the confidence interval", 0, min = 0, max = 1000, step = 1),
-                                 numericInput("points_below", "Number of points below the confidence interval", 0, min = 0, max = 1000, step = 1),
-                                 textOutput("pct_inside"),
-                                 actionButton("calc_pct", "Calculate percentage points inside the confidence intervals."),
-                                 p("Does the percentage of points inside your confidence intervals match your intervals?"),
-                                 p("If not, why do you think that is?"),
-                                 p("If you were to go back and repeat this exercise, what would you do differently?")
-                          ),
-                          column(6,
-                                 plotlyOutput("mod_err_uc_plot"),
-                                 actionButton("clear_sel1", "Clear selection")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(12,
-                                 h3("Create a Forecast model"),
-                          ),
-                          column(3,
-                                 p("The model we have built uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
-                                 p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature, with t = tomorrow and t-1 = today:"),
-                                 wellPanel(
-                                   div("$$wtemp_{t} = wtemp_{t-1}$$")
-                                 ),
-                                 p("Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
-                                 uiOutput("date_persist")
-                          ),
-                          column(9,
-                                 wellPanel(
-                                   plotlyOutput("persist_plot"),
-                                   verbatimTextOutput("persist_r2")
-                                   )
-                                 )
-                        ),
-                        hr(),
-                        fluidRow(
-                          column(12,
-                                 h3("Build a ", tags$em("Better"), " model"),
-                                 ),
-                          column(3,
-                                 p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
-                                 ),
-                          column(3,
-                                 p("We are going to build a model that uses historical data, which will allow us to use historical data to forecast water temperature."),
-                                 p("We will use historical air temperature and water temperaure. You will have the option of either using them with a lag (e.g. a lag of 1 would be using data from 1 day ago) or a rolling mean (e.g. a mean of 3 would be using a the average over the last 3 days).")
-                                 ),
-                          column(6,
-                                 h3("PLACEHOLDER")
-                                 )
-                        ),
-                        fluidRow(
-                          column(3,
-                                 p("Build a multiple regression model below and test adding different predictors and see how well your model works at forecasting water temperature."),
-                                 wellPanel(
-                                   div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$")
-                                 ),
-                                 p("where \\(\\beta_{n}\\) represents the parameters in the equation, similarly to the slope in a linear regression model."),
-                                 selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
-                                 numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
-                                 numericInput("mean_t", "Mean (days)", value = 1, min = 1, max = 7, step = 1),
-                                 ),
-                          column(3,
-                                 h4("Fit multiple linear regression model"),
-                                 p("Use a multiple linear regression model to estimate the parameters (\\(\\beta_{n}\\)) in your model below."),
-                                 wellPanel(
-                                   uiOutput("mult_lin_reg_eqn")
-                                 ),
-                                 # verbatimTextOutput("mlr_invis"),
-                                 br(),
-                                 actionButton("fit_mlr", "Fit model"),
-                                 uiOutput("date_train"),
-                                 uiOutput("date_test")
-                          ),
-                          column(6,
-                                 plotlyOutput("mlr_ts_plot"),
-                                 wellPanel(
-                                   uiOutput("mlr_mod")
-                                 )
-                          )
-                        ),
-                        fluidRow(
-                          column(6,
-                                 box(id = "box2", width = 12, status = "primary",
-                                     solidHeader = TRUE,
-                                     fluidRow(
-                                       column(12,
-                                              h4("Questions")
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(4,
-                                              textAreaInput2(inputId = "q23", label = quest["q23", ], width = "90%")
-                                       ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q24", label = quest["q24", ], width = "90%")
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(4,
-                                              textAreaInput2(inputId = "q25", label = quest["q25", ], width = "90%")
-                                       ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q26", label = quest["q26", ], width = "90%")
-                                       ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q27", label = quest["q27", ], width = "90%")
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(4,
-                                              textAreaInput2(inputId = "q28", label = quest["q28", ], width = "90%")
-                                       ),
-                                       column(4,
-                                              textAreaInput2(inputId = "q29", label = quest["q29", ], width = "90%")
-                                              )
-                                       )
-                                     )
-                                 ),
-                          column(6,
-                                 DTOutput("mlr_dt")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(6,
-                                 ),
-                          column(6,
-                                 )
-                          )
+                        tabsetPanel(id = "tabseries2",
+                                    #* Objective 3 - Build a water temperature model ====
+                                    tabPanel(title = "Objective 3 - Build a water temperature model", value = "obj3",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 3 - Build a water temperature model"),
+                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                      ))
+                                             ),
+                                             fluidRow(
+                                               hr(),
+                                               column(4,
+                                                      h3("Statistics & Probability"),
+                                                      p("Before we begin generating an ecological forecast with uncertainty we will explore some key basic statistical and probability concepts relevant to ecology."),
+                                                      p("What is an ecological model?"),
+                                                      tags$ul(
+                                                        tags$li(module_text["model1", ])
+                                                      ),
+                                                      p("What is a parameter"),
+                                                      tags$ul(
+                                                        tags$li(module_text["parameter", ])
+                                                      ),
+                                                      p("What is a parameter distribution?"),
+                                                      tags$ul(
+                                                        tags$li(module_text["distribution", ])
+                                                      ),
+                                                      p("Click through the slides to recap some of the main points from the lecture.")
+                                               ),
+                                               column(8, offset = 0, align = "center",
+                                                      h3("Key Figures",
+                                                         align = "center"),
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        # slickROutput("slides", width = "600px", height = "450px")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             #* Linear regression ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Investigate variable relationships"),
+                                                      p("We will explore the relationship between air temperature and surface water temperature for a lake site."),
+                                                      p("First, we will look at a time series of the real air and water temperature data measured at the lake you chose in the “Site selection” tab."),
+                                                      actionButton("plot_airt_swt", "Plot"),
+                                                      radioButtons("q12", quest["q12", ], choices = c("Yes", "No"), selected = character(0), inline = TRUE),
+                                                      conditionalPanel("input.q12 == 'Yes'",
+                                                                       p(tags$b("Good job!")),
+                                                                       p("When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
+                                                                       br(),
+                                                                       h4("Linear Regression"),
+                                                                       div("The formula for a linear regression is: $$y = m \\times x + b$$"),
+                                                                       p("In our case we will be using ", tags$b("air temperature"), " (airtemp) to model ", tags$b("water temperature"), " (wtemp) using the following model:"),
+                                                                       div("$$wtemp = m \\times airtemp + b$$"),
+                                                                       p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
+                                                                       p(tags$b("R-squared"), module_text["r_squared", ])
+                                                      ),
+                                                      conditionalPanel("input.q12 == 'No'",
+                                                                       p(tags$em("Are you sure?"))
+                                                      )
+                                               ),
+                                               column(6,
+                                                      h4("Time series of air temperature and water temperature"),
+                                                      p("Click on “Plot” to graph the time series of the air temperature and the surface water temperature. Compare the seasonal cycles of both the dependent variable (air temperature) and independent variable (water temperature)."),
+                                                      wellPanel(
+                                                        plotOutput("airt_swt_plot")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(3,
+                                                      h3("Investigate how collecting more data affects your model"),
+                                                      p("As we collect more and more data at our lake site, the parameters for our linear model will likely change, affecting the model performance (assessed by the R-squared value). Fit a linear model with six varying amounts of data coverage and add each model’s parameter set to the parameter table."),
+                                                      p("Use the slide to select the range of dates for which to use to build your linear regression model. Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
+                                                      uiOutput("date_slider1"),
+                                                      actionButton("plot_airt_swt2", "Plot"),
+                                                      p("Use the date slider to choose how much data is used to go into your model.")
+                                               ),
+                                               column(4,
+                                                      p("For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
+                                                      p("You can also select a row in the table and then click 'Save line' to overwrite an entry."),
+                                                      DTOutput("lr_DT", width = "40%"),
+                                                      br(),
+                                                      # p("You do not need to get the percentages exactly right, but close enough will work fine."),
+                                                      actionButton("add_lm", "Get model parameters"),
+                                                      wellPanel(
+                                                        uiOutput("lm_mod")
+                                                      ),
+                                                      br(), br(),
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   # h3("Questions"),
+                                                                   textAreaInput2(inputId = "q13", label = quest["q13", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q14", label = quest["q14", ], width = "90%")
+                                                            )
+                                                          ),
+                                                      )
+                                                      # verbatimTextOutput("lm_out")
+                                               ),
+                                               column(5,
+                                                      h3("Air temperature vs. water temperature"),
+                                                      wellPanel(
+                                                        plotlyOutput("airt_swt_plot_lines")#,
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(3,
+                                                      h3("Compare model performance"),
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   # h3("Questions"),
+                                                                   textAreaInput2(inputId = "q15", label = quest["q15", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q16", label = quest["q16", ], width = "90%")
+                                                            )
+                                                          ),
+                                                      )
+                                               ),
+                                               column(9,
+                                                      h3("Water temperature time series"),
+                                                      p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
+                                                      p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
+                                                      wellPanel(
+                                                        plotlyOutput("lm_ts_plot")
+                                                        )
+                                                      )
+                                               )
+                                             ),
+                                    #* Objective 4 - Explore Parameter ====
+                                    tabPanel(title = "Objective 4 - Explore Parameters", value = "obj4",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 4 - Explore Parameters"),
+                                                                p(id = "txt_j", module_text["obj_04", ])
+                                                                )
+                                                      )
+                                               ),
+                                             #** Generate distributions for intercept & slope ----
+                                             fluidRow(
+                                               column(12,
+                                                      h3("Generate distributions for intercept & slope")
+                                               ),
+                                               column(4,
+                                                      p("Using the values from the model parameters you fit above, you will calculate a normal distribution for the parameters."),
+                                                      p("Calculate the mean and standard deviation of the parameters"),
+                                                      DTOutput("lr_DT2", width = "40%"),
+                                                      br(),
+                                                      p("You must select rows in the data table before you can calculate the statistics."),
+                                                      actionButton("calc_stats", "Calculate!"),
+                                                      # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
+                                                      DTOutput("lr_stats", width = "60%"),
+                                                      p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created."),
+                                                      module_text["density_plots", ],
+                                                      p("Density plots are a variation of histograms and they are better at determining the distribution shape."),
+                                                      actionButton("gen_lr_dist_plot", "Generate plot!"),
+                                                      br(), br(),
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   textAreaInput2(inputId = "q17", label = quest["q17", ], width = "90%"),
+                                                            )
+                                                          ),
+                                                      ),
+                                                      p("You will use the parameter sliders to answer Q 19-20.")
+                                               ),
+                                               column(4, align = "center",
+                                                      plotOutput("lr_m_dist_plot"),
+                                                      sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01)
+                                               ),
+                                               column(4, align = "center",
+                                                      plotOutput("lr_b_dist_plot"),
+                                                      sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.05)
+                                               )
+                                             ),
+                                             hr(),
+                                             #* Adding multiple lines ----
+                                             fluidRow(
+                                               column(3,
+                                                      h3("Create multiple models"),
+                                                      p("Using the distributions you have created above, you are going to randomly create models by sampling values for the slope (m) and the intercept (b) from the distributions you have defined above for each parameter."),
+                                                      radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
+                                                      actionButton("gen_lin_mods", "Add models"),
+                                                      p("Every time you click 'Add models' it will generate models randomly from the sample distributions."),
+                                                      conditionalPanel("input.gen_lin_mods >= 1",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
+                                                                       radioButtons("plot_type1", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
+                                                      )
+                                                      # checkboxInput("add_dist", "Distribution plot"))
+                                               ),
+                                               column(3,
+                                                      DTOutput("mb_samps", width = "50%")
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("add_lin_mods")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(12,
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(12,
+                                                                   h4("Questions")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q18", label = quest["q18", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q19", label = quest["q19", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q20", label = quest["q20", ], width = "90%")
+                                                                   )
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
+                                    #* Objective 5 - Assess Model ====
+                                    tabPanel(title = "Objective 5 - Assess Model", value = "obj5",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 5 - Assess Model"),
+                                                                p(id = "txt_j", module_text["obj_05", ])
+                                                                )
+                                                      )
+                                               ),
+                                             #** Calculation model error - deterministic ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Calculating model error"),
+                                                      p("If you look at our linear model, we can see that the points do not fall exactly on our model’s predicted line. We can compare our model results to actual observations to determine how “good” the model is. Select points on the graph and the table below will display how far off the model was from the observations by calculating model error (difference between modelled water temperature and observed temperature)."),
+                                                      h4("Selected points"),
+                                                      p("Select a point on the plot by clicking on it or select multiple points by clicking and dragging the selection pane."),
+                                                      DTOutput("click_dt", width = "90%"),
+                                                      br(),
+                                                      actionButton("calc_err", "Calculate"),
+                                                      wellPanel(
+                                                        textOutput("mean_err")
+                                                      )
+                                               ),
+                                               column(6,
+                                                      plotOutput("mod_err_plot",
+                                                                 click = "mod_err_plot_click",
+                                                                 brush = brushOpts(
+                                                                   id = "mod_err_plot_brush"
+                                                                 )),
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(12,
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(12,
+                                                                   h4("Questions"),
+                                                                   p("Calculate the model error (difference between modelled water temperature and observed water temperature) at varying intervals (0-10, 10-20, 20-30, 30-40 degC).")
+                                                            ),
+                                                            column(6,
+                                                                   textAreaInput2(inputId = "q21", label = quest["q21", ], width = "90%")
+                                                            ),
+                                                            column(6,
+                                                                   textAreaInput2(inputId = "q22", label = quest["q22", ], width = "90%")
+                                                            )
+                                                          ),
+                                                          #* Calculation model error - probabilistic ----
+                                                          fluidRow(
+                                                            column(6,
+                                                                   h3("Calculating model error with uncertainty"),
+                                                                   p("In Objective X, we noticed that there were multiple models that could potentially fit our data and this allowed us to create a plot with confidence intervals. Now we will assess how many of these observations fall within our confidence intervals, giving us a measure of how 'good' our model is."),
+                                                                   p("Use the 'Lasso select' tool to highlight points outside of the confidence interval and input the number below."),
+                                                                   textOutput("sel_points"),
+                                                                   textOutput("total_points"),
+                                                                   numericInput("points_above", "Number of points above the confidence interval", 0, min = 0, max = 1000, step = 1),
+                                                                   numericInput("points_below", "Number of points below the confidence interval", 0, min = 0, max = 1000, step = 1),
+                                                                   textOutput("pct_inside"),
+                                                                   actionButton("calc_pct", "Calculate percentage points inside the confidence intervals."),
+                                                                   p("Does the percentage of points inside your confidence intervals match your intervals?"),
+                                                                   p("If not, why do you think that is?"),
+                                                                   p("If you were to go back and repeat this exercise, what would you do differently?")
+                                                            ),
+                                                            column(6,
+                                                                   plotlyOutput("mod_err_uc_plot"),
+                                                                   actionButton("clear_sel1", "Clear selection")
+                                                                   )
+                                                            )
+                                                          )
+                                                      )
+                                             )
+                                    ),
+                                    #* Objective 6 - Improve Model for Forecasting ====
+                                    tabPanel(title = "Objective 6 - Improve Model for Forecasting", value = "obj6",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 6 - Improve Model for Forecasting"),
+                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(12,
+                                                      h3("Create a Forecast model"),
+                                               ),
+                                               column(3,
+                                                      p("The model we have built uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
+                                                      p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature, with t = tomorrow and t-1 = today:"),
+                                                      wellPanel(
+                                                        div("$$wtemp_{t} = wtemp_{t-1}$$")
+                                                      ),
+                                                      p("Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
+                                                      uiOutput("date_persist")
+                                               ),
+                                               column(9,
+                                                      wellPanel(
+                                                        plotlyOutput("persist_plot"),
+                                                        verbatimTextOutput("persist_r2")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      h3("Build a ", tags$em("Better"), " model"),
+                                               ),
+                                               column(3,
+                                                      p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
+                                               ),
+                                               column(3,
+                                                      p("We are going to build a model that uses historical data, which will allow us to use historical data to forecast water temperature."),
+                                                      p("We will use historical air temperature and water temperature. You will have the option of either using them with a lag (e.g. a lag of 1 would be using data from 1 day ago) or a rolling mean (e.g. a mean of 3 would be using a the average over the last 3 days).")
+                                               ),
+                                               column(6,
+                                                      h3("PLACEHOLDER")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(3,
+                                                      p("Build a multiple regression model below and test adding different predictors and see how well your model works at forecasting water temperature."),
+                                                      wellPanel(
+                                                        div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + b$$")
+                                                      ),
+                                                      p("where \\(\\beta_{n}\\) represents the parameters in the model, similarly to the slope in a linear regression model."),
+                                                      selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
+                                                      numericInput("lag_t", "Lag (days)", value = 1, min = 1, max = 7, step = 1),
+                                                      numericInput("mean_t", "Mean (days)", value = 1, min = 1, max = 7, step = 1),
+                                               ),
+                                               column(3,
+                                                      h4("Fit multiple linear regression model"),
+                                                      p("Use a multiple linear regression model to estimate the parameters (\\(\\beta_{n}\\)) in your model below."),
+                                                      wellPanel(
+                                                        uiOutput("mult_lin_reg_eqn")
+                                                      ),
+                                                      # verbatimTextOutput("mlr_invis"),
+                                                      br(),
+                                                      actionButton("fit_mlr", "Fit model"),
+                                                      uiOutput("date_train"),
+                                                      uiOutput("date_test")
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("mlr_ts_plot"),
+                                                      wellPanel(
+                                                        uiOutput("mlr_mod")
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(12,
+                                                                   h4("Questions")
+                                                            )
+                                                          ),
+                                                          fluidRow(
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q23", label = quest["q23", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q24", label = quest["q24", ], width = "90%")
+                                                            )
+                                                          ),
+                                                          fluidRow(
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q25", label = quest["q25", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q26", label = quest["q26", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q27", label = quest["q27", ], width = "90%")
+                                                            )
+                                                          ),
+                                                          fluidRow(
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q28", label = quest["q28", ], width = "90%")
+                                                            ),
+                                                            column(4,
+                                                                   textAreaInput2(inputId = "q29", label = quest["q29", ], width = "90%")
+                                                            )
+                                                          )
+                                                      )
+                                               ),
+                                               column(6,
+                                                      DTOutput("mlr_dt")
+                                                      )
+                                               )
+                                             )
+                                    )
                         ),
                # 6. Activity B ----
                tabPanel(title = "Activity B", value = "mtab7",
@@ -1077,179 +1111,220 @@ border-color: #FFF;
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity B - Explore Uncertainty"),
-                                           h3("Objective X - Generate forecasts with Model Uncertainty"),
+                                           h2("Activity B - Explore Forecast Uncertainty"),
                                            p(module_text["obj_04", ])
                                  )
                           ),
                         ),
-                        #* Model Uncertainty ----
-                        #** Process Uncertainty ----
-                        fluidRow(
-                          column(6,
-                                 h3("Model Uncertainty"),
-                                 p("We will now generate forecasts of water temperature."),
-                                 p("We will use the models that you developed in the last Objective to explore model uncertainty,"),
-                                 p("We will focus on three types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
-                                 tags$ol(
-                                   tags$li("Model selection"),
-                                   tags$li("Process"),
-                                   tags$li("Parameter")
-                                   )
-                                 ),
-                          column(6,
-                                 h2("IMAGE OF MODEL UNCERTAINTY!")
-                                 )
-                        ),
-                        fluidRow(
-                          column(6,
-                                 h3("Model Selection Uncertainty"),
-                                 p(module_text["mod_selec_uc", ]),
-                                 p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
-                                 p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
-                                 div("$$ wtemp_{t+1} = ?? $$"),
-                                 p("Depending on your model selection, the necessary required driving variables are shown."),
-                                 DTOutput("mod_selec_tab")
-                                 ),
-                          column(6,
-                                 wellPanel(
-                                   plotlyOutput("wtemp_fc1")
-                                 ),
-                                 wellPanel(
-                                   actionButton("load_driv1", "Load driver data"),
-                                   actionButton("run_wtemp_fc1", "Run forecast"),
-                                   textOutput("txt_fc_out")
-                                   )
-                                 )
-                        ),
-                        hr(),
-                        #** Model Process Uncertainty ----
-                        fluidRow(
-                          column(6,
-                                 h3("Model Process Uncertainty"),
-                                 p(module_text["proc_uc", ]),
-                                 p("Below is a description of our \"simple\" model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
-                                 p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} $$")),
-                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our equation:"),
-                                 p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} + W_t $$")),
-                                 p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
-                                 p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
-                                 p("where process noise is equal to a random number with a mean of zero and some standard deviation."), br(),
-                                 p("First we will explore how the model responds to differing levels of process uncertainty. Run the model with each of the differing levels multiple time and observe how the forecast outcome changes."),
-                                 radioButtons("proc_uc1", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
-                                 conditionalPanel("input.proc_uc1 != ''",
-                                                  p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
-                                                  p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
-                                                  sliderInput("n_mem1", "No. of members", min = 1, max = 100, value = 5, step = 5)
-                                                  )
-                          ),
-                          column(6,
-                                 plotlyOutput("wtemp_fc2"),
-                                 actionButton("run_wtemp_fc2", "Run forecast"),
-                                 conditionalPanel("input.run_wtemp_fc2 > 0",
-                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                  radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
-                                                               inline = TRUE),
-                                                  p("Click on items in the legend to show/hide them from the plot.")
-                                                  )
-                                 )
-                          ),
-                        hr(),
-                        #** Model Parameter Uncertainty ----
-                        fluidRow(
-                          column(6,
-                                 h3("Model Parameter Uncertainty"),
-                                 p(module_text["param_uncert", ]),
-                          ),
-                          column(6,
-                                 h2("Some image of parameter uncertainty")
-                                 ),
-                        ),
-                        fluidRow(
-                          column(6,
-                                 h3("Forecasting with linear regression model"),
-                                 p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
-                                 actionButton("view_at_fc", "View forecast"),
-                                 p("With this air temperature forecast we can use the linear regression model we built in Objective X, to forecast water temperature:"),
-                                 wellPanel(
-                                   uiOutput("lr_mod_eqn")
-                                   )
-                                 ),
-                          column(6,
-                                 plotlyOutput("airt1_fc_plot"),
-                                 actionButton("run_wtemp_fc3a", "Run forecast")
-                                 ),
-                        ),
-                        fluidRow(
-                          column(3,
-                                 h3("Forecasting with Parameter Uncertainty"),
-                                 p("But we know from Objective X, that when we used different sets of data to build our model that we got slightly different values for our model parameters ", tags$em("m"), " and ", tags$em("b"), ". To account for this ", tags$b("uncertainty"), " we built distributions for parameter that we can sample from."),
-                                 p("We will revisit those samples and generate an ", tags$b("ensemble forecast"), " using multiple different potential parameters."),
-                                 sliderInput("n_mem3b", "No. of members", min = 1, max = 100, value = 5, step = 5)
-                                 ),
-                          column(3,
-                                 plotOutput("param_fcast3b"),
-                                 p("Select the number of parameter to be used in the forecast ensemble.")
-                                 ),
-                          column(6,
-                                 plotlyOutput("wtemp_fc3b"),
-                                 actionButton("run_wtemp_fc3b", "Run forecast"),
-                                 conditionalPanel("input.run_wtemp_fc3b > 0",
-                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                  radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
-                                                               inline = TRUE)
-                                                  )
-                                 )
-                          ),
-                        hr(),
-                        #* Initial Conditions Uncertainty ----
-                        fluidRow(
-                          column(3,
-                                 h3("Initial Condition Uncertainty"),
-                                 p(module_text["init_uncert", ]),
-                                 p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. To account for this we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
-                                 p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
-                                 sliderInput("ic_uc", "Standard deviation", min = 0.01, max = 0.5, value = 0.1, step = 0.05),
-                                 actionButton("gen_ic", "Generate distribution")
-                          ),
-                          column(3,
-                                 plotOutput("ic_uc_plot"),
-                                 sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5)
-                                 ),
-                          column(6,
-                                 wellPanel(
-                                   plotlyOutput("wtemp_fc4"),
-                                 ),
-                                 actionButton("run_wtemp_fc4", "Run forecast"),
-                                 conditionalPanel("input.run_wtemp_fc4 > 0",
-                                                  p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                  radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
-                                                               inline = TRUE)
-                                                  )
-                                 )
-                          ),
-                        hr(),
-                        #* Driver Uncertainty ----
-                        fluidRow(
-                          column(6,
-                                 h3("Driver Uncertainty"),
-                                 p(module_text["driver_uncert", ]),
-                                 p("Load the NOAA ensemble forecast for air temperature below."),
-                                 actionButton("load_noaa_at", "Load forecast"),
-                                 verbatimTextOutput("noaa_at_loaded"),
-                                 p("You can adjust the number of ensemble members plotted and these are what you will use to drive your model."),
-                                 numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
-                                 ),
-                          column(6,
-                                 wellPanel(
-                                   plotlyOutput("airt_fc5"),
-                                   actionButton("run_wtemp_fc5", "Run forecast"),
-                                   radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                inline = TRUE),
-                                   plotlyOutput("wtemp_fc5")
-                                   )
-                                 )
-                        )
+                        tabsetPanel(id = "tabseries3",
+                                    #* Objective 7 - Model Uncertainty ====
+                                    tabPanel(title = "Objective 7 - Model Uncertainty", value = "obj7",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 7 - Model Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                                )
+                                                      )
+                                             ),
+                                             #* Model Uncertainty ----
+                                             #** Process Uncertainty ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Model Uncertainty"),
+                                                      p("We will now generate forecasts of water temperature."),
+                                                      p("We will use the models that you developed in the last Objective to explore model uncertainty,"),
+                                                      p("We will focus on three types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
+                                                      tags$ol(
+                                                        tags$li("Model selection"),
+                                                        tags$li("Process"),
+                                                        tags$li("Parameter")
+                                                      )
+                                               ),
+                                               column(6,
+                                                      h2("IMAGE OF MODEL UNCERTAINTY!")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Model Selection Uncertainty"),
+                                                      p(module_text["mod_selec_uc", ]),
+                                                      p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
+                                                      p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
+                                                      div("$$ wtemp_{t+1} = ?? $$"),
+                                                      p("Depending on your model selection, the necessary required driving variables are shown."),
+                                                      DTOutput("mod_selec_tab")
+                                               ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc1")
+                                                      ),
+                                                      wellPanel(
+                                                        actionButton("load_driv1", "Load driver data"),
+                                                        actionButton("run_wtemp_fc1", "Run forecast"),
+                                                        textOutput("txt_fc_out")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             #** Model Process Uncertainty ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Model Process Uncertainty"),
+                                                      p(module_text["proc_uc", ]),
+                                                      p("Below is a description of our \"simple\" model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
+                                                      p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} $$")),
+                                                      p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model:"),
+                                                      p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} + W_t $$")),
+                                                      p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
+                                                      p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
+                                                      p("where process noise is equal to a random number with a mean of zero and some standard deviation."), br(),
+                                                      p("First we will explore how the model responds to differing levels of process uncertainty. Run the model with each of the differing levels multiple time and observe how the forecast outcome changes."),
+                                                      radioButtons("proc_uc1", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
+                                                      conditionalPanel("input.proc_uc1 != ''",
+                                                                       p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
+                                                                       p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
+                                                                       sliderInput("n_mem1", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                                      )
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("wtemp_fc2"),
+                                                      actionButton("run_wtemp_fc2", "Run forecast"),
+                                                      conditionalPanel("input.run_wtemp_fc2 > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE),
+                                                                       p("Click on items in the legend to show/hide them from the plot.")
+                                                                       )
+                                                      )
+                                               ),
+                                             hr(),
+                                             ),
+                                    #* Objective 8 - Parameter Uncertainty ====
+                                    tabPanel(title = "Objective 8 - Parameter Uncertainty", value = "obj8",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 8 - Parameter Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_08", ])
+                                                                )
+                                                      )
+                                               ),
+                                             #** Model Parameter Uncertainty ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Model Parameter Uncertainty"),
+                                                      p(module_text["param_uncert", ]),
+                                               ),
+                                               column(6,
+                                                      h2("Some image of parameter uncertainty")
+                                               ),
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Forecasting with linear regression model"),
+                                                      p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
+                                                      actionButton("view_at_fc", "View forecast"),
+                                                      p("With this air temperature forecast we can use the linear regression model we built in Objective X, to forecast water temperature:"),
+                                                      wellPanel(
+                                                        uiOutput("lr_mod_eqn")
+                                                      )
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("airt1_fc_plot"),
+                                                      actionButton("run_wtemp_fc3a", "Run forecast")
+                                               ),
+                                             ),
+                                             fluidRow(
+                                               column(3,
+                                                      h3("Forecasting with Parameter Uncertainty"),
+                                                      p("But we know from Objective X, that when we used different sets of data to build our model that we got slightly different values for our model parameters ", tags$em("m"), " and ", tags$em("b"), ". To account for this ", tags$b("uncertainty"), " we built distributions for parameter that we can sample from."),
+                                                      p("We will revisit those samples and generate an ", tags$b("ensemble forecast"), " using multiple different potential parameters."),
+                                                      sliderInput("n_mem3b", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                               ),
+                                               column(3,
+                                                      plotOutput("param_fcast3b"),
+                                                      p("Select the number of parameter to be used in the forecast ensemble.")
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("wtemp_fc3b"),
+                                                      actionButton("run_wtemp_fc3b", "Run forecast"),
+                                                      conditionalPanel("input.run_wtemp_fc3b > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
+                                                                       )
+                                                      )
+                                               )
+                                             ),
+                                    #* Objective 9 - Initial Conditions Uncertainty ====
+                                    tabPanel(title = "Objective 9 - Initial Conditions Uncertainty", value = "obj10",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 9 - Initial Conditions Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_09", ])
+                                                                )
+                                                      )
+                                               ),
+                                             fluidRow(
+                                               column(3,
+                                                      h3("Initial Condition Uncertainty"),
+                                                      p(module_text["init_uncert", ]),
+                                                      p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. To account for this we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
+                                                      p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
+                                                      sliderInput("ic_uc", "Standard deviation", min = 0.01, max = 0.5, value = 0.1, step = 0.05),
+                                                      actionButton("gen_ic", "Generate distribution")
+                                               ),
+                                               column(3,
+                                                      plotOutput("ic_uc_plot"),
+                                                      sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                               ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc4"),
+                                                      ),
+                                                      actionButton("run_wtemp_fc4", "Run forecast"),
+                                                      conditionalPanel("input.run_wtemp_fc4 > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
+                                                                       )
+                                                      )
+                                               )
+                                             ),
+                                    #* Objective 10 - Driver Uncertainty ====
+                                    tabPanel(title = "Objective 10 - Driver Uncertainty", value = "obj10",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 10 - Driver Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_10", ])
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Driver Uncertainty"),
+                                                      p(module_text["driver_uncert", ]),
+                                                      p("Load the NOAA ensemble forecast for air temperature below."),
+                                                      actionButton("load_noaa_at", "Load forecast"),
+                                                      verbatimTextOutput("noaa_at_loaded"),
+                                                      p("You can adjust the number of ensemble members plotted and these are what you will use to drive your model."),
+                                                      numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
+                                               ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("airt_fc5"),
+                                                        actionButton("run_wtemp_fc5", "Run forecast"),
+                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                                     inline = TRUE),
+                                                        plotlyOutput("wtemp_fc5")
+                                                        )
+                                                      )
+                                               )
+                                             )
+                                    )
                         ),
 
                # 6. Activity C ----
@@ -1259,8 +1334,7 @@ border-color: #FFF;
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity B - Explore Uncertainty"),
-                                           h3("Objective X - "),
+                                           h2("Activity C - Managing/Reducing/Accounting Uncertainty"),
                                            p(module_text["obj_04", ])
                                            )
                                  ),
@@ -1287,7 +1361,7 @@ border-color: #FFF;
                                  p(id = "txt_j", module_text["weather_forecast1", ]),
                                  p(id = "txt_j", HTML(paste0("Weather forecasts are produced using ",tags$b("ensemble modelling"), "."))),
                                  p(id = "txt_j", module_text["ens_mod1", ]),
-                                 p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member"), "."),
+                                 p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member.")),
                                  p(id = "txt_j", module_text["weather_forecast2", ])
                           ),
                           column(6, align = "center",
@@ -1353,19 +1427,6 @@ border-color: #FFF;
                                  plotlyOutput("noaa_at_plot")
                                  )
                           ),
-                        # Forecasting water temperature ----
-                        br(),
-                        fluidRow(
-                          column(6,
-                                 h3("Generate a water temperature forecast"),
-                                 p("We will use the models that we developed in Activity A to generate 7-day forecasts of water temperature."),
-                                 h4("Coming soon...")
-                                 ),
-                          column(6,
-                                 h4("Water temperature forecasts"),
-                                 plotlyOutput("wtemp_fcast_plot1")
-                                 )
-                        ),
                         br(),
                         # Initial Conditions - Primary prod model ----
                         fluidRow(
@@ -1413,7 +1474,7 @@ border-color: #FFF;
                                  p("Process uncertainty is uncertainty caused by an incomplete description of the process."),
                                  p("Below is a description of our model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
                                  p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality$$")),
-                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our equation:"),
+                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model:"),
                                  p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality + W_t$$")),
                                  p("Phytoplankton concentration tomorrow is equalt to phytoplankton concentration today ", tags$b("plus"), " nutrient uptake and ", tags$b("minus"), " mortality."),
                                  p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
