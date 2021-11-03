@@ -4,6 +4,7 @@ suppressPackageStartupMessages(library(DT, quietly = TRUE))
 suppressPackageStartupMessages(library(sf, quietly = TRUE))
 suppressPackageStartupMessages(library(leaflet, quietly = TRUE))
 suppressPackageStartupMessages(library(plotly, quietly = TRUE))
+suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 
 # Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
