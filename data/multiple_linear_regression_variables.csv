@@ -1,5 +1,4 @@
 ﻿Name,var,latex
-Air temperature days ahead,airt_days_ahead,airt\_days\_ahead
-Water temperature days ahead,wtemp_days_ahead,wtemp\_days\_ahead
-Mean water temperature,wtemp_mean,wtemp\_mean
-Mean air temperature,airt_mean,airt\_mean
+Air temperature (today),airt,airt_{t+1}
+Water temperature (yesterday),wtemp_yday,wtemp_{t}
+Air temperature (yesterday),airt_yday,airt_{t}
