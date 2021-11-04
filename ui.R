@@ -531,27 +531,22 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   # h4(quest["q6", 1]),
-                                                                   p("Make sure you select data that best represent an annual period (i.e. one or two complete years), be wary of including potential outliers in your selection."),
-                                                                   p("To edit the table you must double click the cell and then type in your answer."),
-                                                                   DTOutput("q6_tab"),
-                                                                   bsTooltip("q6_tab", title = "Double click the cell to edit", placement = "top", trigger = "hover"),
-                                                                   br()
+                                                                   textAreaInput2(inputId = "q5", label = quest["q5", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q6", label = quest["q6", ], width = "90%")
+                                                                   )
                                                             )
                                                           )
                                                       )
-                                                      # )
-                                                      # )
-                                               )
-                                             ),
+                                               ),
+                                             hr(),
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will plot each of the variables against chlorophyll-a to see if there are any relationships."))
-                                             )
-                                    )#,
+                                                      p("We will build models that will allow us to predict water temperature."))
+                                               )
+                                             )#,
 
-                                    #* Objective 3 - Understand the ecological model ====
+                                    #* DEPRECATED Objective 3 - Understand the ecological model ====
                                     # tabPanel(title = "Objective 3 - Understand model", value = "obj3",
                                     #          fluidRow(
                                     #            column(12,
@@ -693,9 +688,36 @@ border-color: #FFF;
                                                       ))
                                              ),
                                              fluidRow(
+                                               column(4,
+                                                      h3("Water Temperature"),
+                                                      p("Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
+                                                      p("Freshwater ecosystems are currently experiencing a multitude of stressors such as landuse change and climate change."),
+                                                      p("Being able to predict how such systems can change in the short-term (up to 7-days into the future) will provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
+                                                      ),
+                                               column(8,
+                                                     img(src = "lake_image.jpg", height = "100%", id = "bla_border",
+                                                         width = "100%", tags$style("border: solid 2px black;"))
+                                                     )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(8, offset = 1,
+                                                      box(id = "box4", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   textAreaInput2(inputId = "q7", label = quest["q7", ], width = "90%"),
+                                                                   )
+                                                            )
+                                                          )
+                                                      )
+                                               ),
+                                             hr(),
+                                             fluidRow(
                                                column(5,
-                                                      h3("Statistics & Probability"),
-                                                      p("Before we begin generating an ecological forecast with uncertainty we will define some key basic statistical and probability concepts relevant to ecology.")
+                                                      h3("Key terms & Definitions"),
+                                                      p("Before we begin generating an ecological forecast with uncertainty we will define some key terms, definitions and concepts relevant to ecology and ecological forecasting.")
                                                )
                                              ),
                                              hr(),
@@ -792,20 +814,8 @@ border-color: #FFF;
                                                       actionButton("add_lm", "Get model parameters"),
                                                       wellPanel(
                                                         uiOutput("lm_mod")
+                                                        )
                                                       ),
-                                                      br(), br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   # h3("Questions"),
-                                                                   textAreaInput2(inputId = "q13", label = quest["q13", ], width = "90%"),
-                                                                   textAreaInput2(inputId = "q14", label = quest["q14", ], width = "90%")
-                                                            )
-                                                          ),
-                                                      )
-                                                      # verbatimTextOutput("lm_out")
-                                               ),
                                                column(5,
                                                       h3("Air temperature vs. water temperature"),
                                                       wellPanel(
@@ -813,21 +823,35 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
+                                             hr(),
                                              fluidRow(
-                                               column(3,
+                                               column(10, offset = 1,
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   textAreaInput2(inputId = "q9", label = quest["q9", ], width = "90%")
+                                                                   )
+                                                            )
+                                                          )
+                                                      )
+                                             ),
+                                             fluidRow(
+                                               column(4,
                                                       h3("Compare model performance"),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
                                                             column(10, offset = 1,
-                                                                   # h3("Questions"),
-                                                                   textAreaInput2(inputId = "q15", label = quest["q15", ], width = "90%"),
-                                                                   textAreaInput2(inputId = "q16", label = quest["q16", ], width = "90%")
+                                                                   h3("Questions"),
+                                                                   textAreaInput2(inputId = "q10", label = quest["q10", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q11", label = quest["q11", ], width = "90%")
+                                                                   )
                                                             )
-                                                          ),
-                                                      )
-                                               ),
-                                               column(9,
+                                                          )
+                                                      ),
+                                               column(8,
                                                       h3("Water temperature time series"),
                                                       p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
                                                       p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
@@ -835,6 +859,12 @@ border-color: #FFF;
                                                         plotlyOutput("lm_ts_plot")
                                                         )
                                                       )
+                                               ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("We will explore the parameters of each of these models and examine how including more data in our model affects parameter estimation."))
                                                )
                                              ),
                                     #* Objective 4 - Explore Parameter ====
@@ -868,7 +898,7 @@ border-color: #FFF;
                                                           solidHeader = TRUE,
                                                           fluidRow(
                                                             column(10, offset = 1,
-                                                                   textAreaInput2(inputId = "q17", label = quest["q17", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q12", label = quest["q12", ], width = "90%"),
                                                             )
                                                           ),
                                                       ),
@@ -1215,6 +1245,7 @@ border-color: #FFF;
                                                column(6,
                                                       p("Now we will use the forecasted driver data to generate forecasts with each of our models."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      actionButton("load_mods", "Load models"),
                                                       DTOutput("mod_selec_tab1a")
                                                       ),
                                                column(6,
@@ -1439,14 +1470,18 @@ border-color: #FFF;
                                                         textOutput("txt_fc_out5"),
                                                         radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
                                                                      inline = TRUE)
+                                                        )
                                                       )
-                                                      # wellPanel(
-                                                      #   plotlyOutput("airt_fc5"),
-                                                      #   actionButton("run_wtemp_fc5", "Run forecast"),
-                                                      #   radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                      #                inline = TRUE),
-                                                      #   plotlyOutput("wtemp_fc5")
-                                                      #   )
+                                               )
+                                             ),
+                                    #* Activity B - Summary ====
+                                    tabPanel(title = "Summary", value = "obj09",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Summary"),
+                                                                p(id = "txt_j", module_text["actb_summ", ])
+                                                                )
                                                       )
                                                )
                                              )
@@ -1460,256 +1495,288 @@ border-color: #FFF;
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity C - Managing/Reducing/Accounting Uncertainty"),
+                                           h2("Activity C - Managing Uncertainty"),
                                            p(module_text["obj_04", ])
                                            )
                                  ),
                           ),
-                        #* Initial Condition UC
                         fluidRow(
                           column(6,
-                                 h4("Initial Condition Uncertainty"),
-                                 p(module_text["init_uncert",])
+                                 h3("Total Forecast Uncertainty"),
+                                 p("So far when generating our ecological forecasts we have only looked at each source of uncertainty individually, but in reality when generating a forecast you will include ALL sources of uncertainty."),
+                                 p("Now we will generate a forecast with one of the models while including all sources of uncertainty")
                                  ),
                           column(6,
-                                 h4("Some image for IC Uncertainty!")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          #** Weather Forecast ----
-                          column(12, align = "center",
-                                 h3("Weather Forecast")
-                          ),
-                        ),
-                        fluidRow(
-                          column(5,
-                                 p(id = "txt_j", module_text["weather_forecast1", ]),
-                                 p(id = "txt_j", HTML(paste0("Weather forecasts are produced using ",tags$b("ensemble modelling"), "."))),
-                                 p(id = "txt_j", module_text["ens_mod1", ]),
-                                 p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member.")),
-                                 p(id = "txt_j", module_text["weather_forecast2", ])
-                          ),
-                          column(6, align = "center",
-                                 img(src = "weather_fc.png", width = "90%", id = "bla_border",
-                                     align = "center")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(6,
-                                 h4("Observational Uncertainty"),
-                                 p("If you have 3 thermometers in this room, what are the chances they would all read the EXACT same measurement?"),
-                                 radioButtons("obs_err1", "", choices = c("Unlikely", "50/50", "Very likely"), selected = character(0), inline = TRUE),
-                                 conditionalPanel("input.obs_err1 == '50/50'",
-                                                  p("Really?")
-                                 ),
-                                 conditionalPanel("input.obs_err1 == 'Very likely'",
-                                                  p(tags$em("Are you sure?"))
-                                 ),
-                                 conditionalPanel("input.obs_err1 == 'Unlikely'",
-                                                  p("Very unlikely! Why is that?"),
-                                                  p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
-                                                  p("Does this mean the instruments are wrong?"),
-                                                  radioButtons("obs_err2", "", choices = c("No", "Yes"), selected = character(0), inline = TRUE),
-                                                  conditionalPanel("input.obs_err2 == 'Yes'",
-                                                                   p("Well you would hope not considering how much money you spent on them!"),
-                                                  ),
-                                                  conditionalPanel("input.obs_err2 == 'No'",
-                                                                                    p("Exactly! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
-                                                                                    p("This is what is called ", tags$b("observational uncertainty"), ".")
-                                                                   )
-                                                  )
-                                 ),
-                          column(6,
-                                 h4("Some image for observational uncertainty [3 thermometers showing different temps]")
-                                 )
-                          ),
-                        fluidRow(
-                          column(6,
-                                 h4("NOAA Forecast data"),
-                                 p(id = "txt_j", "Here we will load in data from a ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA GEFS", target = "_blank"), " forecast for the NEON site you chose in Activity A."),
-                                 img(src = "noaa_logo.jpg", height = "20%",
-                                     width = "20%", align = "right"),
-                                 # actionButton("load_noaa_at", "Load forecast"),
-                                 # verbatimTextOutput("noaa_at_loaded"),
-                                 checkboxInput("view_day0", "View observation"),
-                                 conditionalPanel("input.view_day0",
-                                                  checkboxInput("add_obs_uc", "Add observational uncertainty")
-                                                  ),
-                                 checkboxInput("view_ic", "View forecast initial conditions"),
-                                 conditionalPanel("input.view_ic",
-                                                  # numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
-                                                  p(tags$b("Note:"), "The initial conditions have been jittered to avoid points overlapping. All forecasts start at the same time.")
-                                                  ),
-                                 checkboxInput("view_day7", "View forecast 7-days ahead"),
-                                 conditionalPanel("input.view_day7",
-                                                  radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Forecast members", "Forecast distribution")),
-                                                  radioButtons("noaa_timestep", "Timestep of forecasts", choices = c("Hourly", "Daily mean"), inline = TRUE)
-                                                  )
-                                 ),
-                          column(6,
-                                 h4("Air temperature forecast"),
-                                 plotlyOutput("noaa_at_plot")
-                                 )
-                          ),
-                        br(),
-                        # Initial Conditions - Primary prod model ----
-                        fluidRow(
-                          column(3,
-                                 h4("How does initial condition uncertainty affect our forecasts of primary productivity?"),
-                                 p("Adjust the level of uncertainty associated with the initial conditions and see how levels of high, medium and low affect
-                                   forecasts of primary productivity."),
-                                 p("We will use one weather forecast to drive the model but instead of using one value for the initial conditions we will use
-                                   multiple to represent the uncertainty related to our measurement."),
-                                 p("Can you think of occasions when initial condition uncertainty might be higher than others?"),
-                                 numericInput("phy_ic_value", "Chlorophyll-a initial conditions", value = 4, min = 0.1, max = 10, step = 0.1),
-                                 sliderInput("phy_ic_sd", "Chlorophyll-a standard deviation", min = 0.1, max = 1, value = 0.3, step = 0.05),
-                                 numericInput("nut_ic_value", "Nurtients initial conditions", value = 1, min = 0.01, max = 5, step = 0.01),
-                                 sliderInput("nut_ic_sd", "Nutrients standard deviation", min = 0.01, max = 1, value = 0.5, step = 0.05),
-                                 p("Select how many samples you wish to use to run your forecast."),
-                                 radioButtons("n_samp_ic", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
-                                 actionButton("gen_ic_dist", "Generate initial condition distributions")
-                          ),
-                          column(4,
-                                 h3("Distributions of potential initial conditions"),
-                                 plotOutput("ic_phy_dist_plot"),
-                                 hr(),
-                                 plotOutput("ic_nut_dist_plot")
-                          ),
-                          column(5,
-                                 h4("Initial Conditions Uncertainty"),
-                                 p("Run forecast with initial conditions uncertainty"),
-                                 actionButton("run_ic_fc", "Run forecast"),
-                                 radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
-                                 h4("Forecast generated with initial condition uncertainty"),
-                                 plotlyOutput("ic_fc_plot")
+                                 h2("SOME IMAGE!!"),
+                                 # p(withMathJax("$$ Total\ Forecast\ Uncertainty &= Model\ Uncertainty &+ Initial\ Conditions\ Uncertainty &+ Driver\\ Uncertainty $$"))
                                  )
                         ),
-                        fluidRow(
-                          column(6,
-                          ),
-                          column(6,
-                          )
-                        ),
-                        hr(),
-                        #* Model UC ----
-                        fluidRow(
-                          column(6,
-                                 h4("Model Uncertainty"),
-                                 p("Process uncertainty is uncertainty caused by an incomplete description of the process."),
-                                 p("Below is a description of our model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
-                                 p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality$$")),
-                                 p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model:"),
-                                 p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality + W_t$$")),
-                                 p("Phytoplankton concentration tomorrow is equalt to phytoplankton concentration today ", tags$b("plus"), " nutrient uptake and ", tags$b("minus"), " mortality."),
-                                 p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
-                                 p("where process noise is equal a random number with a mean of zero and some standard deviation."), br(),
-                                 p("First we will explore how the model responds to differing levels of process uncertainty. Run the models with each of the differing levels multiple time and observe how the forecast outcome changes."),
-                                 radioButtons("proc_uc0", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
-                                 actionButton("run_mod0", "Run model")
-                          ),
-                          column(6,
-                                 plotOutput("proc_uc_plot"),
-                                 hr(),
-                                 plotlyOutput("run_mod0_plot")
-                          )
-                        ),
-                        hr(),
-                        fluidRow(
-                          column(6,
-                                 h4("Model Uncertainty"),
-                                 p("Parameter uncertainty is related to how the parameter within the model are simplifications."),
-                                 p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
-                                 sliderInput("mort_rate1", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
-                                 sliderInput("nut_uptake1", "Nutrient uptake", min = 0.01, max = 1, value = 0.3, step = 0.01),
-                                 sliderInput("refTEMP1", "Reference temperature", min = 10, max = 30, value = 20, step = 1),
-                                 actionButton("run_mod1", "Run model")
-                          ),
-                          column(6,
-                                 h4("Some image for Parameter Uncertainty!"),
-                                 plotlyOutput("run_mod1_plot"),
-                                 DTOutput("run_mod1_pars")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(3,
-                                 h4("Add parameter uncertainty"),
-                                 p("Now we will run a forecast with parameter uncertainty added...  "),
-                                 numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.8, step = 0.01),
-                                 checkboxInput("add_mort_uc", "Add uncertainty"),
-                                 conditionalPanel("input.add_mort_uc",
-                                                  sliderInput("mort_rate2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
-                                 ),
-                                 numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.2, step = 0.01),
-                                 checkboxInput("add_nut_uc", "Add uncertainty"),
-                                 conditionalPanel("input.add_nut_uc",
-                                                  sliderInput("nut_uptake2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
-                                 )
-                          ),
-                          column(4,
-                                 h4("Generate parameter distributions"),
-                                 p("To add parameter uncertainty, we will need to 'Add uncertainty' in the form of standard deviation around the set parameter value."),
-                                 radioButtons("n_samp_pars", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
-                                 actionButton("gen_param_dist", "Generate parameter distributions"),
-                                 h4("Plot for Param UC"),
-                                 plotOutput("mort_rate_dist_plot"),
-                                 hr(),
-                                 plotOutput("nut_uptake_dist_plot")
-                                 ),
-                          column(5,
-                                 h3("Run Forecast - Parameter UC"),
-                                 actionButton("run_pars_fc", "Run forecast"),
-                                 radioButtons("pars_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
-                                 plotlyOutput("pars_fc_plot")
-                                 )
-                          ),
-                        hr(),
-                        fluidRow(
-                          column(6,
-                                 h3("Driver Uncertainty"),
-                                 p("Driver uncertainty is related to the uncertainty of the data which is used to drive the model e.g. weather forecast data."),
-                                 p("Weather forecasts are generated using numerical weather prediction models. Weather forecasts are based on current weather observations, which are assimilated into the model’s framework and used to produce predictions for temperature, precipitation, and hundreds of other meteorological elements from the oceans to the top of the atmosphere."),
-                                 p("Due to uncertainty related to the ", tags$b("initial conditions"), " of such models, they use an ensemble of initial conditions to start the model and generate a  multitude of potential future realizations. Each different realization within the ensemble is called a ", tags$b("member"), ". The weather forecast data we are using has 31 members in the ensemble.")
-                          ),
-                          column(6,
-                                 h3("Driver UC Diagram"),
-                                 )
-                          ),
                         fluidRow(
                           column(4,
-                                 h3("First we will run the model with just one member of the weather forecast."),
-                                 p("Run the forecast multiple times and each time it will run the model with one randomly selected member."),
-                                 p("A key part of a forecast is that it generates a ", tags$b("probabilistic"), " output. How will we generate a probabilistic output from a single model output?")                                 ),
+                                 p("We will use model 4, the model that uses today's water temperature and forecasted water temperature as driving variables. This is the model which was the most accurate."),
+                                 uiOutput("mod4_eqn"),
+                                 p("Select sources of uncertainty to include in your forecast below"),
+                                 checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
+                                 sliderInput("tot_fc_mem", "Forecast members", min = 10, max = 1000, value = 100, step = 10),
+                                 actionButton("run_tot_fc", "Run forecast"),
+                                 radioButtons("plot_type_tot", "Plot type", c("Line", "Distribution"),
+                                              inline = TRUE)
+                                 ),
                           column(8,
-                                 h3("Plot of 1 Driver UC"),
-                                 actionButton("run_driv_fc0", "Run forecast")
+                                 wellPanel(
+                                   plotlyOutput("tot_fc_uncert")
+                                   )
                                  )
-                        ),
-                        fluidRow(
-                          column(5,
-                                 h4("Driver data"),
-                                 plotOutput("driv_fc_plot1"),
-                                 actionButton("add_mem", "Add members")
-                                 ),
-                          column(5, offset = 1,
-                                 h4("Primary Productivity Forecast"),
-                                 plotOutput("driv_fc_plot0")
-                                 )
-                          ),
-                        fluidRow(
-                          column(5,
-                                 h4("Probabilistic forecast"),
-                                 p("We have created a forecast with multiple different realizations of the future. How do we calculate a ", tags$em("probabilistic"), " forecast from these different realizations?"),
-                                 p("We can calculate descriptive statistics about the distribution of the forecasts (e.g. mean and standard deviation) and then use that to calculate different levels of confidence."),
-                                 p("Calculate the daily mean and standard deviation from the forecasts above."),
-                                 p("Use these calculations to convert")
-                          ),
-                          column(5, offset = 1,
-                                 h4("Primary Productivity Forecast"),
-                                 )
-                          )
+                        )
+
+
+
+
+                        # #* Initial Condition UC
+                        # fluidRow(
+                        #   column(6,
+                        #          h4("Initial Condition Uncertainty"),
+                        #          p(module_text["init_uncert",])
+                        #          ),
+                        #   column(6,
+                        #          h4("Some image for IC Uncertainty!")
+                        #          )
+                        #   ),
+                        # hr(),
+                        # fluidRow(
+                        #   #** Weather Forecast ----
+                        #   column(12, align = "center",
+                        #          h3("Weather Forecast")
+                        #   ),
+                        # ),
+                        # fluidRow(
+                        #   column(5,
+                        #          p(id = "txt_j", module_text["weather_forecast1", ]),
+                        #          p(id = "txt_j", HTML(paste0("Weather forecasts are produced using ",tags$b("ensemble modelling"), "."))),
+                        #          p(id = "txt_j", module_text["ens_mod1", ]),
+                        #          p(id = "txt_j", "Each simulation in an ensemble is called a ", tags$b("member.")),
+                        #          p(id = "txt_j", module_text["weather_forecast2", ])
+                        #   ),
+                        #   column(6, align = "center",
+                        #          img(src = "weather_fc.png", width = "90%", id = "bla_border",
+                        #              align = "center")
+                        #          )
+                        #   ),
+                        # hr(),
+                        # fluidRow(
+                        #   column(6,
+                        #          h4("Observational Uncertainty"),
+                        #          p("If you have 3 thermometers in this room, what are the chances they would all read the EXACT same measurement?"),
+                        #          radioButtons("obs_err1", "", choices = c("Unlikely", "50/50", "Very likely"), selected = character(0), inline = TRUE),
+                        #          conditionalPanel("input.obs_err1 == '50/50'",
+                        #                           p("Really?")
+                        #          ),
+                        #          conditionalPanel("input.obs_err1 == 'Very likely'",
+                        #                           p(tags$em("Are you sure?"))
+                        #          ),
+                        #          conditionalPanel("input.obs_err1 == 'Unlikely'",
+                        #                           p("Very unlikely! Why is that?"),
+                        #                           p("Despite having high-tech equipment there is always going to be slight discrepancies between instruments."),
+                        #                           p("Does this mean the instruments are wrong?"),
+                        #                           radioButtons("obs_err2", "", choices = c("No", "Yes"), selected = character(0), inline = TRUE),
+                        #                           conditionalPanel("input.obs_err2 == 'Yes'",
+                        #                                            p("Well you would hope not considering how much money you spent on them!"),
+                        #                           ),
+                        #                           conditionalPanel("input.obs_err2 == 'No'",
+                        #                                                             p("Exactly! But it means that even though the instruments are all measuring the same variable (air temperature), they will have slightly different readings as they are not in the exact same spot in space and time."),
+                        #                                                             p("This is what is called ", tags$b("observational uncertainty"), ".")
+                        #                                            )
+                        #                           )
+                        #          ),
+                        #   column(6,
+                        #          h4("Some image for observational uncertainty [3 thermometers showing different temps]")
+                        #          )
+                        #   ),
+                        # fluidRow(
+                        #   column(6,
+                        #          h4("NOAA Forecast data"),
+                        #          p(id = "txt_j", "Here we will load in data from a ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA GEFS", target = "_blank"), " forecast for the NEON site you chose in Activity A."),
+                        #          img(src = "noaa_logo.jpg", height = "20%",
+                        #              width = "20%", align = "right"),
+                        #          # actionButton("load_noaa_at", "Load forecast"),
+                        #          # verbatimTextOutput("noaa_at_loaded"),
+                        #          checkboxInput("view_day0", "View observation"),
+                        #          conditionalPanel("input.view_day0",
+                        #                           checkboxInput("add_obs_uc", "Add observational uncertainty")
+                        #                           ),
+                        #          checkboxInput("view_ic", "View forecast initial conditions"),
+                        #          conditionalPanel("input.view_ic",
+                        #                           # numericInput("noaa_n_mems", "Number of forecasts (0-30)", 1, 0, 30),
+                        #                           p(tags$b("Note:"), "The initial conditions have been jittered to avoid points overlapping. All forecasts start at the same time.")
+                        #                           ),
+                        #          checkboxInput("view_day7", "View forecast 7-days ahead"),
+                        #          conditionalPanel("input.view_day7",
+                        #                           radioButtons("add_to_plot", "Add to plot", choices = c("None", "Line", "Forecast members", "Forecast distribution")),
+                        #                           radioButtons("noaa_timestep", "Timestep of forecasts", choices = c("Hourly", "Daily mean"), inline = TRUE)
+                        #                           )
+                        #          ),
+                        #   column(6,
+                        #          h4("Air temperature forecast"),
+                        #          plotlyOutput("noaa_at_plot")
+                        #          )
+                        #   ),
+                        # br(),
+                        # # Initial Conditions - Primary prod model ----
+                        # fluidRow(
+                        #   column(3,
+                        #          h4("How does initial condition uncertainty affect our forecasts of primary productivity?"),
+                        #          p("Adjust the level of uncertainty associated with the initial conditions and see how levels of high, medium and low affect
+                        #            forecasts of primary productivity."),
+                        #          p("We will use one weather forecast to drive the model but instead of using one value for the initial conditions we will use
+                        #            multiple to represent the uncertainty related to our measurement."),
+                        #          p("Can you think of occasions when initial condition uncertainty might be higher than others?"),
+                        #          numericInput("phy_ic_value", "Chlorophyll-a initial conditions", value = 4, min = 0.1, max = 10, step = 0.1),
+                        #          sliderInput("phy_ic_sd", "Chlorophyll-a standard deviation", min = 0.1, max = 1, value = 0.3, step = 0.05),
+                        #          numericInput("nut_ic_value", "Nurtients initial conditions", value = 1, min = 0.01, max = 5, step = 0.01),
+                        #          sliderInput("nut_ic_sd", "Nutrients standard deviation", min = 0.01, max = 1, value = 0.5, step = 0.05),
+                        #          p("Select how many samples you wish to use to run your forecast."),
+                        #          radioButtons("n_samp_ic", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
+                        #          actionButton("gen_ic_dist", "Generate initial condition distributions")
+                        #   ),
+                        #   column(4,
+                        #          h3("Distributions of potential initial conditions"),
+                        #          plotOutput("ic_phy_dist_plot"),
+                        #          hr(),
+                        #          plotOutput("ic_nut_dist_plot")
+                        #   ),
+                        #   column(5,
+                        #          h4("Initial Conditions Uncertainty"),
+                        #          p("Run forecast with initial conditions uncertainty"),
+                        #          actionButton("run_ic_fc", "Run forecast"),
+                        #          radioButtons("ic_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
+                        #          h4("Forecast generated with initial condition uncertainty"),
+                        #          plotlyOutput("ic_fc_plot")
+                        #          )
+                        # ),
+                        # fluidRow(
+                        #   column(6,
+                        #   ),
+                        #   column(6,
+                        #   )
+                        # ),
+                        # hr(),
+                        # #* Model UC ----
+                        # fluidRow(
+                        #   column(6,
+                        #          h4("Model Uncertainty"),
+                        #          p("Process uncertainty is uncertainty caused by an incomplete description of the process."),
+                        #          p("Below is a description of our model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
+                        #          p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality$$")),
+                        #          p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model:"),
+                        #          p(withMathJax("$$Phyto_{t+1} = Phyto_t + N_uptake - Mortality + W_t$$")),
+                        #          p("Phytoplankton concentration tomorrow is equalt to phytoplankton concentration today ", tags$b("plus"), " nutrient uptake and ", tags$b("minus"), " mortality."),
+                        #          p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
+                        #          p("where process noise is equal a random number with a mean of zero and some standard deviation."), br(),
+                        #          p("First we will explore how the model responds to differing levels of process uncertainty. Run the models with each of the differing levels multiple time and observe how the forecast outcome changes."),
+                        #          radioButtons("proc_uc0", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
+                        #          actionButton("run_mod0", "Run model")
+                        #   ),
+                        #   column(6,
+                        #          plotOutput("proc_uc_plot"),
+                        #          hr(),
+                        #          plotlyOutput("run_mod0_plot")
+                        #   )
+                        # ),
+                        # hr(),
+                        # fluidRow(
+                        #   column(6,
+                        #          h4("Model Uncertainty"),
+                        #          p("Parameter uncertainty is related to how the parameter within the model are simplifications."),
+                        #          p("First we will explore the model sensitivity to the parameters. Adjust the parameters and investigate how the model responds."),
+                        #          sliderInput("mort_rate1", "Mortality rate", min = 0.01, max = 1, value = 0.6, step = 0.01),
+                        #          sliderInput("nut_uptake1", "Nutrient uptake", min = 0.01, max = 1, value = 0.3, step = 0.01),
+                        #          sliderInput("refTEMP1", "Reference temperature", min = 10, max = 30, value = 20, step = 1),
+                        #          actionButton("run_mod1", "Run model")
+                        #   ),
+                        #   column(6,
+                        #          h4("Some image for Parameter Uncertainty!"),
+                        #          plotlyOutput("run_mod1_plot"),
+                        #          DTOutput("run_mod1_pars")
+                        #          )
+                        #   ),
+                        # hr(),
+                        # fluidRow(
+                        #   column(3,
+                        #          h4("Add parameter uncertainty"),
+                        #          p("Now we will run a forecast with parameter uncertainty added...  "),
+                        #          numericInput("mort_rate2", "Mortality rate", min = 0.01, max = 1, value = 0.8, step = 0.01),
+                        #          checkboxInput("add_mort_uc", "Add uncertainty"),
+                        #          conditionalPanel("input.add_mort_uc",
+                        #                           sliderInput("mort_rate2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
+                        #          ),
+                        #          numericInput("nut_uptake2", "Nutrient uptake", min = 0.01, max = 1, value = 0.2, step = 0.01),
+                        #          checkboxInput("add_nut_uc", "Add uncertainty"),
+                        #          conditionalPanel("input.add_nut_uc",
+                        #                           sliderInput("nut_uptake2_sd", "Standard deviation", min = 0.01, max = 0.4, value = 0.1, step = 0.01)
+                        #          )
+                        #   ),
+                        #   column(4,
+                        #          h4("Generate parameter distributions"),
+                        #          p("To add parameter uncertainty, we will need to 'Add uncertainty' in the form of standard deviation around the set parameter value."),
+                        #          radioButtons("n_samp_pars", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
+                        #          actionButton("gen_param_dist", "Generate parameter distributions"),
+                        #          h4("Plot for Param UC"),
+                        #          plotOutput("mort_rate_dist_plot"),
+                        #          hr(),
+                        #          plotOutput("nut_uptake_dist_plot")
+                        #          ),
+                        #   column(5,
+                        #          h3("Run Forecast - Parameter UC"),
+                        #          actionButton("run_pars_fc", "Run forecast"),
+                        #          radioButtons("pars_fc_type", "Type of plot", choices = c("Line", "Distribution"), selected = character(0)),
+                        #          plotlyOutput("pars_fc_plot")
+                        #          )
+                        #   ),
+                        # hr(),
+                        # fluidRow(
+                        #   column(6,
+                        #          h3("Driver Uncertainty"),
+                        #          p("Driver uncertainty is related to the uncertainty of the data which is used to drive the model e.g. weather forecast data."),
+                        #          p("Weather forecasts are generated using numerical weather prediction models. Weather forecasts are based on current weather observations, which are assimilated into the model’s framework and used to produce predictions for temperature, precipitation, and hundreds of other meteorological elements from the oceans to the top of the atmosphere."),
+                        #          p("Due to uncertainty related to the ", tags$b("initial conditions"), " of such models, they use an ensemble of initial conditions to start the model and generate a  multitude of potential future realizations. Each different realization within the ensemble is called a ", tags$b("member"), ". The weather forecast data we are using has 31 members in the ensemble.")
+                        #   ),
+                        #   column(6,
+                        #          h3("Driver UC Diagram"),
+                        #          )
+                        #   ),
+                        # fluidRow(
+                        #   column(4,
+                        #          h3("First we will run the model with just one member of the weather forecast."),
+                        #          p("Run the forecast multiple times and each time it will run the model with one randomly selected member."),
+                        #          p("A key part of a forecast is that it generates a ", tags$b("probabilistic"), " output. How will we generate a probabilistic output from a single model output?")                                 ),
+                        #   column(8,
+                        #          h3("Plot of 1 Driver UC"),
+                        #          actionButton("run_driv_fc0", "Run forecast")
+                        #          )
+                        # ),
+                        # fluidRow(
+                        #   column(5,
+                        #          h4("Driver data"),
+                        #          plotOutput("driv_fc_plot1"),
+                        #          actionButton("add_mem", "Add members")
+                        #          ),
+                        #   column(5, offset = 1,
+                        #          h4("Primary Productivity Forecast"),
+                        #          plotOutput("driv_fc_plot0")
+                        #          )
+                        #   ),
+                        # fluidRow(
+                        #   column(5,
+                        #          h4("Probabilistic forecast"),
+                        #          p("We have created a forecast with multiple different realizations of the future. How do we calculate a ", tags$em("probabilistic"), " forecast from these different realizations?"),
+                        #          p("We can calculate descriptive statistics about the distribution of the forecasts (e.g. mean and standard deviation) and then use that to calculate different levels of confidence."),
+                        #          p("Calculate the daily mean and standard deviation from the forecasts above."),
+                        #          p("Use these calculations to convert")
+                        #   ),
+                        #   column(5, offset = 1,
+                        #          h4("Primary Productivity Forecast"),
+                        #          )
+                        #   )
                         )
                )
     )

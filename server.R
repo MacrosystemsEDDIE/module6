@@ -1521,6 +1521,26 @@ shinyServer(function(input, output, session) {
     )
   })
 
+  # Activity C - model
+  output$mod4_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.na(mlr$dt$Equation[2]),
+           message = "Complete Objective 5")
+    )
+
+
+    eqn <- gsub("[$$]+", "", mlr$dt$Equation[2])
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+
+    withMathJax(
+      div(eqn)
+    )
+  })
+
   observeEvent(input$mult_lin_reg_vars, {
     mlr_out$txt <- NULL
     mlr$eqn <- NULL
@@ -3155,6 +3175,119 @@ shinyServer(function(input, output, session) {
 
 
   # Activity C ----
+
+  output$tot_fc_uncert <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+
+    p <- ggplot() +
+      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12)
+
+    if(input$plot_type_tot == "Line") {
+      if(!is.null(tot_fc_data$mlt)) {
+
+        mlt <- tot_fc_data$mlt
+
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = "4", group = variable), alpha = 0.6)
+      }
+    } else if(input$plot_type_tot == "Distribution") {
+      if(!is.null(tot_fc_data$dist)) {
+        mlt <- tot_fc_data$dist
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = "4"), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = "4"))
+      }
+    }
+
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2], "1" = cols[3],
+                                    "2" = cols[4], "3" = cols[5], "4" = cols[6])) +
+      scale_fill_manual(values = c("1" = l.cols[1], "2" = l.cols[2], "3" = l.cols[3], "4" = l.cols[4]))
+
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
+
+  tot_fc_data <- reactiveValues(mlt = NULL, dist = NULL)
+  observeEvent(input$run_tot_fc, {
+
+    # NEED CHECKS
+
+    df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
+
+    out <- summary(mlr_fit$lst[[2]])
+    coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
+
+    mat <- matrix(NA, 8, input$tot_fc_mem)
+
+    if("Driver" %in% input$fc_uncert) {
+      driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+      tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
+      M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
+      driv_mat <- M[, 1:input$tot_fc_mem]
+    } else {
+      driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+    }
+    if("Process" %in% input$fc_uncert) {
+      Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
+    } else {
+      Wt <- 0
+    }
+    if("Parameter" %in% input$fc_uncert) {
+      params <- data.frame(beta1 = rnorm(input$tot_fc_mem, out$coefficients[2, 1], out$coefficients[2, 2]),
+                       beta2 = rnorm(input$tot_fc_mem, out$coefficients[3, 1], out$coefficients[3, 2]),
+                       beta3 = rnorm(input$tot_fc_mem, out$coefficients[1, 1], out$coefficients[1, 2]))
+    } else {
+      params <- data.frame(beta1 = out$coefficients[2, 1],
+                           beta2 = out$coefficients[3, 1],
+                           beta3 = out$coefficients[1, 1])
+    }
+    if("Initial Conditions" %in% input$fc_uncert) {
+      mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
+    } else {
+      mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+    }
+
+    # print(driv_mat)
+    # print(Wt)
+    # print(params)
+    # print(mat[1, ])
+
+
+    for(mem in 2:nrow(mat)) {
+      mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
+      }
+
+    # Calculate distributions
+    dat <- apply(mat, 1, function(x){
+      quantile(x, c(0.05, 0.5, 0.95))
+    })
+    dat <- as.data.frame(t(dat))
+    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    # dat$Level <- as.character(idx)
+    tot_fc_data$dist <- dat
+    df2 <- as.data.frame(mat)
+    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    mlt <- reshape::melt(df2, id.vars = "Date")
+    # mlt$Level <- as.character(idx)
+    tot_fc_data$mlt <- mlt
+  })
+
 
   #** Load NOAA airT ----
   noaa_df <- reactiveValues(airt = NULL, swr = NULL)
