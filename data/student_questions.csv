@@ -9,23 +9,17 @@ q4c,c. Latitude:
 q4d,d. Longitude:
 q4e,e. Lake area (km2):
 q4f,f. Elevation (m):
-q9,"Q9. What is the relationship between each of these driving variables and productivity? For example, if the driving variable increases, will it cause productivity to increase (positive), decrease (negative), or have no effect (stay the same)."
-q9a,a. Surface water temperature
-q9b,b. Incoming light
-q9c,c. Available nutrients
-q10,Q10. Classify the following as either a state variable or a parameter by dragging it into the corresponding bin.
-q11,Q11. We are using chlorophyll-a as a proxy of aquatic primary productivity. Select how you envision each parameter to affect chlorophyll-a concentrations:
-q11a,a. Nutrient uptake by phytoplankton
-q11b,b. Phytoplankton mortality
-q12,Q12. Do you think there is a linear relationship between air temperature and water temperature at this lake?
-q13,Q13. How does the amount of data used to calculate the linear regression affect the estimation of the parameters 'm' and 'b'?
-q14,Q14. How did using less data to fit your model affect its overall performance  (as determined by its R-squared value)?
-q15,Q15. Which model performed best? Why do you think that is?
-q16,Q16. Do you think you could use this model for a forecast? Why/why not?
-q17,Q17. Which parameter (m or b) has a higher level of uncertainty? How can you tell?
+q5,Q5. List variables that show a seasonal cycle.
+q6,Q6. Can you name a couple of reasons why they exhibit such patterns?
+q7,Q7. List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.
+q8,Q8. Do you think there is a linear relationship between air temperature and water temperature at this lake?
+q9,Q9. How does increasing the amount of data used affect the estimation of the linear regression?
+q10,"Q10. When looking at the time series plot (across), which model performed best? Why do you think that is?"
+q11,Q11. Do you think you could use any of these models for a forecast of water temperature? Why/why not?
+q12,"Q12. Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty? How can you tell?"
 q18,"Q18. How does adjusting the number of samples affect the range of uncertainty in the model, as determined by the variation in the lines?"
-q19,"Q19. Regenerate the parameter distributions with high uncertainty for the slope (m) and low uncertainty for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
-q20,"Q20. Regenerate the parameter distributions with low uncertainty for the slope (m) and high uncertainty for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures less than 10 degC, as measured by the range of the confidence intervals?"
+q19,"Q19. Regenerate the parameter distributions with high uncertainty (large standard deviation) for the slope (m) and low uncertainty (small standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
+q20,"Q20. Regenerate the parameter distributions with low uncertainty (small standard deviation) for the slope (m) and high uncertainty (large standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures less than 10 degC, as measured by the range of the confidence intervals?"
 q21,Q21. Which interval has the largest error? Why do you think that is?
 q22,Q22. What does the sign in front of the error tell you?
 q23,Q23. Why do you think it is important to separate the data into an training and testing dataset?
@@ -35,3 +29,14 @@ q26,Q26. Define a hypothesis about which combination of variables and/or lag/mea
 q27,Q27. Fit the model you hypothesized in Q26 and save your model results into row 3 of the datatables. Did the model simulation match your hypothesis? How?/How not?
 q28,Q28. Fit a model with a 5-day lag for water temperature and a 3-day mean for air temperature. Save your results in row 4.
 q29,Q29. Fit a model with a 5-day lag for air temperature and a 3-day mean for water temperature. Save your results in row 5.
+q30,Q30. What happened when you ran a forecast with model 1?
+q31,Q31. How do your models compare to each other? Do they forecast similar values?
+q32,Q32. How does process uncertainty propagate (e.g. how does it change further into the future)?
+q50,"Q9. What is the relationship between each of these driving variables and productivity? For example, if the driving variable increases, will it cause productivity to increase (positive), decrease (negative), or have no effect (stay the same)."
+q51,a. Surface water temperature
+q52,b. Incoming light
+q53,c. Available nutrients
+q54,Q10. Classify the following as either a state variable or a parameter by dragging it into the corresponding bin.
+q55,Q11. We are using chlorophyll-a as a proxy of aquatic primary productivity. Select how you envision each parameter to affect chlorophyll-a concentrations:
+q56,a. Nutrient uptake by phytoplankton
+q57,b. Phytoplankton mortality
