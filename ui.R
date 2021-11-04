@@ -190,8 +190,7 @@ ui <- function(req) {
                    ),
                    column(5, offset = 1,
                           br(), br(), br(),
-                          h2("Module summary icon!"),
-                          img(src = "mod5_viz_v2.png", height = "80%",
+                          img(src = "Schematic_Draft_v3.png", height = "80%",
                               width = "80%", align = "left")
                           )
                    ), data.step = 8, data.intro = help_text["start", 1]
@@ -226,7 +225,7 @@ ui <- function(req) {
                                     align = "center"),
                                  h5("Click the arrows to navigate through the slides", align = "center"),
                                  wellPanel(
-                                   # slickROutput("slides", width = "600px", height = "450px")
+                                   slickROutput("slides", width = "600px", height = "450px")
                                  )
                           )
                         )
@@ -550,124 +549,124 @@ border-color: #FFF;
                                                       h3("Next step"),
                                                       p("We will plot each of the variables against chlorophyll-a to see if there are any relationships."))
                                              )
-                                    ),
+                                    )#,
 
                                     #* Objective 3 - Understand the ecological model ====
-                                    tabPanel(title = "Objective 3 - Understand model", value = "obj3",
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 3 - Understand the ecological model"),
-                                                                p(module_text["obj_04", ])
-                                                      )
-                                               ),
-                                             ),
-                                             fluidRow(
-                                               column(12, align = "center",
-                                                      img(src = "02-build-model.png", height = "30%",
-                                                          width = "30%")
-                                               )
-                                             ), br(), br(), hr(),
-                                             #* Intro text ====
-                                             fluidRow(
-                                               # conditionalPanel(condition = "input.site_html > 1",
-                                               #** NEON Intro ----
-                                               column(4,
-                                                      h3("What is a Model?"),
-                                                      h4("Read through this section and scroll through the slides"),
-                                                      p(id = "txt_j", module_text["model1", ]),
-                                                      p(id = "txt_j", module_text["model2", ]),
-                                                      p(id = "txt_j", module_text["model3", ]),
-                                                      p(id = "txt_j", module_text["mod_desc", ]),
-                                                      p(id = "txt_j", module_text["phyto_chla", ]),
-                                                      p("Click through the images to see how we can go from a conceptual food web model to a mathematical representation of the interaction of Nitrogen (N) and Phytoplankton (P).", id = "txt_j")
-                                               ),
-                                               column(8,
-                                                      br(), br(), br(),
-                                                      h5("Click on the arrows to navigate through the slides", align = "center"),
-                                                      wellPanel(
-                                                        slickROutput("slck_model", width = "600px", height = "450px")
-                                                      )
-                                               )
-                                             ),
-                                             hr(),
-                                             fluidRow(
-                                               column(10, align = "left",
-                                                      box(id = "box6", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   h4(quest["q9", 1]),
-                                                                   radioButtons("q9a", quest["q9a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
-                                                                   radioButtons("q9b", quest["q9b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
-                                                                   radioButtons("q9c", quest["q9c", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
-                                                                   br()
-                                                            )
-                                                          )
-                                                      )
-                                               )
-                                             ),
-                                             hr(),
-
-                                             #** Sort state and process variables ====
-                                             h2(tags$b("Exercise")),
-                                             p(id = "txt_j", "When working with ecological models, the terms 'state variable' and 'parameter' are used. Using the model diagram above, can you identify which are state variables or parameters?"),
-                                             p(id = "txt_j", module_text["state_var", 1]),
-                                             p(id = "txt_j", module_text["parameter", 1]),
-
-                                             fluidRow(
-                                               column(12, align = "left",
-                                                      box(id = "box7", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(8, offset = 1,
-                                                                   h3("Questions"),
-                                                                   h4(quest["q10", 1]),
-                                                                   bucket_list(
-                                                                     header = "",
-                                                                     group_name = "bucket_list_group",
-                                                                     orientation = "horizontal",
-                                                                     add_rank_list(
-                                                                       text = tags$b("Drag from here"),
-                                                                       labels = sample(c(state_vars, process_vars)),
-                                                                       input_id = "rank_list_1"
-                                                                     ),
-                                                                     add_rank_list(
-                                                                       text = tags$b("State variable"),
-                                                                       labels = NULL,
-                                                                       input_id = "rank_list_2"
-                                                                     ),
-                                                                     add_rank_list(
-                                                                       text = tags$b("Parameter"),
-                                                                       labels = NULL,
-                                                                       input_id = "rank_list_3"
-                                                                     )
-                                                                   ),
-                                                                   br(),
-                                                                   h4(quest["q11", 1]),
-                                                                   radioButtons("q11a", quest["q11a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
-                                                                   radioButtons("q11b", quest["q11b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
-                                                                   br()
-                                                            ),
-                                                            column(2,
-                                                                   wellPanel(
-                                                                     useShinyjs(),  # Set up shinyjs
-                                                                     actionButton("ans_btn", "Check answers"),
-                                                                     textOutput("state_ans"),
-                                                                     textOutput("proc_ans")
-                                                                   )
-                                                            )
-                                                          )
-                                                      )
-                                               )
-                                             ),
-                                             fluidRow(
-                                               column(5, offset = 1,
-                                                      h3("Next step"),
-                                                      p("Now we will use this information about the model to..."))
-                                               )
-                                             )
+                                    # tabPanel(title = "Objective 3 - Understand model", value = "obj3",
+                                    #          fluidRow(
+                                    #            column(12,
+                                    #                   wellPanel(style = paste0("background: ", obj_bg),
+                                    #                             h3("Objective 3 - Understand the ecological model"),
+                                    #                             p(module_text["obj_04", ])
+                                    #                   )
+                                    #            ),
+                                    #          ),
+                                    #          fluidRow(
+                                    #            column(12, align = "center",
+                                    #                   img(src = "02-build-model.png", height = "30%",
+                                    #                       width = "30%")
+                                    #            )
+                                    #          ), br(), br(), hr(),
+                                    #          #* Intro text ====
+                                    #          fluidRow(
+                                    #            # conditionalPanel(condition = "input.site_html > 1",
+                                    #            #** NEON Intro ----
+                                    #            column(4,
+                                    #                   h3("What is a Model?"),
+                                    #                   h4("Read through this section and scroll through the slides"),
+                                    #                   p(id = "txt_j", module_text["model1", ]),
+                                    #                   p(id = "txt_j", module_text["model2", ]),
+                                    #                   p(id = "txt_j", module_text["model3", ]),
+                                    #                   p(id = "txt_j", module_text["mod_desc", ]),
+                                    #                   p(id = "txt_j", module_text["phyto_chla", ]),
+                                    #                   p("Click through the images to see how we can go from a conceptual food web model to a mathematical representation of the interaction of Nitrogen (N) and Phytoplankton (P).", id = "txt_j")
+                                    #            ),
+                                    #            column(8,
+                                    #                   br(), br(), br(),
+                                    #                   h5("Click on the arrows to navigate through the slides", align = "center"),
+                                    #                   wellPanel(
+                                    #                     slickROutput("slck_model", width = "600px", height = "450px")
+                                    #                   )
+                                    #            )
+                                    #          ),
+                                    #          hr(),
+                                    #          fluidRow(
+                                    #            column(10, align = "left",
+                                    #                   box(id = "box6", width = 12, status = "primary",
+                                    #                       solidHeader = TRUE,
+                                    #                       fluidRow(
+                                    #                         column(10, offset = 1,
+                                    #                                h3("Questions"),
+                                    #                                h4(quest["q9", 1]),
+                                    #                                radioButtons("q9a", quest["q9a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                    #                                radioButtons("q9b", quest["q9b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                    #                                radioButtons("q9c", quest["q9c", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                    #                                br()
+                                    #                         )
+                                    #                       )
+                                    #                   )
+                                    #            )
+                                    #          ),
+                                    #          hr(),
+                                    #
+                                    #          #** Sort state and process variables ====
+                                    #          h2(tags$b("Exercise")),
+                                    #          p(id = "txt_j", "When working with ecological models, the terms 'state variable' and 'parameter' are used. Using the model diagram above, can you identify which are state variables or parameters?"),
+                                    #          p(id = "txt_j", module_text["state_var", 1]),
+                                    #          p(id = "txt_j", module_text["parameter", 1]),
+                                    #
+                                    #          fluidRow(
+                                    #            column(12, align = "left",
+                                    #                   box(id = "box7", width = 12, status = "primary",
+                                    #                       solidHeader = TRUE,
+                                    #                       fluidRow(
+                                    #                         column(8, offset = 1,
+                                    #                                h3("Questions"),
+                                    #                                h4(quest["q10", 1]),
+                                    #                                bucket_list(
+                                    #                                  header = "",
+                                    #                                  group_name = "bucket_list_group",
+                                    #                                  orientation = "horizontal",
+                                    #                                  add_rank_list(
+                                    #                                    text = tags$b("Drag from here"),
+                                    #                                    labels = sample(c(state_vars, process_vars)),
+                                    #                                    input_id = "rank_list_1"
+                                    #                                  ),
+                                    #                                  add_rank_list(
+                                    #                                    text = tags$b("State variable"),
+                                    #                                    labels = NULL,
+                                    #                                    input_id = "rank_list_2"
+                                    #                                  ),
+                                    #                                  add_rank_list(
+                                    #                                    text = tags$b("Parameter"),
+                                    #                                    labels = NULL,
+                                    #                                    input_id = "rank_list_3"
+                                    #                                  )
+                                    #                                ),
+                                    #                                br(),
+                                    #                                h4(quest["q11", 1]),
+                                    #                                radioButtons("q11a", quest["q11a", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                    #                                radioButtons("q11b", quest["q11b", 1], choices = mod_choices, inline = TRUE, selected = character(0)),
+                                    #                                br()
+                                    #                         ),
+                                    #                         column(2,
+                                    #                                wellPanel(
+                                    #                                  useShinyjs(),  # Set up shinyjs
+                                    #                                  actionButton("ans_btn", "Check answers"),
+                                    #                                  textOutput("state_ans"),
+                                    #                                  textOutput("proc_ans")
+                                    #                                )
+                                    #                         )
+                                    #                       )
+                                    #                   )
+                                    #            )
+                                    #          ),
+                                    #          fluidRow(
+                                    #            column(5, offset = 1,
+                                    #                   h3("Next step"),
+                                    #                   p("Now we will use this information about the model to..."))
+                                    #            )
+                                    #          )
                                     ),
                         ),
 
@@ -728,16 +727,16 @@ border-color: #FFF;
                                                       p("What is a parameter distribution?"),
                                                       tags$ul(
                                                         tags$li(module_text["distribution", ])
-                                                      )
-                                                      ),
-                                               column(4, offset = 0, align = "center",
-                                                      h3("Key Figures",
-                                                         align = "center"),
-                                                      h5("Click the arrows to navigate through the slides", align = "center"),
-                                                      wellPanel(
-                                                        # slickROutput("slides", width = "600px", height = "450px")
-                                                      )
-                                               )
+                                                        )
+                                                      ) #,
+                                               # column(4, offset = 0, align = "center",
+                                               #        h3("Key Figures",
+                                               #           align = "center"),
+                                               #        h5("Click the arrows to navigate through the slides", align = "center"),
+                                               #        wellPanel(
+                                               #          # slickROutput("slides", width = "600px", height = "450px")
+                                               #        )
+                                               # )
                                              ),
                                              hr(),
                                              #* Linear regression ----
@@ -758,7 +757,7 @@ border-color: #FFF;
                                                                        div("$$wtemp = m \\times airtemp + b$$"),
                                                                        p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
                                                                        p(tags$b("R-squared"), module_text["r_squared", ]),
-                                                                       div("$$R^2 = \frac{Explained Variation}{Total Variation} $$")
+                                                                       div("$$R^2 = \\frac{Explained\\ Variation}{Total\\ Variation} $$")
                                                       ),
                                                       conditionalPanel("input.q12 == 'No'",
                                                                        p(tags$em("Are you sure?"))
@@ -900,20 +899,20 @@ border-color: #FFF;
                                                       p("Using the distributions you have created above, you are going to randomly create models by sampling values for the slope (m) and the intercept (b) from the distributions you have defined above for each parameter."),
                                                       radioButtons("n_samp", "No. of samples", choices = c(10, 20, 50, 75, 100), selected = character(0)),
                                                       actionButton("gen_lin_mods", "Add models"),
-                                                      p("Every time you click 'Add models' it will generate models randomly from the sample distributions."),
+                                                      p("Every time you click 'Add models' it will generate models randomly from the sample distributions.")
+                                                      # checkboxInput("add_dist", "Distribution plot"))
+                                               ),
+                                               column(3,
+                                                      DTOutput("lr_stats", width = "100%"),
+                                                      DTOutput("mb_samps", width = "100%")
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("add_lin_mods"),
                                                       conditionalPanel("input.gen_lin_mods >= 1",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and add this to our plot."),
                                                                        radioButtons("plot_type1", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE)
                                                       )
-                                                      # checkboxInput("add_dist", "Distribution plot"))
-                                               ),
-                                               column(3,
-                                                      DTOutput("lr_stats", width = "100%"),
-                                                      DTOutput("mb_samps", width = "50%")
-                                               ),
-                                               column(6,
-                                                      plotlyOutput("add_lin_mods")
                                                )
                                              ),
                                              fluidRow(
@@ -1145,8 +1144,8 @@ border-color: #FFF;
                           ),
                         ),
                         tabsetPanel(id = "tabseries3",
-                                    #* Objective 7 - Model Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Model Uncertainty", value = "obj7",
+                                    #* Objective 6 - Model Uncertainty ====
+                                    tabPanel(title = "Objective 6 - Model Uncertainty", value = "obj06",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1156,15 +1155,14 @@ border-color: #FFF;
                                                       )
                                              ),
                                              #* Model Uncertainty ----
-                                             #** Process Uncertainty ----
                                              fluidRow(
                                                column(6,
                                                       h3("Model Uncertainty"),
                                                       p("We will now generate forecasts of water temperature."),
-                                                      p("We will use the models that you developed in the last Objective to explore model uncertainty,"),
-                                                      p("We will focus on three types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
+                                                      p("We will use the models that you developed in Activity A to explore model uncertainty,"),
+                                                      p("We will focus on two types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
                                                       tags$ol(
-                                                        tags$li("Model selection"),
+                                                        # tags$li("Model selection"),
                                                         tags$li("Process"),
                                                         tags$li("Parameter")
                                                       )
@@ -1173,77 +1171,116 @@ border-color: #FFF;
                                                       h2("IMAGE OF MODEL UNCERTAINTY!")
                                                )
                                              ),
+                                             #** Model Selection Uncertainty ----
+                                             # fluidRow(
+                                             #   column(6,
+                                             #          h3("Model Selection Uncertainty"),
+                                             #          p(module_text["mod_selec_uc", ]),
+                                             #          p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
+                                             #          p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
+                                             #          div("$$ wtemp_{t+1} = ?? $$"),
+                                             #          # p("Depending on your model selection, the necessary required driving variables are shown."),
+                                             #          actionButton("load_mods", "Load models"),
+                                             #          p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                             #          DTOutput("mod_selec_tab")
+                                             #   ),
+                                             #   column(6,
+                                             #          wellPanel(
+                                             #            plotlyOutput("wtemp_fc1")
+                                             #          ),
+                                             #          wellPanel(
+                                             #            actionButton("load_driv1", "Load driver data"),
+                                             #            actionButton("run_wtemp_fc1", "Run forecast"),
+                                             #            uiOutput("sel_mod"),
+                                             #            textOutput("txt_fc_out")
+                                             #          )
+                                             #   )
+                                             # ),
+                                             #** View Weather Forecast Data ----
                                              fluidRow(
                                                column(6,
-                                                      h3("Model Selection Uncertainty"),
-                                                      p(module_text["mod_selec_uc", ]),
-                                                      p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
-                                                      p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
-                                                      div("$$ wtemp_{t+1} = ?? $$"),
-                                                      p("Depending on your model selection, the necessary required driving variables are shown."),
-                                                      actionButton("load_mods", "Load models"),
-                                                      DTOutput("mod_selec_tab")
+                                                      h3("Forecasting with weather forecast data"),
+                                                      p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
+                                                      actionButton("view_at_fc", "View forecast"),
+                                                      p("With this air temperature forecast we can use the models that we built in Activity A that require air temperature, to forecast water temperature:")
+                                                      # wellPanel(
+                                                      #   uiOutput("lr_mod_eqn")
+                                                      # )
                                                ),
                                                column(6,
-                                                      wellPanel(
-                                                        plotlyOutput("wtemp_fc1")
-                                                      ),
-                                                      wellPanel(
-                                                        actionButton("load_driv1", "Load driver data"),
-                                                        actionButton("run_wtemp_fc1", "Run forecast"),
-                                                        uiOutput("sel_mod"),
-                                                        textOutput("txt_fc_out")
-                                                      )
-                                               )
+                                                      plotlyOutput("airt1_fc_plot")
+                                               ),
                                              ),
                                              fluidRow(
                                                column(6,
-                                                      h3("Forecasting with linear regression model"),
-                                                      p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
-                                                      actionButton("view_at_fc", "View forecast"),
-                                                      p("With this air temperature forecast we can use the linear regression model we built in Objective X, to forecast water temperature:"),
-                                                      wellPanel(
-                                                        uiOutput("lr_mod_eqn")
-                                                      )
-                                               ),
+                                                      p("Now we will use the forecasted driver data to generate forecasts with each of our models."),
+                                                      p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      DTOutput("mod_selec_tab1a")
+                                                      ),
                                                column(6,
-                                                      plotlyOutput("airt1_fc_plot"),
-                                                      plotlyOutput("wtemp_fc1a"),
-                                                      actionButton("run_wtemp_fc1a", "Run forecast")
-                                               ),
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc1a")
+                                                      ),
+                                                      wellPanel(
+                                                        actionButton("load_driv1a", "Load driver data"),
+                                                        actionButton("run_wtemp_fc1a", "Run forecast"),
+                                                        uiOutput("sel_mod1a"),
+                                                        textOutput("txt_fc_out1a")
+                                                        )
+                                                      )
                                              ),
                                              hr(),
                                              #** Model Process Uncertainty ----
                                              fluidRow(
-                                               column(6,
-                                                      h3("Model Process Uncertainty"),
-                                                      p(module_text["proc_uc", ]),
-                                                      p("Below is a description of our \"simple\" model. But we know that rates of nutrient uptake (N_uptake) and phytoplankton death (Mortality) are variable and that our model has simplified these."),
-                                                      p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} $$")),
-                                                      p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model:"),
-                                                      p(withMathJax("$$ wtemp_{t+1} = wtemp_{t} + W_t $$")),
-                                                      p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
-                                                      p(withMathJax("$$W_t = N(0, Std. Dev)$$")),
-                                                      p("where process noise is equal to a random number with a mean of zero and some standard deviation."), br(),
-                                                      p("First we will explore how the model responds to differing levels of process uncertainty. Run the model with each of the differing levels multiple time and observe how the forecast outcome changes."),
-                                                      radioButtons("proc_uc1", "Level of process uncertainty", choices = c("None", "Low", "Medium", "High"), selected = character(0)),
-                                                      conditionalPanel("input.proc_uc1 != ''",
-                                                                       p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
-                                                                       p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
-                                                                       sliderInput("n_mem1", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                               column(12,
+                                                      h3("Model Process Uncertainty")
                                                       )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      p(module_text["proc_uc", ]),
+                                                      p("Across is a description of our \"simple\" water temperature model (1). But we know that water temperature is variable and that our model has simplified these."),
+                                                      p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model at each time step (2)."),
+                                                      p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
+                                                      p("where process noise is equal to a random number with a mean of zero and a standard deviation."),
                                                ),
                                                column(6,
-                                                      plotlyOutput("wtemp_fc2"),
+                                                      h4("Model Equations"),
+                                                      wellPanel(
+                                                        p(withMathJax("$$ wtemp_{t+1} = model_{t}\\ (1) $$")),
+                                                      ),
+                                                      br(),
+                                                      wellPanel(
+                                                        p(withMathJax("$$ wtemp_{t+1} = model_{t} + W_t\\ (2) $$"))
+                                                        )
+                                                      )
+                                               ),
+                                             fluidRow(
+                                               column(6,
+                                                      p("First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with differing numbers of members and observe how the forecast outcome changes."),
+                                                      p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      DTOutput("mod_selec_tab2"),
+                                                      p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
+                                                      p("Using the slider below, adjust the number of members to see how process uncertainty changes with forecast horizon."),
+                                                      sliderInput("n_mem2", "No. of members", min = 5, max = 100, value = 5, step = 5)
+                                               ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc2")
+                                                      ),
+                                                      actionButton("load_driv2", "Load driver data"),
                                                       actionButton("run_wtemp_fc2", "Run forecast"),
+                                                      uiOutput("sel_mod2"),
+                                                      textOutput("txt_fc_out2"),
                                                       conditionalPanel("input.run_wtemp_fc2 > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE),
                                                                        p("Click on items in the legend to show/hide them from the plot.")
-                                                                       )
                                                       )
-                                               ),
+                                               )
+                                             ),
+                                             hr(),
                                              #** Model Parameter Uncertainty ----
                                              fluidRow(
                                                column(6,
@@ -1251,23 +1288,48 @@ border-color: #FFF;
                                                       p(module_text["param_uncert", ]),
                                                ),
                                                column(6,
-                                                      h2("Some image of parameter uncertainty")
-                                               ),
+                                                      img(src = "param_uc.jpg", height = "80%", id = "bla_border",
+                                                          width = "80%", tags$style("border: solid 2px black;")),
+                                                      p(a(href = "https://www.frontiersin.org/files/Articles/370145/fninf-12-00049-HTML/image_m/fninf-12-00049-g001.jpg", "Source", target = "_blank"))
+                                                      )
                                              ),
                                              fluidRow(
-                                               column(3,
+                                               column(4,
                                                       h3("Forecasting with Parameter Uncertainty"),
-                                                      p("But we know from Objective X, that when we used different sets of data to build our model that we got slightly different values for our model parameters ", tags$em("m"), " and ", tags$em("b"), ". To account for this ", tags$b("uncertainty"), " we built distributions for parameter that we can sample from."),
-                                                      p("We will revisit those samples and generate an ", tags$b("ensemble forecast"), " using multiple different potential parameters."),
-                                                      sliderInput("n_mem3b", "No. of members", min = 1, max = 100, value = 5, step = 5)
+                                                      p("But we know from Objective 4, that when we used different sets of data to build our model that we got slightly different values for our model parameters ", tags$em("m"), " and ", tags$em("b"), ". To account for this ", tags$b("uncertainty"), " we built distributions for parameter that we sampled from.")
+                                                      ),
+                                               column(8,
+                                                      plotOutput("param_fcast3b")
+                                                      ),
                                                ),
-                                               column(3,
-                                                      plotOutput("param_fcast3b"),
-                                                      p("Select the number of parameter to be used in the forecast ensemble.")
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Generate Parameter Distributions"),
+                                                      p("We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different potential parameter sets."),
+                                                      p("Select a model from the table below and then generate parameter distributions, then load the driver data and then run the forecast."),
+                                                      DTOutput("mod_selec_tab3"),
+                                                      actionButton("gen_params3b", "Generate parameters")
                                                ),
                                                column(6,
-                                                      plotlyOutput("wtemp_fc3b"),
+                                                      wellPanel(
+                                                        plotOutput("param_dist3b")
+                                                      )
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Forecast with Parameter Uncertainty"),
+                                                      p("Select the number of parameters to be used in the forecast ensemble. These will be sampled from the distributions generated above."),
+                                                      sliderInput("n_mem3b", "No. of members", min = 5, max = 100, value = 5, step = 5)
+                                                      ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc3b")
+                                                      ),
+                                                      # actionButton("load_driv2", "Load driver data"),
                                                       actionButton("run_wtemp_fc3b", "Run forecast"),
+                                                      uiOutput("sel_mod3b"),
+                                                      textOutput("txt_fc_out3b"),
                                                       conditionalPanel("input.run_wtemp_fc3b > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
@@ -1276,8 +1338,8 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                    #* Objective 8 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Initial Conditions Uncertainty", value = "obj08",
+                                    #* Objective 7 - Initial Conditions Uncertainty ====
+                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj07",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1287,59 +1349,104 @@ border-color: #FFF;
                                                       )
                                                ),
                                              fluidRow(
-                                               column(3,
+                                               column(6,
                                                       h3("Initial Condition Uncertainty"),
                                                       p(module_text["init_uncert", ]),
-                                                      p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. To account for this we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
+                                                      p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time.")
+                                               ),
+                                               column(6,
+                                                      img(src = "ic_uc.jpg", height = "80%", id = "bla_border",
+                                                          width = "80%", tags$style("border: solid 2px black;")),
+                                                      p(a(href = "https://www.ecmwf.int/en/about/media-centre/news/2017/twenty-five-years-ensemble-forecasting", "Source", target = "_blank"))
+                                                      )
+                                               ),
+                                             hr(),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Forecasting with Initial Conditions Uncertainty"),
+                                                      p("To account for this we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
                                                       p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
                                                       sliderInput("ic_uc", "Standard deviation", min = 0.01, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
-                                               ),
-                                               column(3,
-                                                      plotOutput("ic_uc_plot"),
+                                                      ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotOutput("ic_uc_plot")
+                                                        )
+                                                      )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      p("Now we will generate forecasts with different initial conditions for each of our models."),
+                                                      p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      DTOutput("mod_selec_tab4"),
                                                       sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5)
                                                ),
                                                column(6,
                                                       wellPanel(
-                                                        plotlyOutput("wtemp_fc4"),
+                                                        plotlyOutput("wtemp_fc4")
                                                       ),
-                                                      actionButton("run_wtemp_fc4", "Run forecast"),
-                                                      conditionalPanel("input.run_wtemp_fc4 > 0",
-                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                                       radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
-                                                                                    inline = TRUE)
-                                                                       )
+                                                      wellPanel(
+                                                        actionButton("load_driv4", "Load driver data"),
+                                                        actionButton("run_wtemp_fc4", "Run forecast"),
+                                                        uiOutput("sel_mod4"),
+                                                        textOutput("txt_fc_out4"),
+                                                        radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
+                                                                     inline = TRUE)
+                                                        )
                                                       )
                                                )
                                              ),
-                                    #* Objective 9 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 9 - Driver Uncertainty", value = "obj09",
+                                    #* Objective 8 - Driver Uncertainty ====
+                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj08",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 10 - Driver Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_09", ])
+                                                                h3("Objective 8 - Driver Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_08", ])
                                                       )
                                                )
                                              ),
                                              fluidRow(
                                                column(6,
                                                       h3("Driver Uncertainty"),
-                                                      p(module_text["driver_uncert", ]),
+                                                      p(module_text["driver_uncert", ])
+                                               ),
+                                               column(6,
+                                                      img(src = "ensemble_forecasting_schematic.png", height = "80%", id = "bla_border",
+                                                          width = "80%", tags$style("border: solid 2px black;")),
+                                                      p(a(href = "https://www.metoffice.gov.uk/research/weather/ensemble-forecasting/what-is-an-ensemble-forecast", "Source", target = "_blank"))
+                                                      )
+                                             ),
+                                             fluidRow(
+                                               column(6,
                                                       p("Load the NOAA ensemble forecast for air temperature below."),
                                                       actionButton("load_noaa_at", "Load forecast"),
                                                       verbatimTextOutput("noaa_at_loaded"),
                                                       p("You can adjust the number of ensemble members plotted and these are what you will use to drive your model."),
                                                       numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
+                                                      DTOutput("mod_selec_tab5")
                                                ),
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("airt_fc5"),
-                                                        actionButton("run_wtemp_fc5", "Run forecast"),
-                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                                     inline = TRUE),
                                                         plotlyOutput("wtemp_fc5")
-                                                        )
+                                                      ),
+                                                      wellPanel(
+                                                        actionButton("load_driv5", "Load driver data"),
+                                                        actionButton("run_wtemp_fc5", "Run forecast"),
+                                                        uiOutput("sel_mod5"),
+                                                        textOutput("txt_fc_out5"),
+                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                                     inline = TRUE)
+                                                      )
+                                                      # wellPanel(
+                                                      #   plotlyOutput("airt_fc5"),
+                                                      #   actionButton("run_wtemp_fc5", "Run forecast"),
+                                                      #   radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                      #                inline = TRUE),
+                                                      #   plotlyOutput("wtemp_fc5")
+                                                      #   )
                                                       )
                                                )
                                              )
