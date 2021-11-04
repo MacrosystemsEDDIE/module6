@@ -1,5 +1,6 @@
 # Load required libraries
 suppressPackageStartupMessages(library(shiny, quietly = TRUE))
+suppressPackageStartupMessages(library(shinyjs, quietly = TRUE))
 suppressPackageStartupMessages(library(DT, quietly = TRUE))
 suppressPackageStartupMessages(library(sf, quietly = TRUE))
 suppressPackageStartupMessages(library(leaflet, quietly = TRUE))
@@ -18,6 +19,9 @@ source("R/get_html.R")
 source("R/NP_model.R")
 source("R/create_np_inputs.R")
 source("R/textAreaInput2.R")
+
+# Slides
+recap_slides <- list.files("www/shiny_slides", full.names = TRUE)
 
 # Load in sp format with coordinates
 neon_sites <- readRDS("data/neon_sites.rds")
