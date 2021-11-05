@@ -97,4 +97,8 @@ samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
 # Uncertainty sources to include
 uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver")
 
+# Add last update time
+app_time <- format(file.info("ui.R")$mtime, "%Y-%m-%d")
+app_update_txt <- paste0("This app was last updated on: ", app_time)
+
 # end
