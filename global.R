@@ -101,4 +101,7 @@ uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver")
 app_time <- format(file.info("ui.R")$mtime, "%Y-%m-%d")
 app_update_txt <- paste0("This app was last updated on: ", app_time)
 
+# Tab names for updating buttons
+tab_names <- read.csv("data/tab_names.csv", fileEncoding = "UTF-8-BOM")
+
 # end
