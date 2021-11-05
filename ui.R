@@ -1582,6 +1582,12 @@ border-color: #FFF;
                                                         br(),
                                                         tags$li(id = "txt_j", module_text["actB_q3", ]))
                                                       )
+                                               ),
+                                             fluidRow(
+                                               column(12,
+                                                      h2("Completed Activity B!"),
+                                                      p("This is the end of Activity B. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report before completing Activity C. Otherwise you could lose your progress.")
+                                                      )
                                                )
                                              )
                                     )
@@ -1631,9 +1637,16 @@ border-color: #FFF;
                         fluidRow(
                           column(6,
                                  h3("Which source of uncertainty is contributing the most?"),
-                                 p("This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts.")
+                                 p("This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts."),
+                                 p("Here is a figure from a paper which partitioned out the different contributors of uncertainty to a forecast of water temperature."),
+                                 br(),
+                                 h4("Q. How do you think you would be able to partition out the uncertainty?")
                                  ),
-                          column(6,
+                          column(6, align = "center",
+                                 img(src = "uc_partition_edit.jpg", height = "80%",
+                                     width = "80%", align = "center"),
+                                 p("The relative contribution of the individual sources of uncertainty (left axis) to the total forecast uncertainty (right axis, black dashed line) varies through the 16-day forecast horizon."),
+                                 p("(", a(href = "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019WR026138", "Thomas et al., 2020", target = "_blank"), ")")
                                  )
                           ),
                         hr(),
@@ -1673,6 +1686,12 @@ border-color: #FFF;
                                                   )
                                  ),
                                  )
+                        ),
+                        fluidRow(
+                          column(12,
+                                 h2("Completed Activity C!"),
+                                 p("This is the end of Activity C. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report before completing Activity C. Otherwise you could lose your progress.")
+                          )
                         )
 
 

@@ -906,8 +906,9 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$gen_lin_mods, {
     req(!is.null(input$n_samp))
-    req(!is.null(input$lr_DT2_rows_selected))
-    req(input$lr_DT2_rows_selected != "")
+    req(!is.na(linr_stats$dt$b_sd))
+    # req(!is.null(input$lr_DT2_rows_selected))
+    # req(input$lr_DT2_rows_selected != "")
     # req(!is.null(lr_dist_plot$m))
     # req(!is.null(lr_dist_plot$b))
     updateRadioButtons(inputId = "plot_type1", selected = "Line")
@@ -2385,12 +2386,13 @@ shinyServer(function(input, output, session) {
            message = "Click 'Run forecast'.")
     )
 
-    if(any(!is.na(wtemp_fc_out2$lst))) {
-      sub_lst <- wtemp_fc_out2$lst[!is.na(wtemp_fc_out2$lst)]
-      mlt <- reshape::melt(sub_lst, id.vars = "Date")
-      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      mlt$Label <- as.character(mlt$Label)
-    }
+    # print(wtemp_fc_out2$lst)
+    # if(any(!is.na(wtemp_fc_out2$lst))) {
+    #   sub_lst <- wtemp_fc_out2$lst[!is.na(wtemp_fc_out2$lst)]
+    #   mlt <- reshape::melt(sub_lst, id.vars = "Date")
+    #   colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+    #   mlt$Label <- as.character(mlt$Label)
+    # }
 
     p <- ggplot() +
       # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
