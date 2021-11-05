@@ -1,0 +1,332 @@
+---
+title: "Module 6: Understanding Uncertainty in Ecological Forecasts - Student Handout"
+output: 
+   word_document:
+    reference_docx: report-style.docx
+params:
+  name: ""
+  id_number: ""
+  a1: ""
+  a2: ""
+  a3: ""
+  a4a: ""
+  a4b: ""
+  a4c: ""
+  a4d: ""
+  a4e: ""
+  a4f: ""
+  a5:
+  a6: ""
+  a7: ""
+  a8: ""
+  a9: ""
+  a10: ""
+  a11: ""
+  a12: ""
+  a13: ""
+  a14: ""
+  a15: ""
+  a16: ""
+  a17: ""
+  a18: ""
+  a19: ""
+  a20: ""
+  a21: ""
+  a22: ""
+  a23: ""
+  a24: ""
+  a25: ""
+  a26: ""
+  a27: ""
+  a28: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+```{r}
+time <- Sys.time()
+
+
+# Read in assessment questions
+quest <- read.csv("data/student_questions.csv", row.names = 1)
+module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
+
+
+
+```
+
+![](www/report-header.png)
+
+***
+### Name: `r params$name`  
+### Student ID: `r params$id_number` 
+#### Completed on: `r time`
+***
+
+# **Macrosystems EDDIE Module 6: Understanding Uncertainty in Ecological Forecasts**
+
+
+# Learning Objectives:
+
+By the end of this module, you will be able to:
+
+- Define ecological forecast uncertainty
+- Explore the contributions of different sources of uncertainty (e.g., model parameters, model driver data) to total forecast uncertainty
+- Outline how multiple sources of uncertainty are quantified
+- Identify ways in which uncertainty can be reduced within an ecological forecast
+- Describe how forecast horizon affects forecast uncertainty
+- Explain the importance of specifying uncertainty in ecological forecasts for application
+
+
+# Why macrosystems ecology and ecological forecasting?
+
+**Macrosystems ecology** is the study of ecological dynamics at multiple interacting spatial and temporal scales (e.g., Heffernan et al. 2014). For example, _global_ climate change can interact with _local_ land-use activities to control how an ecosystem changes over the next decades. Macrosystems ecology recently emerged as a new sub-discipline of ecology to study ecosystems and ecological communities around the globe that are changing at an unprecedented rate because of human activities (IPCC 2013). The responses of ecosystems and communities are complex, non-linear, and driven by feedbacks across local, regional, and global scales (Heffernan et al. 2014). These characteristics necessitate novel approaches for making predictions about how systems may change to improve both our understanding of ecological phenomena as well as inform resource management.  
+
+
+**Forecasting** is a tool that can be used for understanding and predicting macrosystems dynamics. To anticipate and prepare for increased variability in populations, communities, and ecosystems, there is a pressing need to know the future state of ecological systems across space and time (Dietze et al. 2018). Ecological forecasting is an emerging approach which provides an estimate of the future state of an ecological system with uncertainty, allowing society to prepare for changes in important ecosystem services. Ecological forecasts are a powerful test of the scientific method because ecologists make a hypothesis of how an ecological system works; embed their hypothesis in a model; use the model to make a forecast of future conditions; and then when observations become available, assess the accuracy of their forecast, which indicates if their hypothesis is supported or needs to be updated. Forecasts that are effectively communicated to the public and managers will be most useful for aiding decision-making. Consequently, macrosystems ecologists are increasingly using ecological forecasts to predict how ecosystems are changing over space and time (Dietze and Lynch 2019).  
+\
+In this module, students will apply the iterative forecasting cycle to develop an ecological forecast for a National Ecological Observation Network (NEON) site of their choice. This module will introduce students to the basic components of an ecological forecast; how a forecasting model is constructed; how changes to model inputs affect forecast uncertainty; and how productivity forecasts vary across ecoclimatic domains.  \
+
+## Module overview:
+
+- Introduction to Ecological Forecasting: pre-readings and PowerPoint in class
+- Activity A: Build a model to predict water temperature with uncertainty
+- Activity B: Explore the different sources of uncertainty
+- Activity C: Managing uncertainty
+\
+
+## Today's focal question: _Where does forecast uncertainty come from and how can it be quantified and reduced?_
+
+To address this question, we will introduce ecological forecasts and the iterative forecasting cycle. We will build a model that forecasts water temperature with uncertainty. We will then explore the different sources of uncertainty associated with our forecast predictions. In this module, we will use our model to examine where forecast uncertainty comes from and how it propagates through time due to driver data, model parameters, and initial conditions. We will then compare water temperature forecasts for ecosystems in different ecoclimatic regions to understand how forecasts can vary both over time and space.
+
+We will be using ecological data collected by the National Ecological Observation Network (NEON) to tackle this question. NEON is a continental-scale observatory designed to collect publicly-available, long-term ecological data to monitor changing ecosystems across the U.S. Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies.
+
+## R Shiny App:
+
+The lesson content is hosted on an R Shiny App at [https://macrosystemseddie.shinyapps.io/module6/](https://macrosystemseddie.shinyapps.io/module6/)  
+This can be accessed via any internet browser and allows you to navigate through the lesson via this app. You will fill in the questions below on this handout as you complete the lesson activities.
+
+## Optional pre-class readings and video:
+
+Webpages:
+
+- [NOAA Ecological Forecasts](https://oceanservice.noaa.gov/ecoforecasting/noaa.html#:~:text=What%20is%20ecological%20forecasting%3F,%2C%20pollution%2C%20or%20habitat%20change.)
+- [Ecological Forecasting Initiative](https://ecoforecast.org/about/)
+
+Articles:
+
+- Dietze, M. and Lynch, H. 2019. Forecasting a bright future for ecology. _Frontiers in Ecology and the Environment_, _17_(1), 3. [https://doi.org/10.1002/fee.1994](https://doi.org/10.1002/fee.1994)
+- Dietze, M.C., et al. 2018. Iterative near-term ecological forecasting: Needs, opportunities, and challenges. Proceedings of the National Academy of Sciences, 115(7), 1424–1432. [https://doi.org/10.1073/pnas.1710231115](https://doi.org/10.1073/pnas.1710231115)
+- Jackson, L.J., Trebitz, A.S., &amp; Cottingham, K.L. 2000. An introduction to the practice of ecological modeling. BioScience, 50(8), 694. [https://doi.org/10.1641/0006-3568(2000)050[0694:aittpo]2.0.co;2](https://doi.org/10.1641/0006-3568(2000)050%5B0694:aittpo%5D2.0.co;2)
+
+Videos:
+
+- NEON&#39;s [Ecological Forecast: The Science of Predicting Ecosystems](https://www.youtube.com/watch?v=Lgi_e7N-C8E&amp;t=196s&amp;pbjreload=101)
+- Fundamentals of Ecological Forecasting Series: [Why Forecast?](https://www.youtube.com/watch?v=kq0DTcotpA0&amp;list=PLLWiknuNGd50Lc3rft4kFPc_oxAhiQ-6s&amp;index=1)
+
+The questions you must answer are embedded in the Shiny interface. You can answer the questions there and generate a report at the end or you can fill out the questions within this document.
+
+# Think about it!
+\
+Answer the following questions:
+
+1. `r substr(quest["q1", ], 4, nchar(quest["q1", ]))`  
+\
+**Answer:** `r params$a1`\
+
+2. `r substr(quest["q2", ], 4, nchar(quest["q2", ]))`   
+\
+**Answer:** `r params$a2`\
+
+
+Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/module6) to answer the rest of the questions.
+
+# Site Selection
+
+## Objective 1: Select and view a NEON site\
+
+***
+`r module_text["obj_01", ]`
+
+***
+
+4. `r substr(quest["q4", ], 4, nchar(quest["q4", ]))`  
+
+*Table 1. Site Characteristics*
+
+| | |
+| --- | --- |
+| `r substr(quest["q4a", ], 3, nchar(quest["q4a", ]))` | `r params$a4a` |
+| `r substr(quest["q4b", ], 3, nchar(quest["q4b", ]))` | `r params$a4b` |
+| `r substr(quest["q4c", ], 3, nchar(quest["q4c", ]))` | `r params$a4c` |
+| `r substr(quest["q4d", ], 3, nchar(quest["q4d", ]))` | `r params$a4d` |
+| `r substr(quest["q4e", ], 3, nchar(quest["q4e", ]))` | `r params$a4e` |
+
+
+## Objective 2: Explore data\
+
+***
+`r module_text["obj_02", ]`
+
+***
+
+5. `r substr(quest["q5", ], 4, nchar(quest["q5", ]))`  
+\
+**Answer:** `r params$a5`\
+
+6. `r substr(quest["q6", ], 4, nchar(quest["q6", ]))`   
+\
+**Answer:** `r params$a6`\
+
+
+# Activity A - Build a Model with Uncertainty
+
+## Objective 3: Build a water temperature model\
+
+***
+`r module_text["obj_03", ]`
+
+***
+
+7. `r substr(quest["q7", ], 4, nchar(quest["q7", ]))`
+\
+**Answer:** `r params$a7`  
+\
+
+8. `r substr(quest["q8", ], 4, nchar(quest["q8", ]))`  
+\
+**Answer:** `r params$a8`  
+\
+
+9. `r substr(quest["q9", ], 4, nchar(quest["q9", ]))`  
+\
+**Answer:** `r params$a9`  
+\
+
+10. `r substr(quest["q10", ], 4, nchar(quest["q10", ]))`  
+\
+**Answer:** `r params$a10`  
+\
+
+11. `r substr(quest["q11", ], 4, nchar(quest["q11", ]))`  
+\
+**Answer:** `r params$a11`  
+\
+
+## Objective 4: Explore Parameters\
+
+***
+`r module_text["obj_04", ]`
+
+***
+
+12. `r substr(quest["q12", ], 4, nchar(quest["q12", ]))`  
+\
+**Answer:** `r params$a12`  
+\
+13. `r substr(quest["q13", ], 4, nchar(quest["q13", ]))`  
+\
+**Answer:** `r params$a13`  
+\
+14. `r substr(quest["q14", ], 4, nchar(quest["q14", ]))`  
+\
+**Answer:** `r params$a14`  
+\
+15. `r substr(quest["q15", ], 4, nchar(quest["q15", ]))`  
+\
+**Answer:** `r params$a15`  
+\
+
+## Objective 5: Improve Model for Forecasting\
+
+***
+`r module_text["obj_05", ]`
+
+***
+
+16. `r substr(quest["q16", ], 4, nchar(quest["q16", ]))`  
+\
+**Answer:** `r params$a16`  
+\
+17. `r substr(quest["q17", ], 4, nchar(quest["q17", ]))`  
+\
+**Answer:** `r params$a17`  
+\
+18. `r substr(quest["q18", ], 4, nchar(quest["q18", ]))`  
+\
+**Answer:** `r params$a18`  
+\
+19. `r substr(quest["q19", ], 4, nchar(quest["q19", ]))`  
+\
+**Answer:** `r params$a19`  
+\
+
+
+# Activity B: Explore Forecast Uncertainty\
+
+## Objective 6: Model Uncertainty\
+
+***
+`r module_text["obj_06", ]`
+
+***
+
+20. `r substr(quest["q20", ], 6, nchar(quest["q20", ]))`  
+\
+**Answer:** `r params$a20`
+\
+21. `r substr(quest["q21", ], 6, nchar(quest["q21", ]))`  
+\
+**Answer:** `r params$a21`
+\
+22. `r substr(quest["q22", ], 6, nchar(quest["q22", ]))`  
+\
+**Answer:** `r params$a22`
+\
+23. `r substr(quest["q23", ], 6, nchar(quest["q23", ]))`  
+\
+**Answer:** `r params$a23`
+\
+
+
+## Objective 7: Initial Conditions Uncertainty\
+
+***
+`r module_text["obj_07", ]`
+
+***
+24. `r substr(quest["q24", ], 6, nchar(quest["q24", ]))`  
+\
+**Answer:** `r params$a24`
+\
+25. `r substr(quest["q25", ], 6, nchar(quest["q25", ]))`  
+\
+**Answer:** `r params$a25`
+\
+26. `r substr(quest["q26", ], 6, nchar(quest["q26", ]))`  
+\
+**Answer:** `r params$a26`
+\
+
+## Objective 8: Driver Uncertainty\
+
+***
+`r module_text["obj_08", ]`
+
+***
+
+27. `r substr(quest["q27", ], 6, nchar(quest["q27", ]))`  
+\
+**Answer:** `r params$a27`
+\
+28. `r substr(quest["q28", ], 6, nchar(quest["q28", ]))`  
+\
+**Answer:** `r params$a28`
+\
+
+
+
+This module was developed by Moore, T.N., C.C. Carey, and R.Q. Thomas. 13 October 2021. Macrosystems EDDIE: Understanding Uncertainty in Ecological Forecasts. Macrosystems EDDIE Module 6, Version 1. http://module5.macrosystemseddie.org. Module development was supported by NSF grants DEB-1926050 and DBI-1933016.
+
+This document last modified: 04 November 2021 by TNM.
