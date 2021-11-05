@@ -797,7 +797,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(3,
                                                       h3("Investigate how collecting more data affects your model"),
-                                                      p("As we collect more and more data at our lake site, the parameters for our linear model will likely change, affecting the model performance (assessed by the R-squared value). Fit a linear model with six varying amounts of data coverage and add each model’s parameter set to the parameter table."),
+                                                      p("When monitoring a lake site, deciding on the sampling frequency is an important decision. Here you will investigate how four different frequencies of data collection can affect model performance (assessed by the R-squared value). Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
                                                       p("Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
                                                       # " Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
                                                       radioButtons("samp_freq", "Data collection frequency:", choices = samp_freq),
@@ -883,7 +883,7 @@ border-color: #FFF;
                                                       h3("Generate distributions for intercept & slope")
                                                ),
                                                column(4,
-                                                      p("When fitting the models to the data in the previous activity, a standard error of the estimated parameters is calculated."),
+                                                      p("When fitting the models to the data in the previous objective, a standard error of the estimated parameters is calculated."),
                                                       p(module_text["std_error", ]),
                                                       DTOutput("lr_DT2", width = "100%"),
                                                       br(),
@@ -903,7 +903,8 @@ border-color: #FFF;
                                                                ),
                                                         column(6, align = "center",
                                                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
-                                                                actionButton("gen_lr_dist_plot", "Generate plot!")
+                                                                actionButton("gen_lr_dist_plot", "Generate plot!"),
+                                                               p("Note: When generating the plots for Q14-15, make sure to deselect the row in the model table. This will add the distributions drawn as 'User input'")
                                                                 ),
                                                         column(6, align = "center",
                                                                sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.1)
@@ -919,7 +920,7 @@ border-color: #FFF;
                                                                             )
                                                                      )
                                                                    ),
-                                                               p("You will use the parameter sliders to answer Q 19-20.")
+                                                               p("You will use the parameter sliders to answer Q 14-15.")
                                                                )
                                                         )
                                                       )
@@ -1095,15 +1096,15 @@ border-color: #FFF;
                                                column(3,
                                                       p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
                                                       p("We are first going to build a model that uses yesterday's water temperature first and then second, build a model yesterday's water temperature AND today's air temperature to forecast tomorrow's water temperature."),
-                                                      br(),
+                                                      br()
+                                               ),
+                                               column(3,
                                                       p("Build different models below and test adding different predictors (you can add multiple predictors) and see how well your model works at forecasting water temperature."),
                                                       wellPanel(
                                                         div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + \\beta _{n}$$")
                                                       ),
                                                       p("where \\(\\beta_{n}\\) represents the parameters in the model, similarly to the slope in a linear regression model."),
-                                                      selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE)
-                                               ),
-                                               column(3,
+                                                      selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
                                                       h4("Fit model to data"),
                                                       p("Use a multiple linear regression model to estimate the parameters (\\(\\beta_{n}\\)) in your model below."),
                                                       wellPanel(
@@ -1239,6 +1240,7 @@ border-color: #FFF;
                                                       p("Now we will generate forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
                                                       actionButton("load_mods", "Load models"),
+                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
                                                       box(id = "box2", width = 12, status = "primary",
@@ -1446,6 +1448,7 @@ border-color: #FFF;
                                                column(6,
                                                       p("Now we will generate forecasts with different initial conditions for each of our models."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab4"),
                                                       br(),
                                                       sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5),
@@ -1519,6 +1522,7 @@ border-color: #FFF;
                                                       verbatimTextOutput("noaa_at_loaded"),
                                                       p("You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
                                                       numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
+                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
@@ -1621,6 +1625,53 @@ border-color: #FFF;
                                  wellPanel(
                                    plotlyOutput("tot_fc_uncert")
                                    )
+                                 )
+                        ),
+                        hr(),
+                        fluidRow(
+                          column(6,
+                                 h3("Which source of uncertainty is contributing the most?"),
+                                 p("This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts.")
+                                 ),
+                          column(6,
+                                 )
+                          ),
+                        hr(),
+                        fluidRow(
+                          column(12,
+                                 h3("Manage Uncertainty")
+                          ),
+                          column(5, offset = 1,
+                                 radioButtons("uc_manage", "Select a source of uncertainty below and learn of ways to reduce it:",
+                                              choices = uc_sources, selected = character(0), inline = TRUE),
+                                 conditionalPanel("input.uc_manage == 'Process'",
+                                                  h4("Process Uncertainty"),
+                                                  tags$ul(
+                                                    tags$li(id = "txt_j", "Build a better model"),
+                                                    tags$li(id = "txt_j", "Collect more data")
+                                                  )
+                                                  ),
+                                 conditionalPanel("input.uc_manage == 'Parameter'",
+                                                  h4("Parameter Uncertainty"),
+                                                  tags$ul(
+                                                    tags$li(id = "txt_j", "Collect more data"),
+                                                    tags$li(id = "txt_j", "Identify which variables you need to measure")
+                                                  )
+                                 ),
+                                 conditionalPanel("input.uc_manage == 'Driver'",
+                                                  h4("Driver Uncertainty"),
+                                                  tags$ul(
+                                                    tags$li(id = "txt_j", "Use better forecasted data"),
+                                                    tags$li(id = "txt_j", "Increase number of driver ensembles")
+                                                  )
+                                 ),
+                                 conditionalPanel("input.uc_manage == 'Initial Conditions'",
+                                                  h4("Initial Conditions Uncertainty"),
+                                                  tags$ul(
+                                                    tags$li(id = "txt_j", "Collect data at time of forecast (in real-time)"),
+                                                    tags$li(id = "txt_j", "Collect data more frequently")
+                                                  )
+                                 ),
                                  )
                         )
 
