@@ -15,7 +15,7 @@ q7,Q7. List two potential impacts on lakes and inland water bodies as a result o
 q8,Q8. Do you think there is a linear relationship between air temperature and water temperature at this lake?
 q9,Q9. How does increasing the amount of data used affect the estimation of the linear regression?
 q10,"Q10. When looking at the time series plot (across), which model performed best? Why do you think that is?"
-q11,Q11. Do you think you could use any of these models for a forecast of water temperature? Why/why not?
+q11,Q11. Do you think you could use these models for a forecast of water temperature? Why/why not?
 q12,"Q12. Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty around its parameters (e.g. m and b)? How can you tell?"
 q13,"Q13. How does adjusting the number of samples affect the range of uncertainty in the model, as determined by the variation in the lines?"
 q14,"Q14. Regenerate the parameter distributions with high uncertainty (large standard deviation) for the slope (m) and low uncertainty (small standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
