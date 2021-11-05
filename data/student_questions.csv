@@ -17,26 +17,19 @@ q9,Q9. How does increasing the amount of data used affect the estimation of the 
 q10,"Q10. When looking at the time series plot (across), which model performed best? Why do you think that is?"
 q11,Q11. Do you think you could use any of these models for a forecast of water temperature? Why/why not?
 q12,"Q12. Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty? How can you tell?"
-q18,"Q18. How does adjusting the number of samples affect the range of uncertainty in the model, as determined by the variation in the lines?"
-q19,"Q19. Regenerate the parameter distributions with high uncertainty (large standard deviation) for the slope (m) and low uncertainty (small standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
-q20,"Q20. Regenerate the parameter distributions with low uncertainty (small standard deviation) for the slope (m) and high uncertainty (large standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures less than 10 degC, as measured by the range of the confidence intervals?"
-q21,Q21. Which interval has the largest error? Why do you think that is?
-q22,Q22. What does the sign in front of the error tell you?
-q23,Q23. Why do you think it is important to separate the data into an training and testing dataset?
-q24,Q24. Save the model results with a 1-day lag for water temperature and air temperature into rows 1 and 2 in the data table respectively. Which model performed better? Why do you think that is?
-q25.,Q25. Save the model results with a 3-day mean for water temperature and air temperature. Which model performed better? Why do you think that is?
-q26,Q26. Define a hypothesis about which combination of variables and/or lag/mean number of days would provide the best model results and why?
-q27,Q27. Fit the model you hypothesized in Q26 and save your model results into row 3 of the datatables. Did the model simulation match your hypothesis? How?/How not?
-q28,Q28. Fit a model with a 5-day lag for water temperature and a 3-day mean for air temperature. Save your results in row 4.
-q29,Q29. Fit a model with a 5-day lag for air temperature and a 3-day mean for water temperature. Save your results in row 5.
-q30,Q30. What happened when you ran a forecast with model 1?
-q31,Q31. How do your models compare to each other? Do they forecast similar values?
-q32,Q32. How does process uncertainty propagate (e.g. how does it change further into the future)?
-q50,"Q9. What is the relationship between each of these driving variables and productivity? For example, if the driving variable increases, will it cause productivity to increase (positive), decrease (negative), or have no effect (stay the same)."
-q51,a. Surface water temperature
-q52,b. Incoming light
-q53,c. Available nutrients
-q54,Q10. Classify the following as either a state variable or a parameter by dragging it into the corresponding bin.
-q55,Q11. We are using chlorophyll-a as a proxy of aquatic primary productivity. Select how you envision each parameter to affect chlorophyll-a concentrations:
-q56,a. Nutrient uptake by phytoplankton
-q57,b. Phytoplankton mortality
+q13,"Q13. How does adjusting the number of samples affect the range of uncertainty in the model, as determined by the variation in the lines?"
+q14,"Q14. Regenerate the parameter distributions with high uncertainty (large standard deviation) for the slope (m) and low uncertainty (small standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures greater than 20 degC, as measured by the range of the confidence intervals?"
+q15,"Q15. Regenerate the parameter distributions with low uncertainty (small standard deviation) for the slope (m) and high uncertainty (large standard deviation) for the intercept (b) by adjusting the slider bars above. How does the level of uncertainty change for air temperatures less than 10 degC, as measured by the range of the confidence intervals?"
+q16,"Q16. Can you think of any limitations of using this model for forecasting? For example, forecasting more than one day into the future."
+q17,Q17. Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table.How does the model match the observations? Are there any times where it is further from the observed water temperature?
+q18,Q18. Build a model that uses yesterday's water temperature and today's air temperature as predictors and fit the model parameters and add it to the second row in the table.How does this model match the observations? Are there any times where it is further from the observed water temperature?
+q19,Q19. Which model do you think will better predict water temperature? Why?
+q20,Q20. Is there variation among your models? Why do you think that is?
+q21,"Q21. Using the slider above, adjust the number of members and run the forecasts. How does forecast uncertainty change further into the future (e.g. with increasing forecast horizon)?."
+q22,Q22. Which model is affected most by the addition of parameter uncertainty? Why do you think that is?
+q23,Q23. Can you think of potential ways to reduce the amount (e.g. the quantity) of parameter uncertainty?
+q24,Q24. Which model was most sensitive to initial conditions (e.g. had a large distribution of forecast members even after 7-days)? Why do you think that is?
+q25,Q25. What factors can lead to an increase in initial conditions uncertainty?
+q26,Q26. What potential steps could be taken to reduce initial conditions uncertainty?
+q27,Q27. Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7-days)? Why do you think that is?
+q28,Q28. Can you think of a way to reduce driver uncertainty in your forecast of water temperature?
