@@ -906,6 +906,8 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$gen_lin_mods, {
     req(!is.null(input$n_samp))
+    req(!is.null(input$lr_DT2_rows_selected))
+    req(input$lr_DT2_rows_selected != "")
     # req(!is.null(lr_dist_plot$m))
     # req(!is.null(lr_dist_plot$b))
     updateRadioButtons(inputId = "plot_type1", selected = "Line")
@@ -1251,9 +1253,9 @@ shinyServer(function(input, output, session) {
       mean_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], collapse = "\\\\ \\ &+ ")
     }
 
-    formula <- paste0("$$\\begin{align} \\ wtemp_{t+1} &=  ", paste0(c(lag_terms, mean_terms), collapse = "\\\\ \\ &+ "), "+ b \\end{align} $$")
+    formula <- paste0("$$\\begin{align} \\ wtemp_{t+1} &=  ", paste0(c(lag_terms, mean_terms), collapse = "\\\\ \\ &+ "), "+ \\beta_{%s} \\end{align} $$")
 
-    text <- do.call(sprintf, as.list(c(formula, 1:length(input$mult_lin_reg_vars))))
+    text <- do.call(sprintf, as.list(c(formula, 1:(length(input$mult_lin_reg_vars)+1))))
 
     withMathJax(
       tags$p(text)
@@ -2087,6 +2089,7 @@ shinyServer(function(input, output, session) {
   # Run forecast WITH forecasted air temperature
   observeEvent(input$run_wtemp_fc1a, {
     req(input$mod_selec_tab1a_rows_selected != "")
+    req(!is.na(wtemp_fc_data1a$lst[[input$mod_selec_tab1a_rows_selected]]))
 
     df <- wtemp_fc_data1a$lst[[input$mod_selec_tab1a_rows_selected]]
     fc_days <- which(df$Date >= fc_date)
@@ -4435,6 +4438,197 @@ shinyServer(function(input, output, session) {
   })
 
 
-})
+  #** Render Report ----
+  report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
+
+  observeEvent(input$generate, {
+
+    progress <- shiny::Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error
+    on.exit(progress$close())
+    progress$set(message = "Gathering data and building report.",
+                 detail = "This may take a while. This window will disappear
+                     when the report is ready.", value = 1)
+
+    # Prepare regression equations
+
+
+    # Set up parameters to pass to Rmd document
+    params <- list(name = input$name,
+                   id_number = input$id_number,
+                   a1 = input$q1,
+                   a2 = input$q2,
+                   a3 = input$q3,
+                   a4a = input$q4a,
+                   a4b = input$q4b,
+                   a4c = input$q4c,
+                   a4d = input$q4d,
+                   a4e = input$q4e,
+                   a4f = input$q4f,
+                   a5 = input$q5,
+                   a6 = input$q6,
+                   a7 = input$q7,
+                   a8 = input$q8,
+                   a9 = input$q9,
+                   a10 = input$q10,
+                   a11 = input$q11,
+                   a12 = input$q12,
+                   a13 = input$q13,
+                   a14 = input$q14,
+                   a15 = input$q15,
+                   a16 = input$q16,
+                   a17 = input$q17,
+                   a18 = input$q18,
+                   a19 = input$q19,
+                   a20 = input$q20,
+                   a21 = input$q21,
+                   a22 = input$q22,
+                   a23 = input$q23,
+                   a24 = input$q24,
+                   a25 = input$q25,
+                   a26 = input$q26,
+                   a27 = input$q27,
+                   a28 = input$q28
+    )
+
+
+    tmp_file <- paste0(tempfile(), ".docx") #Creating the temp where the .pdf is going to be stored
+
+    rmarkdown::render("report.Rmd",
+                      output_format = "all",
+                      output_file = tmp_file,
+                      params = params,
+                      envir = new.env(parent = globalenv()))
+    progress$set(value = 1)
+    report$filepath <- tmp_file #Assigning in the temp file where the .pdf is located to the reactive file created above
+
+  })
+
+  # Hide download button until report is generated
+  output$reportbuilt <- reactive({
+    return(!is.null(report$filepath))
+  })
+  outputOptions(output, 'reportbuilt', suspendWhenHidden= FALSE)
+
+
+  #** Download Report ----
+
+  #Download report
+  output$download <- downloadHandler(
+
+    # This function returns a string which tells the client
+    # browser what name to use when saving the file.
+    filename = function() {
+      paste0("report_", input$id_number, ".docx") %>%
+        gsub(" ", "_", .)
+    },
+
+    # This function should write data to a file given to it by
+    # the argument 'file'.
+    content = function(file) {
+      file.copy(report$filepath, file)
+    }
+  )
+
+  #* Download '.eddie' file ----
+  # Save answers in .eddie file
+  ans_list <- reactiveValues()
+  observe({
+    ans_list <<- list(
+      name = input$name,
+      id_number = input$id_number,
+      a1 = input$q1,
+      a2 = input$q2,
+      a3 = input$q3,
+      a4a = input$q4a,
+      a4b = input$q4b,
+      a4c = input$q4c,
+      a4d = input$q4d,
+      a4e = input$q4e,
+      a4f = input$q4f,
+      a5 = input$q5,
+      a6 = input$q6,
+      a7 = input$q7,
+      a8 = input$q8,
+      a9 = input$q9,
+      a10 = input$q10,
+      a11 = input$q11,
+      a12 = input$q12,
+      a13 = input$q13,
+      a14 = input$q14,
+      a15 = input$q15,
+      a16 = input$q16,
+      a17 = input$q17,
+      a18 = input$q18,
+      a19 = input$q19,
+      a20 = input$q20,
+      a21 = input$q21,
+      a22 = input$q22,
+      a23 = input$q23,
+      a24 = input$q24,
+      a25 = input$q25,
+      a26 = input$q26,
+      a27 = input$q27,
+      a28 = input$q28
+    )
+  })
+
+  output$download_answers <- downloadHandler(
+
+    # This function returns a string which tells the client
+    # browser what name to use when saving the file.
+    filename = function() {
+      paste0("module6_answers_", input$id_number, ".eddie") %>%
+        gsub(" ", "_", .)
+    },
+
+    # This function should write data to a file given to it by
+    # the argument 'file'.
+    content = function(file) {
+      # write.csv(ans_list, file)
+      saveRDS(ans_list, file = file)
+    }
+  )
+
+  #** Upload .eddie file ----
+  observeEvent(input$upload_answers, {
+
+    up_answers <<- readRDS(input$upload_answers$datapath)
+    updateTextAreaInput(session, "name", value = up_answers$name)
+    updateTextAreaInput(session, "id_number", value = up_answers$id_number)
+    updateTextAreaInput(session, "q1", value = up_answers$a1)
+    updateTextAreaInput(session, "q2", value = up_answers$a2)
+    updateTextAreaInput(session, "q3", value = up_answers$a3)
+    updateTextAreaInput(session, "q4a", value = up_answers$a4a)
+    updateTextAreaInput(session, "q4b", value = up_answers$a4b)
+    updateTextAreaInput(session, "q4c", value = up_answers$a4c)
+    updateTextAreaInput(session, "q4d", value = up_answers$a4d)
+    updateTextAreaInput(session, "q4e", value = up_answers$a4e)
+    updateTextAreaInput(session, "q4f", value = up_answers$a4f)
+    updateTextAreaInput(session, "q5", value = up_answers$a5)
+    updateTextAreaInput(session, "q6", value = up_answers$a5)
+    updateTextAreaInput(session, "q7", value = up_answers$a5)
+    updateTextAreaInput(session, "q8", value = up_answers$a8)
+    updateTextAreaInput(session, "q9", value = up_answers$a9)
+    updateTextAreaInput(session, "q10", value = up_answers$a10)
+    updateTextAreaInput(session, "q11", value = up_answers$a11)
+    updateTextAreaInput(session, "q12", value = up_answers$a12)
+    updateTextAreaInput(session, "q13", value = up_answers$a13)
+    updateTextAreaInput(session, "q14", value = up_answers$a14)
+    updateTextAreaInput(session, "q15", value = up_answers$a15)
+    updateTextAreaInput(session, "q16", value = up_answers$a16)
+    updateTextAreaInput(session, "q17", value = up_answers$a17)
+    updateTextAreaInput(session, "q18", value = up_answers$a18)
+    updateTextAreaInput(session, "q19", value = up_answers$a19)
+    updateTextAreaInput(session, "q20", value = up_answers$a20)
+    updateTextAreaInput(session, "q21", value = up_answers$a21)
+    updateTextAreaInput(session, "q22", value = up_answers$a22)
+    updateTextAreaInput(session, "q23", value = up_answers$a23)
+    updateTextAreaInput(session, "q24", value = up_answers$a24)
+    updateTextAreaInput(session, "q25", value = up_answers$a25)
+    updateTextAreaInput(session, "q26", value = up_answers$a26)
+  })
+
+  })
 
 # end
