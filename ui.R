@@ -892,18 +892,7 @@ border-color: #FFF;
                                                       # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
                                                       p("Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created by selecting a row in the table and clicking 'Generate plot'."),
                                                       module_text["density_plots", ],
-                                                      p("Density plots are a variation of histograms and they are better at determining the distribution shape."),
-                                                      br(), br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = "q12", label = quest["q12", ], width = "90%"),
-                                                            )
-                                                          ),
-                                                      ),
-                                                      p("You will use the parameter sliders to answer Q 19-20.")
+                                                      p("Density plots are a variation of histograms and they are better at determining the distribution shape.")
                                                ),
                                                column(8,
                                                       fluidRow(
@@ -918,10 +907,23 @@ border-color: #FFF;
                                                                 ),
                                                         column(6, align = "center",
                                                                sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.1)
+                                                               ),
+                                                        column(12,
+                                                               br(), br(),
+                                                               box(id = "box2", width = 12, status = "primary",
+                                                                   solidHeader = TRUE,
+                                                                   fluidRow(
+                                                                     column(10, offset = 1,
+                                                                            h3("Questions"),
+                                                                            textAreaInput2(inputId = "q12", label = quest["q12", ], width = "90%"),
+                                                                            )
+                                                                     )
+                                                                   ),
+                                                               p("You will use the parameter sliders to answer Q 19-20.")
                                                                )
+                                                        )
                                                       )
-                                               )
-                                             ),
+                                               ),
                                              hr(),
                                              #* Adding multiple lines ----
                                              fluidRow(
