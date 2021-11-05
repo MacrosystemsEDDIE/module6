@@ -4437,6 +4437,177 @@ shinyServer(function(input, output, session) {
     return(p)
   })
 
+  # Navigating Tabs ----
+  #* Main Tab ====
+  rv1 <- reactiveValues(prev = 0, nxt = 2)
+  observeEvent(input$maintab, {
+    curr_tab1 <- input$maintab
+    rv1$prev <- readr::parse_number(curr_tab1) - 1
+    rv1$nxt <- readr::parse_number(curr_tab1) + 1
+  })
+
+  observe({
+    toggleState(id = "prevBtn1", condition = rv1$prev > 0)
+    toggleState(id = "nextBtn1", condition = rv1$nxt < 8)
+    hide(selector = ".page")
+    # show(paste0("mtab", rv1$nxt))
+  })
+
+
+  # Next button
+  observe({
+    curr_tab1 <- input$maintab
+    idx <- which(tab_names$tab_id == curr_tab1)
+    new_nam <- tab_names$name[idx + 1]
+    if (curr_tab1 == "mtab4") {
+      curr_obj <- input$tabseries1
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      new_nam <- tab_names$name[idx2 + 1]
+    }
+    if (curr_tab1 == "mtab5") {
+      curr_obj <- input$tabseries2
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      new_nam <- tab_names$name[idx2 + 1]
+    }
+    if (curr_tab1 == "mtab6") {
+      curr_obj <- input$tabseries3
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      new_nam <- tab_names$name[idx2 + 1]
+    }
+    if(curr_tab1 == "mtab7") {
+      updateActionButton(session, inputId = "nextBtn1", label = paste("Next >"))
+    } else {
+      # shinyjs::show(id = "nextBtn1")
+      updateActionButton(session, inputId = "nextBtn1", label = paste(new_nam, ">"))
+    }
+  })
+
+  # Previous button
+  observe({
+    curr_tab1 <- input$maintab
+    idx <- which(tab_names$tab_id == curr_tab1)
+    new_nam <- tab_names$name[idx - 1]
+
+    if (curr_tab1 == "mtab4") {
+      curr_obj <- input$tabseries1
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      if(curr_obj == "obj1") idx2 <- idx2 - 1 # Move off Activty A label
+      new_nam <- tab_names$name[idx2 - 1]
+    }
+    if (curr_tab1 == "mtab5") {
+      curr_obj <- input$tabseries2
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      if(curr_obj == "obj3") idx2 <- idx2 - 1 # Move off Activty B label
+      new_nam <- tab_names$name[idx2 - 1]
+    }
+    if (curr_tab1 == "mtab6") {
+      curr_obj <- input$tabseries3
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      if(curr_obj == "obj6") idx2 <- idx2 - 1 # Move off Activty B label
+      new_nam <- tab_names$name[idx2 - 1]
+    }
+    if(curr_tab1 == "mtab1") {
+      updateActionButton(session, inputId = "prevBtn1", label = paste("< Previous"))
+    } else {
+      # shinyjs::show(id = "prevBtn1")
+      updateActionButton(session, inputId = "prevBtn1", label = paste("<", new_nam))
+    }
+  })
+
+
+  # Advancing Tabs
+  observeEvent(input$nextBtn1, {
+
+    curr_tab1 <- input$maintab
+    idx <- which(tab_names$tab_id == curr_tab1)
+    if (curr_tab1 == "mtab4" & rv1a$nxt < 3) {
+      curr_obj <- input$tabseries1
+
+      updateTabsetPanel(session, "tabseries1",
+                        selected = paste0("obj", rv1a$nxt))
+
+    } else if (curr_tab1 == "mtab5" & rv2a$nxt < 6) {
+      curr_obj <- input$tabseries2
+
+      updateTabsetPanel(session, "tabseries2",
+                        selected = paste0("obj", rv2a$nxt))
+
+    } else if (curr_tab1 == "mtab6" & rv3a$nxt < 10) {
+      curr_obj <- input$tabseries3
+      updateTabsetPanel(session, "tabseries3",
+                        selected = paste0("obj", rv3a$nxt))
+    } else {
+      updateTabsetPanel(session, "tabseries1",
+                        selected = "obj1")
+      updateTabsetPanel(session, "tabseries2",
+                        selected = "obj3")
+      updateTabsetPanel(session, "tabseries3",
+                        selected = "obj6")
+      updateTabsetPanel(session, "maintab",
+                        selected = paste0("mtab", rv1$nxt))
+    }
+    shinyjs::runjs("window.scrollTo(0, 0)") # scroll to top of page
+  })
+
+  # Moving back through tabs
+  observeEvent(input$prevBtn1, {
+    curr_tab1 <- input$maintab
+    idx <- which(tab_names$tab_id == curr_tab1)
+    if (curr_tab1 == "mtab4" & rv1a$prev > 0) {
+      curr_obj <- input$tabseries1
+      print(curr_obj)
+
+      updateTabsetPanel(session, "tabseries1",
+                        selected = paste0("obj", rv1a$prev))
+
+    } else if (curr_tab1 == "mtab5" & rv2a$prev > 2) {
+      curr_obj <- input$tabseries2
+
+      updateTabsetPanel(session, "tabseries2",
+                        selected = paste0("obj", rv2a$prev))
+
+    } else if (curr_tab1 == "mtab6" & rv3a$prev > 5) {
+      curr_obj <- input$tabseries3
+      updateTabsetPanel(session, "tabseries3",
+                        selected = paste0("obj", rv3a$prev))
+    } else {
+      updateTabsetPanel(session, "tabseries1",
+                        selected = "obj2")
+      updateTabsetPanel(session, "tabseries2",
+                        selected = "obj5")
+      updateTabsetPanel(session, "tabseries3",
+                        selected = "obj9")
+      updateTabsetPanel(session, "maintab",
+                        selected = paste0("mtab", rv1$prev))
+    }
+    shinyjs::runjs("window.scrollTo(0, 0)")
+
+  })
+
+  #* Tab 1a ----
+  rv1a <- reactiveValues(prev = 0, nxt = 2)
+  observeEvent(input$tabseries1, {
+    curr_tab1 <- input$tabseries1
+    rv1a$prev <- readr::parse_number(curr_tab1) - 1
+    rv1a$nxt <- readr::parse_number(curr_tab1) + 1
+  })
+
+  #* Tab 2a ----
+  rv2a <- reactiveValues(prev = 0, nxt = 2)
+  observeEvent(input$tabseries2, {
+    curr_tab1 <- input$tabseries2
+    rv2a$prev <- readr::parse_number(curr_tab1) - 1
+    rv2a$nxt <- readr::parse_number(curr_tab1) + 1
+  })
+
+  #* Tab 3a ----
+  rv3a <- reactiveValues(prev = 0, nxt = 2)
+  observeEvent(input$tabseries3, {
+    curr_tab1 <- input$tabseries3
+    rv3a$prev <- readr::parse_number(curr_tab1) - 1
+    rv3a$nxt <- readr::parse_number(curr_tab1) + 1
+  })
+
 
   #** Render Report ----
   report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
@@ -4629,6 +4800,60 @@ shinyServer(function(input, output, session) {
     updateTextAreaInput(session, "q26", value = up_answers$a26)
   })
 
+  # Checklist for user inputs
+  output$check_list <- renderUI({
+    chk_list()
   })
+
+  chk_list <- reactive({
+    out_chk <- c(
+      if(input$name == "") "Introduction: Name",
+      if(input$id_number == "") "Introduction: ID number",
+      if(input$q1 == "") "Introduction: Q. 1",
+      if(input$q2 == "") "Introduction: Q. 2",
+      # if(input$q3 == "") "Introduction: Q. 3",
+      if(input$q4a == "" | input$q4b == "" | input$q4c == "" | input$q4d == "" | input$q4e == "" | input$q4f == "") "Site Selection: Objective 1 -  Q. 4",
+      if(input$q5 == "") "Site Selection: Objective 2 - Q. 5",
+      if(input$q6 == "") "Site Selection: Objective 2 - Q. 6",
+      if(input$q7 == "") "Activity A: Objective 3 - Q. 7",
+      if(is.null(input$q8)) "Activity A: Objective 3 - Q. 8",
+      if(input$q9 == "") "Activity A: Objective 3 - Q. 9",
+      if(input$q10 == "") "Activity A: Objective 3 - Q. 10",
+      if(input$q11 == "") "Activity A: Objective 3 - Q. 11",
+      if(input$q12 == "") "Activity A: Objective 4 - Q. 12",
+      if(input$q13 == "") "Activity A: Objective 4 - Q. 13",
+      if(input$q14 == "") "Activity A: Objective 4 - Q. 14",
+      if(input$q15 == "") "Activity A: Objective 4 - Q. 15",
+      if(input$q16 == "") "Activity A: Objective 5 - Q. 16",
+      if(input$q17 == "") "Activity A: Objective 5 - Q. 17",
+      if(input$q18 == "") "Activity A: Objective 5 - Q. 18",
+      if(input$q19 == "") "Activity A: Objective 5 - Q. 19",
+      if(input$q20 == "") "Activity B: Objective 6 - Q. 20",
+      if(input$q21 == "") "Activity B: Objective 6 - Q. 21",
+      if(input$q22 == "") "Activity B: Objective 6 - Q. 22",
+      if(input$q23 == "") "Activity B: Objective 6 - Q. 23",
+      if(input$q24 == "") "Activity B: Objective 7 - Q. 24",
+      if(input$q25 == "") "Activity B: Objective 7 - Q. 25",
+      if(input$q26 == "") "Activity B: Objective 7 - Q. 26",
+      if(input$q27 == "") "Activity B: Objective 8 - Q. 27",
+      if(input$q28 == "") "Activity B: Objective 8 - Q. 28"
+    )
+
+    if(length(out_chk) == 0) {
+      out_chk <- "Finished! All answers have been input into the app."
+    }
+
+    HTML(
+      paste(
+        out_chk,
+        collapse = "<br/>"
+      )
+    )
+
+
+  })
+
+
+})
 
 # end

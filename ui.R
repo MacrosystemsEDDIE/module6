@@ -369,9 +369,8 @@ border-color: #FFF;
                             width = 1544, top = 5),
                         fluidRow(
                           column(12,
-                                 h3("Activity A: Visualize data from a selected NEON site"),
-                                 h4("Explore Data & Understand Model"),
-                                 p("Complete objectives 1-3 to familiarize yourself with the data from your selected site and learn about the ecological model you will be using.")
+                                 h3("Site Selection: Select a NEON site and visualize the data"),
+                                 p("Complete objectives 1-2 to familiarize yourself with the data from your selected site and learn about the data you will be using.")
                           )
                         ),
 
@@ -380,7 +379,6 @@ border-color: #FFF;
                                     tabPanel(title = "Objective 1 - Select and view a NEON site",
 
                                              value = "obj1", id = "wh_link",
-
                                              tags$style("outline: 5px dotted green;"),
                                              #* Objective 1 ====
                                              # introBox(
@@ -454,14 +452,14 @@ border-color: #FFF;
                                                           ),
                                                           fluidRow(
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q5a", label = quest["q4a", 1] , width = "90%"),
-                                                                   textInput(inputId = "q5b", label = quest["q4b", 1], width = "90%"),
-                                                                   textInput(inputId = "q5c", label = quest["q4c", 1], width = "90%")
+                                                                   textInput(inputId = "q4a", label = quest["q4a", 1] , width = "90%"),
+                                                                   textInput(inputId = "q4b", label = quest["q4b", 1], width = "90%"),
+                                                                   textInput(inputId = "q4c", label = quest["q4c", 1], width = "90%")
                                                             ),
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q5d", label = quest["q4d", 1] , width = "90%"),
-                                                                   textInput(inputId = "q5e", label = quest["q4e", 1], width = "90%"),
-                                                                   textInput(inputId = "q5f", label = quest["q4f", 1], width = "90%")
+                                                                   textInput(inputId = "q4d", label = quest["q4d", 1] , width = "90%"),
+                                                                   textInput(inputId = "q4e", label = quest["q4e", 1], width = "90%"),
+                                                                   textInput(inputId = "q4f", label = quest["q4f", 1], width = "90%")
                                                             )
                                                           )
                                                       )
@@ -1155,7 +1153,7 @@ border-color: #FFF;
                                     )
                         ),
                # 6. Activity B ----
-               tabPanel(title = "Activity B", value = "mtab7",
+               tabPanel(title = "Activity B", value = "mtab6",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1168,7 +1166,7 @@ border-color: #FFF;
                         ),
                         tabsetPanel(id = "tabseries3",
                                     #* Objective 6 - Model Uncertainty ====
-                                    tabPanel(title = "Objective 6 - Model Uncertainty", value = "obj06",
+                                    tabPanel(title = "Objective 6 - Model Uncertainty", value = "obj6",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1406,7 +1404,7 @@ border-color: #FFF;
                                                )
                                              ),
                                     #* Objective 7 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj07",
+                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj7",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1485,7 +1483,7 @@ border-color: #FFF;
                                                )
                                              ),
                                     #* Objective 8 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj08",
+                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj8",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1557,7 +1555,7 @@ border-color: #FFF;
                                                )
                                              ),
                                     #* Activity B - Summary ====
-                                    tabPanel(title = "Summary", value = "obj09",
+                                    tabPanel(title = "Summary", value = "obj9",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
