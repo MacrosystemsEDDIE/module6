@@ -627,12 +627,13 @@ shinyServer(function(input, output, session) {
     df$wtemp[is.na(df$airt)] <- NA
 
     pars <- na.exclude(lr_pars$dt)
+    freq_idx <- which(!is.na(lr_pars$dt[, 1]))
 
     if(nrow(pars) > 0) {
       mod <- lapply(1:nrow(pars), function(x) {
         data.frame(Date = airt_swt$df$Date,
                    Model = pars$m_est[x] * airt_swt$df$airt + pars$b_est[x],
-                   Frequency = samp_freq[x])
+                   Frequency = samp_freq[freq_idx[x]])
       })
       # names(mod) <- pars$label
       # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
@@ -648,7 +649,7 @@ shinyServer(function(input, output, session) {
     }
 
     p <- ggplot() +
-      geom_hline(yintercept = 0) +
+      # geom_hline(yintercept = 0) +
       # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
       geom_point(data = df, aes(Date, wtemp), color = "black") +
       ylab("Temperature (\u00B0C)") +
@@ -1524,26 +1525,6 @@ shinyServer(function(input, output, session) {
     )
   })
 
-  # Activity C - model
-  output$mod4_eqn <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.na(mlr$dt$Equation[2]),
-           message = "Complete Objective 5")
-    )
-
-
-    eqn <- gsub("[$$]+", "", mlr$dt$Equation[2])
-    eqn <- paste0("$$", eqn, " + W_{t}$$")
-
-    withMathJax(
-      div(eqn)
-    )
-  })
-
   observeEvent(input$mult_lin_reg_vars, {
     mlr_out$txt <- NULL
     mlr$eqn <- NULL
@@ -2019,9 +2000,21 @@ shinyServer(function(input, output, session) {
 
   # Parameter UC Forecast
   output$txt_fc_out3b <- renderText({
+    print(input$mod_selec_tab3_rows_selected)
+    validate(
+      need(input$mod_selec_tab3_rows_selected != "", "Select a model in the table.")
+    )
     validate(
       need(!is.null(input$mod_selec_tab3_rows_selected), "Select a model in the table.")
     )
+    validate(
+      need(!is.null(input$mod_selec_tab3_rows_selected), "Select a model in the table.")
+    )
+    if(input$mod_selec_tab3_rows_selected != 2) {
+      validate(
+        need(!is.na(param_dist3b$dist[[input$mod_selec_tab3_rows_selected]]), "Click 'Generate parameters'.")
+      )
+    }
     validate(
       need(!is.na(wtemp_fc_out3b$mlt[[input$mod_selec_tab3_rows_selected]]), "Click 'Run forecast'")
     )
@@ -2444,6 +2437,15 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
+
+    idx <- input$mod_selec_tab3_rows_selected
+
+    if(idx == 2) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameters'.")
+      )
+    }
+
     validate(
       need(any(!is.na(wtemp_fc_out3b$mlt)),
            message = "Click 'Run forecast'.")
@@ -3181,7 +3183,87 @@ shinyServer(function(input, output, session) {
 
   # Activity C ----
 
-  output$tot_fc_uncert <- renderPlotly({
+  # Activity C - model
+  output$modA_txt <- renderText({
+    validate(
+      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+    )
+
+    if(input$mod_selec_tot_fc == "1 and 3") {
+      txt <- "We will use model 1, the model that uses forecasted water temperature as the driving variable."
+    } else if (input$mod_selec_tot_fc == "2 and 4") {
+      txt <- "We will use model 2, the model that uses yesterday's water temperature as a driving variable."
+    }
+    return(txt)
+
+  })
+
+  output$modA_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+    )
+
+    if(input$mod_selec_tot_fc == "1 and 3") {
+      eqn <- mod_selec_tab$dt[1, 1]
+    } else if (input$mod_selec_tot_fc == "2 and 4") {
+      eqn <- mod_selec_tab$dt[2, 1]
+    }
+    eqn <- gsub("[$$]+", "", eqn)
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+
+    withMathJax(
+      div(eqn)
+    )
+  })
+
+  output$modB_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+    )
+
+    if(input$mod_selec_tot_fc == "1 and 3") {
+      eqn <- mod_selec_tab$dt[3, 1]
+    } else if (input$mod_selec_tot_fc == "2 and 4") {
+      eqn <- mod_selec_tab$dt[4, 1]
+    }
+    eqn <- gsub("[$$]+", "", eqn)
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+
+    withMathJax(
+      div(eqn)
+    )
+  })
+
+  output$mod4_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.na(mlr$dt$Equation[2]),
+           message = "Complete Objective 5")
+    )
+
+
+    eqn <- gsub("[$$]+", "", mlr$dt$Equation[2])
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+
+    withMathJax(
+      div(eqn)
+    )
+  })
+
+  # Total fc
+
+  output$tot_fc_uncertA <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -3195,16 +3277,16 @@ shinyServer(function(input, output, session) {
       theme_bw(base_size = 12)
 
     if(input$plot_type_tot == "Line") {
-      if(!is.null(tot_fc_data$mlt)) {
+      if(!is.null(tot_fc_dataA$mlt)) {
 
-        mlt <- tot_fc_data$mlt
+        mlt <- tot_fc_dataA$mlt
 
         p <- p +
           geom_line(data = mlt, aes(Date, value, color = "4", group = variable), alpha = 0.6)
       }
     } else if(input$plot_type_tot == "Distribution") {
-      if(!is.null(tot_fc_data$dist)) {
-        mlt <- tot_fc_data$dist
+      if(!is.null(tot_fc_dataA$dist)) {
+        mlt <- tot_fc_dataA$dist
 
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = "4"), alpha = 0.3) +
@@ -3227,19 +3309,21 @@ shinyServer(function(input, output, session) {
     return(gp)
   })
 
-  tot_fc_data <- reactiveValues(mlt = NULL, dist = NULL)
-  observeEvent(input$run_tot_fc, {
+  tot_fc_dataA <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
+  observeEvent(input$run_tot_fcA, {
 
     # NEED CHECKS
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
-    out <- summary(mlr_fit$lst[[2]])
-    coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
+    # out <- summary(mlr_fit$lst[[2]])
+    # coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
 
     mat <- matrix(NA, 8, input$tot_fc_mem)
 
-    if("Driver" %in% input$fc_uncert) {
+    tot_fc_dataA$lab <- paste(input$fc_uncertA, collapse = " & ")
+
+    if("Driver" %in% input$fc_uncertA) {
       driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
       tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
       M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
@@ -3247,21 +3331,20 @@ shinyServer(function(input, output, session) {
     } else {
       driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
     }
-    if("Process" %in% input$fc_uncert) {
+    if("Process" %in% input$fc_uncertA) {
       Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
     } else {
       Wt <- 0
     }
-    if("Parameter" %in% input$fc_uncert) {
-      params <- data.frame(beta1 = rnorm(input$tot_fc_mem, out$coefficients[2, 1], out$coefficients[2, 2]),
-                       beta2 = rnorm(input$tot_fc_mem, out$coefficients[3, 1], out$coefficients[3, 2]),
-                       beta3 = rnorm(input$tot_fc_mem, out$coefficients[1, 1], out$coefficients[1, 2]))
+    if("Parameter" %in% input$fc_uncertA) {
+
+      params <- data.frame(m = rnorm(input$tot_fc_mem, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
+                           b = rnorm(input$tot_fc_mem, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
     } else {
-      params <- data.frame(beta1 = out$coefficients[2, 1],
-                           beta2 = out$coefficients[3, 1],
-                           beta3 = out$coefficients[1, 1])
+      params <- data.frame(m = lr_pars$dt$m_est[4],
+                           b = lr_pars$dt$b_est[4])
     }
-    if("Initial Conditions" %in% input$fc_uncert) {
+    if("Initial Conditions" %in% input$fc_uncertA) {
       mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
     } else {
       mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
@@ -3272,12 +3355,21 @@ shinyServer(function(input, output, session) {
     # print(params)
     # print(mat[1, ])
 
-
     for(mem in 2:nrow(mat)) {
-      mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
+      if(input$mod_selec_tot_fc == "1 and 3") {
+        mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
+      } else if (input$mod_selec_tot_fc == "2 and 4") {
+        mat[mem, ] <- mat[mem-1, ] + Wt
       }
+    }
+
+
+    # for(mem in 2:nrow(mat)) {
+    #   mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
+    # }
 
     # Calculate distributions
+    tot_fc_dataA$mat <- mat
     dat <- apply(mat, 1, function(x){
       quantile(x, c(0.05, 0.5, 0.95))
     })
@@ -3285,12 +3377,54 @@ shinyServer(function(input, output, session) {
     colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
     dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
     # dat$Level <- as.character(idx)
-    tot_fc_data$dist <- dat
+    tot_fc_dataA$dist <- dat
     df2 <- as.data.frame(mat)
     df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
     mlt <- reshape::melt(df2, id.vars = "Date")
     # mlt$Level <- as.character(idx)
-    tot_fc_data$mlt <- mlt
+    tot_fc_dataA$mlt <- mlt
+  })
+
+  #* Quantify Forecast UC ----
+  quantfcA <- reactiveValues(df = NULL)
+  observeEvent(input$quant_ucA, {
+    req(input$table01_rows_selected != "")
+
+    std <- apply(tot_fc_dataA$mat, 1, sd)
+
+    df <- data.frame(Date = tot_fc_dataA$dist$Date,
+                     sd = std, label = tot_fc_dataA$lab)
+
+    if(is.null(quantfcA$df)) {
+      quantfcA$df <- df
+    } else {
+      # Overwrite previous Std Dev.
+      if((df$label[1] %in% quantfcA$df$label)) {
+        idx <- which(quantfcA$df$label %in% df$label[1])
+        quantfcA$df[idx, ] <- df
+      } else {
+        quantfcA$df <- rbind(quantfcA$df, df)
+      }
+    }
+    print(quantfcA$df)
+  })
+
+  output$fc_quantA <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(quantfcA$df), "Click 'Quantify uncertainty'")
+    )
+
+    p <- ggplot() +
+      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "dodge") +
+      ylab("Standard Deviation (\u00B0C)") +
+      theme_bw(base_size = 12)
+
+    gp <- ggplotly(p) #, dynamicTicks = TRUE)
+    return(gp)
   })
 
 

@@ -1609,7 +1609,9 @@ border-color: #FFF;
                           column(6,
                                  h3("Total Forecast Uncertainty"),
                                  p("So far when generating our ecological forecasts we have only looked at each source of uncertainty individually, but in reality when generating a forecast you will include ALL sources of uncertainty."),
-                                 p("Now we will generate a forecast with one of the models while including all sources of uncertainty")
+                                 p("Now we will generate a forecast with two of the models while including all sources of uncertainty"),
+                                 selectInput("mod_selec_tot_fc", label = "Select a pair of models for the next exercise:",
+                                             choices = c("1 and 3", "2 and 4"), selected = character(0))
                                  ),
                           column(6, align = "center",
                                  img(src = "tot_uc.png", height = "60%",
@@ -1618,22 +1620,41 @@ border-color: #FFF;
                         ),
                         fluidRow(
                           column(4,
+                                 textOutput("modA_txt"),
                                  p("We will use model 4, the model that uses today's water temperature and forecasted water temperature as driving variables. This is the model which was the most accurate."),
-                                 uiOutput("mod4_eqn"),
+                                 uiOutput("modA_eqn"),
                                  p("Select sources of uncertainty to include in your forecast below"),
-                                 checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
+                                 # checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
+                                 radioButtons("fc_uncertA", "Sources of Uncertainty:", uc_sources, selected = character(0)),
                                  sliderInput("tot_fc_mem", "Forecast members", min = 10, max = 1000, value = 100, step = 10),
-                                 actionButton("run_tot_fc", "Run forecast"),
+                                 actionButton("run_tot_fcA", "Run forecast"),
                                  radioButtons("plot_type_tot", "Plot type", c("Line", "Distribution"),
                                               inline = TRUE)
                                  ),
                           column(8,
                                  wellPanel(
-                                   plotlyOutput("tot_fc_uncert")
+                                   plotlyOutput("tot_fc_uncertA")
                                    )
                                  )
                         ),
+                        #** Quantify Uncertainty ----
                         hr(),
+                        fluidRow(
+                          column(4,
+                                 h3("Quantify Forecast Uncertainty"),
+                                 p("Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
+                                 p("For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
+                                 actionButton("quant_ucA", "Quantify uncertainty")
+                                 ),
+                          column(8,
+                            wellPanel(
+                              plotlyOutput("fc_quantA")
+                            )
+                          )
+
+                        ),
+                        hr(),
+
                         fluidRow(
                           column(6,
                                  h3("Which source of uncertainty is contributing the most?"),
