@@ -1607,29 +1607,39 @@ border-color: #FFF;
                           ),
                         fluidRow(
                           column(6,
-                                 h3("Total Forecast Uncertainty"),
-                                 p("So far when generating our ecological forecasts we have only looked at each source of uncertainty individually, but in reality when generating a forecast you will include ALL sources of uncertainty."),
-                                 p("Now we will generate a forecast with two of the models while including all sources of uncertainty"),
-                                 selectInput("mod_selec_tot_fc", label = "Select a pair of models for the next exercise:",
-                                             choices = c("1 and 3", "2 and 4"), selected = character(0))
+                                 h3("Quantifying Uncertainty"),
+                                 p("So far we have explored where uncertainty comes from, now we will quantify the amount of uncertainty that is generated at each forecast horizon."),
+                                 p("Now we will generate a forecast with two of the models while including each of the different sources of uncertainty and also with all sources of uncertainty included. As in reality, when you generate an ecological forecast you will want to include all sources of uncertainty."),
+                                 selectizeInput("mod_selec_tot_fc", "Select a pair of models for the next exercise:",
+                                                choices = c("1 and 3", "2 and 4"),
+                                                options = list(
+                                                  placeholder = 'Please select a pair of models',
+                                                  onInitialize = I('function() { this.setValue(""); }'))
+                                                )
+                                 # selectInput("mod_selec_tot_fc", label = "Select a pair of models for the next exercise:",
+                                 #             choices = c("1 and 3", "2 and 4"), selected = character(0))
                                  ),
                           column(6, align = "center",
                                  img(src = "tot_uc.png", height = "60%",
                                      width = "60%", align = "center")
                                  )
                         ),
+                        #* Model A - UC partitioning ----
                         fluidRow(
                           column(4,
                                  textOutput("modA_txt"),
-                                 p("We will use model 4, the model that uses today's water temperature and forecasted water temperature as driving variables. This is the model which was the most accurate."),
                                  uiOutput("modA_eqn"),
                                  p("Select sources of uncertainty to include in your forecast below"),
                                  # checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
                                  radioButtons("fc_uncertA", "Sources of Uncertainty:", uc_sources, selected = character(0)),
+                                 conditionalPanel("input.fc_uncertA == 'Total'",
+                                                  p("Total uncertainty includes all four sources of uncertainty (Process, Parameter, Initial Conditions and Driver).")
+                                                  ),
                                  sliderInput("tot_fc_mem", "Forecast members", min = 10, max = 1000, value = 100, step = 10),
                                  actionButton("run_tot_fcA", "Run forecast"),
-                                 radioButtons("plot_type_tot", "Plot type", c("Line", "Distribution"),
-                                              inline = TRUE)
+                                 radioButtons("plot_type_totA", "Plot type", c("Line", "Distribution"),
+                                              inline = TRUE),
+                                 p("For each forecast, you will need to quantify the different sources of uncertainty in the panel below.")
                                  ),
                           column(8,
                                  wellPanel(
@@ -1637,7 +1647,7 @@ border-color: #FFF;
                                    )
                                  )
                         ),
-                        #** Quantify Uncertainty ----
+                        #** Quantify Uncertainty - Part A ----
                         hr(),
                         fluidRow(
                           column(4,
@@ -1650,6 +1660,46 @@ border-color: #FFF;
                             wellPanel(
                               plotlyOutput("fc_quantA")
                             )
+                          )
+
+                        ),
+                        hr(),
+
+                        #* Model B - UC partitioning ----
+                        fluidRow(
+                          column(4,
+                                 textOutput("modB_txt"),
+                                 uiOutput("modB_eqn"),
+                                 p("Select sources of uncertainty to include in your forecast below"),
+                                 # checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
+                                 radioButtons("fc_uncertB", "Sources of Uncertainty:", uc_sources, selected = character(0)),
+                                 conditionalPanel("input.fc_uncertB == 'Total'",
+                                                  p("Total uncertainty includes all four sources of uncertainty (Process, Parameter, Initial Conditions and Driver).")
+                                 ),
+                                 sliderInput("tot_fc_mem", "Forecast members", min = 10, max = 1000, value = 100, step = 10),
+                                 actionButton("run_tot_fcB", "Run forecast"),
+                                 radioButtons("plot_type_totB", "Plot type", c("Line", "Distribution"), selected = "Line",
+                                              inline = TRUE),
+                                 p("For each forecast, you will need to quantify the different sources of uncertainty in the panel below.")
+                          ),
+                          column(8,
+                                 wellPanel(
+                                   plotlyOutput("tot_fc_uncertB")
+                                 )
+                          )
+                        ),
+                        #** Quantify Uncertainty - Part B ----
+                        hr(),
+                        fluidRow(
+                          column(4,
+                                 h3("Quantify Forecast Uncertainty"),
+                                 p("Quantify uncertainty for the other model you have select and compare the two results below and answer questions."),
+                                 actionButton("quant_ucB", "Quantify uncertainty")
+                          ),
+                          column(8,
+                                 wellPanel(
+                                   plotlyOutput("fc_quantB")
+                                 )
                           )
 
                         ),
