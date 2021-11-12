@@ -11,6 +11,7 @@ suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
 scale_fill_discrete <- ggthemes::scale_fill_colorblind
 cols <- RColorBrewer::brewer.pal(8, "Dark2")
+cols2 <- ggthemes::ggthemes_data$colorblind$value
 l.cols <- RColorBrewer::brewer.pal(8, "Set2")[-c(1, 2)]
 
 # Functions required
@@ -95,7 +96,7 @@ fc_date <- "2020-09-25"
 samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
 
 # Uncertainty sources to include
-uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver")
+uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver", "Total")
 
 # Add last update time
 app_time <- format(file.info("ui.R")$mtime, "%Y-%m-%d")
