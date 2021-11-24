@@ -520,12 +520,7 @@ border-color: #FFF;
                                                )
                                              ), hr(),
                                              fluidRow(
-                                               column(4,
-                                                      h3("Calculate statistics"),
-                                                      selectInput("stat_calc", label = "Select calculation:", choices = stats),
-                                                      textOutput("out_stats")
-                                               ),
-                                               column(8,
+                                               column(10, offset = 1,
                                                       box(id = "box4", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1168,33 +1163,87 @@ border-color: #FFF;
                           ),
                         ),
                         tabsetPanel(id = "tabseries3",
-                                    #* Objective 6 - Model Uncertainty ====
-                                    tabPanel(title = "Objective 6 - Model Uncertainty", value = "obj6",
+                                    #* Activity B - Overview ====
+                                    tabPanel(title = "Overview", value = "obj6",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 6 - Model Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                                h3("Overview"),
+                                                                p(id = "txt_j", module_text["act_B_overview", ])
                                                                 )
                                                       )
-                                             ),
-                                             #* Model Uncertainty ----
+                                               ),
                                              fluidRow(
                                                column(6,
-                                                      h3("Model Uncertainty"),
+                                                      h3("Overview"),
                                                       p("We will now generate forecasts of water temperature."),
-                                                      p("We will use the models that you developed in Activity A to explore model uncertainty,"),
-                                                      p("We will focus on two types of uncertainty associated with model uncertainty as we generate water temperature forecasts:"),
+                                                      p("We will use the models that you developed in Activity A to explore four different types of uncertainty associated with ecological forecasts."),
                                                       tags$ol(
                                                         # tags$li("Model selection"),
-                                                        tags$li("Process"),
-                                                        tags$li("Parameter")
+                                                        tags$li("Process uncertainty"),
+                                                        tags$li("Parameter uncertainty"),
+                                                        tags$li("Initial conditions uncertainty"),
+                                                        tags$li("Driver uncertainty")
                                                       )
                                                ),
                                                column(6, align = "center",
                                                       img(src = "model_UC_draft_v1.png", height = "60%", id = "bla_border",
                                                           width = "60%", tags$style("border: solid 2px black;"))
+                                                      )
+                                               ),
+                                             #** View Weather Forecast Data ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Weather forecast data"),
+                                                      p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. We will need this data for our forecasts as some of our models depend on forecasted air temperature. Click the button below to view it."),
+                                                      actionButton("view_at_fc", "View forecast"),
+                                                      p("With this air temperature forecast we can use the models that we built in Activity A that require air temperature, to forecast water temperature:")
+                                               ),
+                                               column(6,
+                                                      plotlyOutput("airt1_fc_plot")
+                                               ),
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Forecast water temperature"),
+                                                      p("Now we will generate deterministic forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
+                                                      p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      actionButton("load_mods", "Load models"),
+                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                                      DTOutput("mod_selec_tab1a"),
+                                                      br(),
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   textAreaInput2(inputId = "q20", label = quest["q20", ], width = "90%"),
+                                                            )
+                                                          ),
+                                                      )
+                                               ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc1a")
+                                                      ),
+                                                      wellPanel(
+                                                        actionButton("load_driv1a", "Load driver data"),
+                                                        actionButton("run_wtemp_fc1a", "Run forecast"),
+                                                        uiOutput("sel_mod1a"),
+                                                        textOutput("txt_fc_out1a")
+                                                        )
+                                                      )
                                                )
+                                             ),
+                                    #* Objective 6 - Process Uncertainty ====
+                                    tabPanel(title = "Objective 6 - Process Uncertainty", value = "obj7",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 6 - Process Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                                )
+                                                      )
                                              ),
                                              hr(),
                                              #** Model Selection Uncertainty ----
@@ -1222,49 +1271,6 @@ border-color: #FFF;
                                              #          )
                                              #   )
                                              # ),
-                                             #** View Weather Forecast Data ----
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Forecasting with weather forecast data"),
-                                                      p("We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. Click the button below to view it."),
-                                                      actionButton("view_at_fc", "View forecast"),
-                                                      p("With this air temperature forecast we can use the models that we built in Activity A that require air temperature, to forecast water temperature:")
-                                                      ),
-                                               column(6,
-                                                      plotlyOutput("airt1_fc_plot")
-                                               ),
-                                             ),
-                                             fluidRow(
-                                               column(6,
-                                                      h4("Forecast water temperature"),
-                                                      p("Now we will generate forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
-                                                      p("Select a model from the table below and then load the driver data and run the forecast."),
-                                                      actionButton("load_mods", "Load models"),
-                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab1a"),
-                                                      br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = "q20", label = quest["q20", ], width = "90%"),
-                                                                   )
-                                                            ),
-                                                          )
-                                                      ),
-                                               column(6,
-                                                      wellPanel(
-                                                        plotlyOutput("wtemp_fc1a")
-                                                      ),
-                                                      wellPanel(
-                                                        actionButton("load_driv1a", "Load driver data"),
-                                                        actionButton("run_wtemp_fc1a", "Run forecast"),
-                                                        uiOutput("sel_mod1a"),
-                                                        textOutput("txt_fc_out1a")
-                                                        )
-                                                      )
-                                             ),
                                              hr(),
                                              #** Model Process Uncertainty ----
                                              fluidRow(
@@ -1273,23 +1279,29 @@ border-color: #FFF;
                                                       )
                                              ),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       p(module_text["proc_uc", ]),
                                                       p("Across is a description of our \"simple\" water temperature model (1). But we know that water temperature is variable and that our model has simplified these."),
                                                       p("To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model at each time step (2)."),
                                                       p("Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
                                                       p("where process noise is equal to a random number with a mean of zero and a standard deviation."),
                                                ),
-                                               column(6,
-                                                      h4("Model Equations"),
+                                               column(8,
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
-                                                        p(withMathJax("$$ wtemp_{t+1} = model_{t}\\ (1) $$")),
-                                                      ),
-                                                      br(),
-                                                      wellPanel(
-                                                        p(withMathJax("$$ wtemp_{t+1} = model_{t} + W_t\\ (2) $$"))
+                                                        slickROutput("proc_uc_slides", width = "640px", height = "360px")
                                                         )
-                                                      )
+                                                      ),
+                                               # column(6,
+                                               #        h4("Model Equations"),
+                                               #        wellPanel(
+                                               #          p(withMathJax("$$ wtemp_{t+1} = model\\ (1) $$")),
+                                               #        ),
+                                               #        br(),
+                                               #        wellPanel(
+                                               #          p(withMathJax("$$ wtemp_{t+1} = model + W_t\\ (2) $$"))
+                                               #          )
+                                               #        )
                                                ),
                                              fluidRow(
                                                column(6,
@@ -1328,20 +1340,32 @@ border-color: #FFF;
                                                )
                                              ),
                                              hr(),
-                                             #** Model Parameter Uncertainty ----
+                                    ),
+                                    #* Objective 7 - Parameter Uncertainty ====
+                                    tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj7",
                                              fluidRow(
-                                               column(6,
-                                                      h3("Model Parameter Uncertainty"),
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 7 - Parameter Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_07", ])
+                                                      )
+                                               )
+                                             ),
+                                             #** Parameter Uncertainty ----
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Parameter Uncertainty"),
                                                       p(module_text["param_uncert", ]),
                                                       p("With traditional modelling efforts, people general find one set of the 'best fit' parameters and use them to predict with their model. This method does not account for the uncertainty around the estimation of these parameters."),
                                                       p("There is often the possibility that different parameter sets can yield similar metrics of model performance e.g. similar R-squared values."),
                                                       p("Using ", tags$b("parameter distributions"), " allows for a better representation of the potential predicted outcomes e.g. better quantification of the uncertainty.")
                                                ),
-                                               column(6,
-                                                      img(src = "param_uc.jpg", height = "80%", id = "bla_border",
-                                                          width = "80%", tags$style("border: solid 2px black;")),
-                                                      p(a(href = "https://www.frontiersin.org/files/Articles/370145/fninf-12-00049-HTML/image_m/fninf-12-00049-g001.jpg", "Source", target = "_blank"))
+                                               column(8,
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("param_uc_slides", width = "640px", height = "360px")
                                                       )
+                                               )
                                              ),
                                              hr(),
                                              fluidRow(
@@ -1407,26 +1431,27 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                    #* Objective 7 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj7",
+                                    #* Objective 8 - Initial Conditions Uncertainty ====
+                                    tabPanel(title = "Objective 8 - Initial Conditions Uncertainty", value = "obj9",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 7 - Initial Conditions Uncertainty"),
+                                                                h3("Objective 8 - Initial Conditions Uncertainty"),
                                                                 p(id = "txt_j", module_text["obj_08", ])
                                                                 )
                                                       )
                                                ),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       h3("Initial Condition Uncertainty"),
                                                       p(module_text["init_uncert", ]),
                                                       p("Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time.")
                                                ),
-                                               column(6,
-                                                      img(src = "ic_uc.jpg", height = "80%", id = "bla_border",
-                                                          width = "80%", tags$style("border: solid 2px black;")),
-                                                      p(a(href = "https://www.ecmwf.int/en/about/media-centre/news/2017/twenty-five-years-ensemble-forecasting", "Source", target = "_blank"))
+                                               column(8,
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("ic_uc_slides", width = "640px", height = "360px")
+                                                        )
                                                       )
                                                ),
                                              hr(),
@@ -1487,18 +1512,18 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                    #* Objective 8 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj8",
+                                    #* Objective 9 - Driver Uncertainty ====
+                                    tabPanel(title = "Objective 9 - Driver Uncertainty", value = "obj10",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 8 - Driver Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_08", ])
+                                                                h3("Objective 9 - Driver Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_09", ])
                                                       )
                                                )
                                              ),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       h3("Driver Uncertainty"),
                                                       p(module_text["driver_uncert", ]),
                                                       p("The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted driver data to drive the model."),
@@ -1509,12 +1534,13 @@ border-color: #FFF;
                                                                img(src = "noaa_logo.jpg", height = "20%",
                                                                    width = "20%", align = "right")
                                                       ),
-                                               column(6,
-                                                      img(src = "ensemble_forecasting_schematic.png", height = "80%", id = "bla_border",
-                                                          width = "80%", tags$style("border: solid 2px black;")),
-                                                      p(a(href = "https://www.metoffice.gov.uk/research/weather/ensemble-forecasting/what-is-an-ensemble-forecast", "Source", target = "_blank"))
+                                               column(8,
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("driver_uc_slides", width = "640px", height = "360px")
+                                                        )
                                                       )
-                                             ),
+                                               ),
                                              fluidRow(
                                                column(6,
                                                       p("Load the NOAA ensemble forecast for air temperature below."),
@@ -1561,7 +1587,7 @@ border-color: #FFF;
                                                )
                                              ),
                                     #* Activity B - Summary ====
-                                    tabPanel(title = "Summary", value = "obj9",
+                                    tabPanel(title = "Summary", value = "obj11",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),

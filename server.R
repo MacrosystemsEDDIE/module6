@@ -47,7 +47,27 @@ shinyServer(function(input, output, session) {
 
   # Slickr model output
   output$slides <- renderSlickR({
-    slickR(recap_slides)
+    slickR(recap_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+  })
+
+  # Slickr Process UC slides
+  output$proc_uc_slides <- renderSlickR({
+    slickR(proc_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+  })
+
+  # Slickr Parameter UC slides
+  output$param_uc_slides <- renderSlickR({
+    slickR(param_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+  })
+
+  # Slickr Initial conditions UC slides
+  output$ic_uc_slides <- renderSlickR({
+    slickR(ic_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+  })
+
+  # Slickr Driver UC slides
+  output$driver_uc_slides <- renderSlickR({
+    slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
   })
 
   # NEON Sites datatable ----
