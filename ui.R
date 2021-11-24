@@ -1187,7 +1187,7 @@ border-color: #FFF;
                                                       )
                                                ),
                                                column(6, align = "center",
-                                                      img(src = "model_UC_draft_v1.png", height = "60%", id = "bla_border",
+                                                      img(src = "model_UC_draft_v2.png", height = "60%", id = "bla_border",
                                                           width = "60%", tags$style("border: solid 2px black;"))
                                                       )
                                                ),
@@ -1232,6 +1232,15 @@ border-color: #FFF;
                                                         uiOutput("sel_mod1a"),
                                                         textOutput("txt_fc_out1a")
                                                         )
+                                                      )
+                                               ),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("What is wrong with these forecasts?"),
+                                                      p("Using a deterministic forecast (e.g. a forecast which is one single line) is guranteed to be wrong and ignores the uncertainty that is inherently associated with the future."),
+                                                      p("There are many things which contribute to uncertainty when generating the forecast."),
+                                                      p("A forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
+                                                      p("Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
                                                       )
                                                )
                                              ),
@@ -1384,7 +1393,8 @@ border-color: #FFF;
                                                       p("We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different potential parameter sets."),
                                                       p("Select a model from the table below and then generate parameter distributions, then load the driver data and then run the forecast."),
                                                       DTOutput("mod_selec_tab3"),
-                                                      actionButton("gen_params3b", "Generate parameters")
+                                                      actionButton("gen_params3b", "Generate parameters"),
+                                                      actionButton("run_wtemp_fc3b", "Run forecast")
                                                ),
                                                column(6,
                                                       wellPanel(
@@ -1413,7 +1423,6 @@ border-color: #FFF;
                                                         plotlyOutput("wtemp_fc3b")
                                                       ),
                                                       # actionButton("load_driv2", "Load driver data"),
-                                                      actionButton("run_wtemp_fc3b", "Run forecast"),
                                                       uiOutput("sel_mod3b"),
                                                       textOutput("txt_fc_out3b"),
                                                       conditionalPanel("input.run_wtemp_fc3b > 0",
@@ -1530,7 +1539,7 @@ border-color: #FFF;
                                                       br(),
                                                       p("Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts"),
                                                       h4("NOAA Forecast data"),
-                                                               p(id = "txt_j", "Here we will load in data from a ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA GEFS", target = "_blank"), " forecast for the NEON site you chose in Activity A."),
+                                                               p(id = "txt_j", "Here we will load in an air temperature forecast which has been generate from the ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA Global Ensemble Forecast System", target = "_blank"), " for the NEON site you chose in Activity A."),
                                                                img(src = "noaa_logo.jpg", height = "20%",
                                                                    width = "20%", align = "right")
                                                       ),
@@ -1550,6 +1559,27 @@ border-color: #FFF;
                                                       numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
                                                       p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
+                                                      wellPanel(
+                                                        actionButton("load_driv5", "Load driver data"),
+                                                        actionButton("run_wtemp_fc5", "Run forecast"),
+                                                        uiOutput("sel_mod5"),
+                                                        textOutput("txt_fc_out5"),
+                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                                     inline = TRUE)
+                                                        )
+                                                      ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("airt_fc5")
+                                                      ),
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc5")
+                                                        )
+                                                      )
+                                               ),
+
+                                             fluidRow(
+                                               column(10, offset = 1,
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1560,22 +1590,6 @@ border-color: #FFF;
                                                                    )
                                                             )
                                                           )
-                                                      ),
-                                               column(6,
-                                                      wellPanel(
-                                                        plotlyOutput("airt_fc5")
-                                                      ),
-                                                      wellPanel(
-                                                        plotlyOutput("wtemp_fc5")
-                                                      ),
-                                                      wellPanel(
-                                                        actionButton("load_driv5", "Load driver data"),
-                                                        actionButton("run_wtemp_fc5", "Run forecast"),
-                                                        uiOutput("sel_mod5"),
-                                                        textOutput("txt_fc_out5"),
-                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                                     inline = TRUE)
-                                                        )
                                                       )
                                                ),
                                              hr(),
