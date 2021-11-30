@@ -1206,10 +1206,10 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast water temperature"),
-                                                      p("Now we will generate deterministic forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
+                                                      p("Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
                                                       actionButton("load_mods", "Load models"),
-                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                                      p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
                                                       box(id = "box2", width = 12, status = "primary",
@@ -1255,7 +1255,7 @@ border-color: #FFF;
                                                       )
                                              ),
                                              hr(),
-                                             #** Model Selection Uncertainty ----
+                                             #** DEPRECATED Model Selection Uncertainty ----
                                              # fluidRow(
                                              #   column(6,
                                              #          h3("Model Selection Uncertainty"),
@@ -1265,7 +1265,7 @@ border-color: #FFF;
                                              #          div("$$ wtemp_{t+1} = ?? $$"),
                                              #          # p("Depending on your model selection, the necessary required driving variables are shown."),
                                              #          actionButton("load_mods", "Load models"),
-                                             #          p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                             #          p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                              #          DTOutput("mod_selec_tab")
                                              #   ),
                                              #   column(6,
@@ -1281,10 +1281,10 @@ border-color: #FFF;
                                              #   )
                                              # ),
                                              hr(),
-                                             #** Model Process Uncertainty ----
+                                             #** Process Uncertainty ----
                                              fluidRow(
                                                column(12,
-                                                      h3("Model Process Uncertainty")
+                                                      h3("Process Uncertainty")
                                                       )
                                              ),
                                              fluidRow(
@@ -1317,7 +1317,11 @@ border-color: #FFF;
                                                       h4("Forecast with Process Uncertainty"),
                                                       p("First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with differing numbers of members and observe how the forecast outcome changes."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
+                                                      br(),
+                                                      actionButton("load_driv2", "Load driver data"),
+                                                      actionButton("run_wtemp_fc2", "Run forecast"),
                                                       br(),
                                                       p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
                                                       p("Using the slider below, adjust the number of members to see how process uncertainty changes with time into the future (e.g. forecast horizon)."),
@@ -1336,8 +1340,6 @@ border-color: #FFF;
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
                                                       ),
-                                                      actionButton("load_driv2", "Load driver data"),
-                                                      actionButton("run_wtemp_fc2", "Run forecast"),
                                                       uiOutput("sel_mod2"),
                                                       textOutput("txt_fc_out2"),
                                                       conditionalPanel("input.run_wtemp_fc2 > 0",
@@ -1392,9 +1394,12 @@ border-color: #FFF;
                                                       h4("Generate Parameter Distributions"),
                                                       p("We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different potential parameter sets."),
                                                       p("Select a model from the table below and then generate parameter distributions, then load the driver data and then run the forecast."),
+                                                      p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab3"),
+                                                      br(),
                                                       actionButton("gen_params3b", "Generate parameters"),
-                                                      actionButton("run_wtemp_fc3b", "Run forecast")
+                                                      actionButton("run_wtemp_fc3b", "Run forecast"),
+                                                      p("We will use 100 parameter sets in the forecast ensemble. These will be sampled from the distributions generated above.")
                                                ),
                                                column(6,
                                                       wellPanel(
@@ -1405,8 +1410,8 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Parameter Uncertainty"),
-                                                      p("Select the number of parameters to be used in the forecast ensemble. These will be sampled from the distributions generated above."),
-                                                      sliderInput("n_mem3b", "No. of members", min = 5, max = 100, value = 5, step = 5),
+                                                      # p("Select the number of parameters to be used in the forecast ensemble. These will be sampled from the distributions generated above."),
+                                                      # sliderInput("n_mem3b", "No. of members", min = 5, max = 100, value = 5, step = 5),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1482,10 +1487,14 @@ border-color: #FFF;
                                                column(6,
                                                       p("Now we will generate forecasts with different initial conditions for each of our models."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
-                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                                      p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab4"),
                                                       br(),
-                                                      sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5),
+                                                      actionButton("load_driv4", "Load driver data"),
+                                                      actionButton("run_wtemp_fc4", "Run forecast"),
+                                                      p("We will use 100 different initial condtions in the forecast ensemble. These will be sampled from the distribution generated above."),
+
+                                                      # sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5),
                                                       br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
@@ -1504,8 +1513,6 @@ border-color: #FFF;
                                                         plotlyOutput("wtemp_fc4")
                                                       ),
                                                       wellPanel(
-                                                        actionButton("load_driv4", "Load driver data"),
-                                                        actionButton("run_wtemp_fc4", "Run forecast"),
                                                         uiOutput("sel_mod4"),
                                                         textOutput("txt_fc_out4"),
                                                         radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
@@ -1557,7 +1564,7 @@ border-color: #FFF;
                                                       verbatimTextOutput("noaa_at_loaded"),
                                                       p("You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
                                                       numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
-                                                      p("Note: If there are '$' in the tables below, click on one of the rows and this will re-render the table."),
+                                                      p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
                                                       wellPanel(
                                                         actionButton("load_driv5", "Load driver data"),

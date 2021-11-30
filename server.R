@@ -521,10 +521,10 @@ shinyServer(function(input, output, session) {
   #                          server = FALSE, escape = FALSE)
   lr_eqn <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
                                             r2 = rep(NA, 4), N = rep(NA, 4)))
-  output$lr_DT <- renderDT(lr_eqn$dt, selection = "none",
+  output$lr_DT <- renderDT(lr_eqn$dt[, c(1, 3)], selection = "none",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
-                           ), colnames = c("Model", "R-squared", "N"),
+                           ), colnames = c("Model", "N"),
                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
@@ -2181,8 +2181,8 @@ shinyServer(function(input, output, session) {
 
     df <- wtemp_fc_data4$lst[[input$mod_selec_tab4_rows_selected]]
 
-    mat <- matrix(NA, 8, input$n_mem4)
-    mat[1, ] <- rnorm(input$n_mem4, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
+    mat <- matrix(NA, 8, 100)
+    mat[1, ] <- rnorm(100, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
     df <- df[(df$Date >= fc_date), ]
     idx <- input$mod_selec_tab4_rows_selected
     for(mem in 2:nrow(mat)) {
@@ -2834,7 +2834,7 @@ shinyServer(function(input, output, session) {
 
     pars <- param_dist3b$dist[[idx]]
     if(!is.na(pars)) {
-      pars <- pars[sample(1:nrow(pars), size = input$n_mem3b), ]
+      pars <- pars[sample(1:nrow(pars), size = 100), ]
     }
 
     df <- airt1_fc$df
@@ -2842,7 +2842,7 @@ shinyServer(function(input, output, session) {
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
-    mat <- matrix(NA, 8, input$n_mem3b)
+    mat <- matrix(NA, 8, 100)
     mat[1, ] <- dat$wtemp[which(dat$Date == fc_date)]
     df <- df[(df$Date >= fc_date), ]
     for(mem in 2:nrow(mat)) {
@@ -2975,8 +2975,8 @@ shinyServer(function(input, output, session) {
   #   mlt <- lr_dist_plot$lst[[4]]
   #   print(head(mlt))
   #
-  #   pars <- data.frame(m = sample(mlt$m, input$n_mem4),
-  #                      b = sample(mlt$b, input$n_mem4))
+  #   pars <- data.frame(m = sample(mlt$m, 100),
+  #                      b = sample(mlt$b, 100))
   #   print(pars)
   #
   #
@@ -2984,7 +2984,7 @@ shinyServer(function(input, output, session) {
   #   colnames(df)[2] <- "airt"
   #
   #   mat <- apply(pars, 1, function(y) y[1]* airt1_fc$df$value + y[2])
-  #   mat[1, ] <- sample(ic_dist$df$value, input$n_mem4)
+  #   mat[1, ] <- sample(ic_dist$df$value, 100)
   #
   #   mod <- as.data.frame(mat)
   #   mod$Date <- df$Date
