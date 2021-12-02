@@ -807,6 +807,7 @@ border-color: #FFF;
                                                       br(),
                                                       # p("You do not need to get the percentages exactly right, but close enough will work fine."),
                                                       actionButton("add_lm", "Get model parameters"),
+                                                      br(),
                                                       wellPanel(
                                                         uiOutput("lm_mod")
                                                         )
@@ -1065,6 +1066,7 @@ border-color: #FFF;
                                                       ),
                                                       p("Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
                                                       actionButton("plot_persist", "Plot"),
+                                                      br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1212,6 +1214,9 @@ border-color: #FFF;
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
+                                                      actionButton("load_driv1a", "Load driver data"),
+                                                      actionButton("run_wtemp_fc1a", "Run forecast"),
+                                                      br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1227,8 +1232,6 @@ border-color: #FFF;
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
                                                       wellPanel(
-                                                        actionButton("load_driv1a", "Load driver data"),
-                                                        actionButton("run_wtemp_fc1a", "Run forecast"),
                                                         uiOutput("sel_mod1a"),
                                                         textOutput("txt_fc_out1a")
                                                         )
@@ -1353,7 +1356,7 @@ border-color: #FFF;
                                              hr(),
                                     ),
                                     #* Objective 7 - Parameter Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj7",
+                                    tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj8",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1474,7 +1477,7 @@ border-color: #FFF;
                                                       h4("Forecasting with Initial Conditions Uncertainty"),
                                                       p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
                                                       p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
-                                                      sliderInput("ic_uc", "Standard deviation", min = 0.01, max = 0.5, value = 0.1, step = 0.05),
+                                                      sliderInput("ic_uc", "Standard deviation", min = 0.05, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
                                                column(6,
@@ -1492,6 +1495,7 @@ border-color: #FFF;
                                                       br(),
                                                       actionButton("load_driv4", "Load driver data"),
                                                       actionButton("run_wtemp_fc4", "Run forecast"),
+                                                      br(),
                                                       p("We will use 100 different initial condtions in the forecast ensemble. These will be sampled from the distribution generated above."),
 
                                                       # sliderInput("n_mem4", "No. of members", min = 1, max = 100, value = 5, step = 5),
@@ -1563,7 +1567,7 @@ border-color: #FFF;
                                                       actionButton("load_noaa_at", "Load forecast"),
                                                       verbatimTextOutput("noaa_at_loaded"),
                                                       p("You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
-                                                      numericInput("noaa_n_mems", "Number of forecasts (0-30)", 3, 1, 30),
+                                                      numericInput("noaa_n_mems", "Number of forecasts (0-30)", 30, 1, 30),
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
                                                       wellPanel(
@@ -1621,15 +1625,56 @@ border-color: #FFF;
                                                fluidRow(
                                                  column(5, offset = 1,
                                                       h4("Discussion Questions"),
-                                                      tags$line(),
+                                                      p(tags$em("Use the figures below to answer the questions.")),
+                                                      tags$line()
+                                                 )
+                                               ),
+                                             fluidRow(
+                                               column(4,
                                                       tags$ul(
                                                         tags$li(id = "txt_j", module_text["actB_q1", ]),
-                                                        br(),
-                                                        tags$li(id = "txt_j", module_text["actB_q2", ]),
-                                                        br(),
-                                                        tags$li(id = "txt_j", module_text["actB_q3", ]))
+                                                        textAreaInput2("disc_q1", "")
                                                       )
                                                ),
+                                               column(4,
+                                                      tags$ul(
+                                                        tags$li(id = "txt_j", module_text["actB_q2", ]),
+                                                        textAreaInput2("disc_q2", "")
+                                                      )
+                                               ),
+                                               column(4,
+                                                      tags$ul(
+                                                        tags$li(id = "txt_j", module_text["actB_q3", ]),
+                                                        textAreaInput2("disc_q3", "")
+                                                        )
+                                                      )
+                                               ),
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Process Uncertainty"),
+                                                      wellPanel(
+                                                        plotOutput("proc_uc_summ")
+                                                        )
+                                                      ),
+                                               column(6,
+                                                      h3("Parameter Uncertainty"),
+                                                      wellPanel(
+                                                        plotOutput("param_uc_summ")
+                                                        )
+                                                      ),
+                                               column(6,
+                                                      h3("Initial Conditions Uncertainty"),
+                                                      wellPanel(
+                                                        plotOutput("ic_uc_summ")
+                                                        )
+                                                      ),
+                                               column(6,
+                                                      h3("Driver Uncertainty"),
+                                                      wellPanel(
+                                                        plotOutput("driver_uc_summ")
+                                                        )
+                                                      )
+                                             ),
                                              fluidRow(
                                                column(12,
                                                       h2("Completed Activity B!"),
@@ -1678,7 +1723,7 @@ border-color: #FFF;
                                  uiOutput("modA_eqn"),
                                  p("Select sources of uncertainty to include in your forecast below"),
                                  # checkboxGroupInput("fc_uncert", "Sources of Uncertainty:", uc_sources),
-                                 radioButtons("fc_uncertA", "Sources of Uncertainty:", uc_sources, selected = character(0)),
+                                 # radioButtons("fc_uncertA", "Sources of Uncertainty:", uc_sources, selected = character(0)),
                                  conditionalPanel("input.fc_uncertA == 'Total'",
                                                   p("Total uncertainty includes all four sources of uncertainty (Process, Parameter, Initial Conditions and Driver).")
                                                   ),
@@ -1686,11 +1731,19 @@ border-color: #FFF;
                                  actionButton("run_tot_fcA", "Run forecast"),
                                  radioButtons("plot_type_totA", "Plot type", c("Line", "Distribution"),
                                               inline = TRUE),
-                                 p("For each forecast, you will need to quantify the different sources of uncertainty in the panel below.")
+                                 p("For each forecast, you will need to quantify the different sources of uncertainty in the panel below."),
+                                 br(),
+                                 h3("Quantify Forecast Uncertainty"),
+                                 p("Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
+                                 p("For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
+                                 actionButton("quant_ucA", "Quantify uncertainty")
                                  ),
                           column(8,
                                  wellPanel(
                                    plotlyOutput("tot_fc_uncertA")
+                                   ),
+                                 wellPanel(
+                                   plotlyOutput("fc_quantA")
                                    )
                                  )
                         ),
@@ -1698,15 +1751,10 @@ border-color: #FFF;
                         hr(),
                         fluidRow(
                           column(4,
-                                 h3("Quantify Forecast Uncertainty"),
-                                 p("Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
-                                 p("For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
-                                 actionButton("quant_ucA", "Quantify uncertainty")
+
                                  ),
                           column(8,
-                            wellPanel(
-                              plotlyOutput("fc_quantA")
-                            )
+
                           )
 
                         ),
@@ -2096,7 +2144,7 @@ border-color: #FFF;
                    use_hover(popback = TRUE),
                    hover_action_button(
                      inputId = "nextBtn1",
-                     label = "Introduction >",
+                     label = "Presentation >",
                      button_animation = "glow",
                      style = paste0("color: ", nav_txt, "; background-color: ", nav_butt, "; border-color: #00664B; padding:15px; font-size:22px;")
                    ),

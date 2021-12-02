@@ -2457,10 +2457,14 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
+    validate(
+      need(input$mod_selec_tab3_rows_selected != "",
+           message = "Please select a model in the table.")
+    )
 
     idx <- input$mod_selec_tab3_rows_selected
 
-    if(idx == 2) {
+    if(idx != 2) {
       validate(
         need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameters'.")
       )
@@ -2647,12 +2651,12 @@ shinyServer(function(input, output, session) {
 
   #** Parameter Uncertainty - wtemp model ----
   observe({
-  if(input$view_at_fc < 1) {
-    shinyjs::disable("run_wtemp_fc3a")
-  } else {
-    shinyjs::enable("run_wtemp_fc3a")
-  }
-})
+    if(input$view_at_fc < 1) {
+      shinyjs::disable("run_wtemp_fc3a")
+    } else {
+      shinyjs::enable("run_wtemp_fc3a")
+      }
+    })
 
   output$airt1_fc_plot <- renderPlotly({
     validate(
@@ -2777,20 +2781,20 @@ shinyServer(function(input, output, session) {
     idx <- input$mod_selec_tab3_rows_selected
 
     if(idx == 1) {
-      df <- data.frame(m = rnorm(500, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
-                       b = rnorm(500, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
+      df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
+                       b = rnorm(5000, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
     } else if(idx == 2) {
       df <- NA
     } else if(idx == 3) {
       out <- summary(mlr_fit$lst[[1]])
-      df <- data.frame(m = rnorm(500, out$coefficients[2, 1], out$coefficients[2, 2]),
-                       b = rnorm(500, out$coefficients[1, 1], out$coefficients[1, 2]))
+      df <- data.frame(m = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
+                       b = rnorm(5000, out$coefficients[1, 1], out$coefficients[1, 2]))
     } else if(idx == 4) {
       coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
       out <- summary(mlr_fit$lst[[2]])
-      df <- data.frame(beta1 = rnorm(500, out$coefficients[2, 1], out$coefficients[2, 2]),
-                       beta2 = rnorm(500, out$coefficients[3, 1], out$coefficients[3, 2]),
-                       beta3 = rnorm(500, out$coefficients[1, 1], out$coefficients[1, 2]))
+      df <- data.frame(beta1 = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
+                       beta2 = rnorm(5000, out$coefficients[3, 1], out$coefficients[3, 2]),
+                       beta3 = rnorm(5000, out$coefficients[1, 1], out$coefficients[1, 2]))
     }
     param_dist3b$dist[[idx]] <- df
   })
@@ -3199,6 +3203,172 @@ shinyServer(function(input, output, session) {
   #   return(gp)
   # })
 
+  #* Summary Plots ----
+  #** Process Uncertainty Summary ----
+  output$proc_uc_summ <- renderPlot({
+
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out2$mlt)),
+           message = "Click 'Run forecast' in Objective 6.")
+    )
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp."), size = 2) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 22)
+
+    if(any(!is.na(wtemp_fc_out2$dist))) {
+      sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+
+      p <- p +
+        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
+        geom_line(data = mlt, aes(Date, p50, color = Level))
+    }
+
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2], "1" = cols[3],
+                                    "2" = cols[4], "3" = cols[5], "4" = cols[6])) +
+      scale_fill_manual(values = c("1" = l.cols[1], "2" = l.cols[2], "3" = l.cols[3], "4" = l.cols[4])) +
+      guides(color = "none") +
+      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
+      labs(fill = "Model")
+    return(p)
+  })
+
+  #** Parameter Uncertainty Summary ----
+  output$param_uc_summ <- renderPlot({
+
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out3b$mlt)),
+           message = "Click 'Run forecast' in Objective 7.")
+    )
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 22)
+
+    if(any(!is.na(wtemp_fc_out3b$dist))) {
+      sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+
+      p <- p +
+        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
+        geom_line(data = mlt, aes(Date, p50, color = Level))
+    }
+
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2], "1" = cols[3],
+                                    "2" = cols[4], "3" = cols[5], "4" = cols[6])) +
+      scale_fill_manual(values = c("1" = l.cols[1], "2" = l.cols[2], "3" = l.cols[3], "4" = l.cols[4])) +
+      guides(color = "none") +
+      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
+      labs(fill = "Model")
+    return(p)
+  })
+
+  #** Initial Conditions Uncertainty Summary ----
+  output$ic_uc_summ <- renderPlot({
+
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out4$mlt)),
+           message = "Click 'Run forecast' in Objective 8.")
+    )
+
+    if(any(!is.na(wtemp_fc_out4$lst))) {
+      sub_lst <- wtemp_fc_out4$lst[!is.na(wtemp_fc_out4$lst)]
+      mlt <- reshape::melt(sub_lst, id.vars = "Date")
+      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+      mlt$Label <- as.character(mlt$Label)
+    }
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 22)
+
+    if(any(!is.na(wtemp_fc_out4$dist))) {
+      sub_lst <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+
+      p <- p +
+        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
+        geom_line(data = mlt, aes(Date, p50, color = Level))
+    }
+
+    p <- p +
+      scale_color_manual(values = c("Water temp." = cols[2], "1" = cols[3],
+                                    "2" = cols[4], "3" = cols[5], "4" = cols[6])) +
+      scale_fill_manual(values = c("1" = l.cols[1], "2" = l.cols[2], "3" = l.cols[3], "4" = l.cols[4])) +
+      guides(color = "none") +
+      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
+      labs(fill = "Model")
+    return(p)
+  })
+
+  #** Driver Uncertainty Summary ----
+  output$driver_uc_summ <- renderPlot({
+
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out5$mlt)),
+           message = "Click 'Run forecast' in Objective 9.")
+    )
+
+    if(any(!is.na(wtemp_fc_out5$lst))) {
+      sub_lst <- wtemp_fc_out5$lst[!is.na(wtemp_fc_out5$lst)]
+      mlt <- reshape::melt(sub_lst, id.vars = "Date")
+      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+      mlt$Label <- as.character(mlt$Label)
+    }
+
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 22)
+
+    if(any(!is.na(wtemp_fc_out5$dist))) {
+      sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+
+      p <- p +
+        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
+        geom_line(data = mlt, aes(Date, p50, color = Level))
+    }
+
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2], "1" = cols[3],
+                                    "2" = cols[4], "3" = cols[5], "4" = cols[6])) +
+      scale_fill_manual(values = c("1" = l.cols[1], "2" = l.cols[2], "3" = l.cols[3], "4" = l.cols[4])) +
+      guides(color = "none") +
+      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
+      labs(fill = "Model")
+    return(p)
+  })
 
 
   # Activity C ----
@@ -3293,6 +3463,8 @@ shinyServer(function(input, output, session) {
     tot_fc_dataB$dist <- NULL
     tot_fc_dataB$mat <- NULL
     tot_fc_dataB$lab <- NULL
+
+    quantfcA$df <- NULL
   })
 
   # Uncertainty plots A
@@ -3302,7 +3474,7 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(tot_fc_dataA$dist), "Clcik 'Run forecast'")
+      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
     )
 
     if(input$mod_selec_tot_fc == "1 and 3") {
@@ -3364,69 +3536,93 @@ shinyServer(function(input, output, session) {
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
-    # out <- summary(mlr_fit$lst[[2]])
-    # coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
+    for(fc_uncertA in uc_sources) {
 
-    mat <- matrix(NA, 8, input$tot_fc_mem)
+      mat <- matrix(NA, 8, input$tot_fc_mem)
 
-    tot_fc_dataA$lab <- paste(input$fc_uncertA, collapse = " & ")
-    print(input$fc_uncertA)
+      tot_fc_dataA$lab <- paste(fc_uncertA, collapse = " & ")
 
-    if("Driver" %in% input$fc_uncertA | "Total" %in% input$fc_uncertA) {
-      driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-      tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
-      M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
-      driv_mat <- M[, 1:input$tot_fc_mem]
-    } else {
-      driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-    }
-    if("Process" %in% input$fc_uncertA | "Total" %in% input$fc_uncertA) {
-      Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
-    } else {
-      Wt <- 0
-    }
-    if("Parameter" %in% input$fc_uncertA | "Total" %in% input$fc_uncertA) {
+      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
+        M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
+        driv_mat <- M[, 1:input$tot_fc_mem]
+      } else {
+        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+      }
+      if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
+      } else {
+        Wt <- 0
+      }
+      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        params <- data.frame(m = rnorm(input$tot_fc_mem, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
+                             b = rnorm(input$tot_fc_mem, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
+        print(params)
+      } else {
+        params <- data.frame(m = lr_pars$dt$m_est[4],
+                             b = lr_pars$dt$b_est[4])
+      }
+      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
+      } else {
+        mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+      }
 
-      params <- data.frame(m = rnorm(input$tot_fc_mem, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
-                           b = rnorm(input$tot_fc_mem, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
-    } else {
-      params <- data.frame(m = lr_pars$dt$m_est[4],
-                           b = lr_pars$dt$b_est[4])
-    }
-    if("Initial Conditions" %in% input$fc_uncertA | "Total" %in% input$fc_uncertA) {
-      mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
-    } else {
-      mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-    }
+      for(mem in 2:nrow(mat)) {
+        if(input$mod_selec_tot_fc == "1 and 3") {
+          mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc == "2 and 4") {
+          mat[mem, ] <- mat[mem-1, ] + Wt
+        }
+      }
 
-    for(mem in 2:nrow(mat)) {
-      if(input$mod_selec_tot_fc == "1 and 3") {
-        mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
-      } else if (input$mod_selec_tot_fc == "2 and 4") {
-        mat[mem, ] <- mat[mem-1, ] + Wt
+      # Calculate distributions
+      tot_fc_dataA$mat <- mat
+
+      if(fc_uncertA == "Total") {
+        dat <- apply(mat, 1, function(x) {
+          quantile(x, c(0.05, 0.5, 0.95))
+        })
+        dat <- as.data.frame(t(dat))
+        colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+        dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        # dat$Level <- as.character(idx)
+        tot_fc_dataA$dist <- dat
+        df2 <- as.data.frame(mat)
+        df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        mlt <- reshape::melt(df2, id.vars = "Date")
+        # mlt$Level <- as.character(idx)
+        tot_fc_dataA$mlt <- mlt
+      }
+
+      if(fc_uncertA != "Total") {
+        # Quantify UC
+        std <- apply(tot_fc_dataA$mat, 1, sd)
+        print(std)
+
+        df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                          sd = std, label = tot_fc_dataA$lab)
+        print(df2)
+
+        if(is.null(quantfcA$df)) {
+          quantfcA$df <- df2
+        } else {
+          # Overwrite previous Std Dev.
+          if((df2$label[1] %in% quantfcA$df$label)) {
+            idx <- which(quantfcA$df$label %in% df2$label[1])
+            quantfcA$df[idx, ] <- df2
+          } else {
+            quantfcA$df <- rbind(quantfcA$df, df2)
+          }
+        }
       }
     }
 
 
-    # for(mem in 2:nrow(mat)) {
-    #   mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
-    # }
 
-    # Calculate distributions
-    tot_fc_dataA$mat <- mat
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    # dat$Level <- as.character(idx)
-    tot_fc_dataA$dist <- dat
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    # mlt$Level <- as.character(idx)
-    tot_fc_dataA$mlt <- mlt
+
+
   })
 
   #* Quantify Forecast UC A ----
@@ -3434,23 +3630,22 @@ shinyServer(function(input, output, session) {
   observeEvent(input$quant_ucA, {
     req(input$table01_rows_selected != "")
 
-    std <- apply(tot_fc_dataA$mat, 1, sd)
-
-    df <- data.frame(Date = tot_fc_dataA$dist$Date,
-                     sd = std, label = tot_fc_dataA$lab)
-
-    if(is.null(quantfcA$df)) {
-      quantfcA$df <- df
-    } else {
-      # Overwrite previous Std Dev.
-      if((df$label[1] %in% quantfcA$df$label)) {
-        idx <- which(quantfcA$df$label %in% df$label[1])
-        quantfcA$df[idx, ] <- df
-      } else {
-        quantfcA$df <- rbind(quantfcA$df, df)
-      }
-    }
-    print(quantfcA$df)
+    # std <- apply(tot_fc_dataA$mat, 1, sd)
+    #
+    # df <- data.frame(Date = tot_fc_dataA$dist$Date,
+    #                  sd = std, label = tot_fc_dataA$lab)
+    #
+    # if(is.null(quantfcA$df)) {
+    #   quantfcA$df <- df
+    # } else {
+    #   # Overwrite previous Std Dev.
+    #   if((df$label[1] %in% quantfcA$df$label)) {
+    #     idx <- which(quantfcA$df$label %in% df$label[1])
+    #     quantfcA$df[idx, ] <- df
+    #   } else {
+    #     quantfcA$df <- rbind(quantfcA$df, df)
+    #   }
+    # }
   })
 
   output$fc_quantA <- renderPlotly({
@@ -3459,11 +3654,14 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(quantfcA$df), "Click 'Quantify uncertainty'")
+      need(!is.null(quantfcA$df), "Click 'Run forecast' above.")
+    )
+    validate(
+      need(input$quant_ucA > 0, "Click 'Quantify uncertainty'")
     )
 
     p <- ggplot() +
-      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "dodge") +
+      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
@@ -3480,7 +3678,7 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(tot_fc_dataB$dist), "Clcik 'Run forecast'")
+      need(!is.null(tot_fc_dataB$dist), "Click 'Run forecast'")
     )
 
     if(input$mod_selec_tot_fc == "1 and 3") {
@@ -3545,7 +3743,6 @@ shinyServer(function(input, output, session) {
     mat <- matrix(NA, 8, input$tot_fc_mem)
 
     tot_fc_dataB$lab <- paste(input$fc_uncertB, collapse = " & ")
-    print(input$fc_uncertB)
 
     if("Driver" %in% input$fc_uncertB | "Total" %in% input$fc_uncertB) {
       driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
@@ -3562,19 +3759,31 @@ shinyServer(function(input, output, session) {
     }
     if("Parameter" %in% input$fc_uncertB | "Total" %in% input$fc_uncertB) {
 
+
+      idx <- sample(1:5000, input$tot_fc_mem)
+
       if(input$mod_selec_tot_fc == "1 and 3") {
-        out <- summary(mlr_fit$lst[[1]])
-        coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
+        pars <- param_dist3b$dist[[3]]
+        params <- data.frame(m = pars$m[idx],
+                             b = pars$b[idx])
       } else if (input$mod_selec_tot_fc == "2 and 4") {
-        out <- summary(mlr_fit$lst[[2]])
-        coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
+        pars <- param_dist3b$dist[[4]]
+        params <- data.frame(beta1 = pars$beta1[idx],
+                             beta2 = pars$beta2[idx],
+                             beta3 = pars$beta3[idx])
       }
 
-      params <- data.frame(m = rnorm(input$tot_fc_mem, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
-                           b = rnorm(input$tot_fc_mem, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
     } else {
-      params <- data.frame(m = lr_pars$dt$m_est[4],
-                           b = lr_pars$dt$b_est[4])
+      if(input$mod_selec_tot_fc == "1 and 3") {
+        pars <- param_dist3b$dist[[3]]
+        params <- data.frame(m = mean(pars$m),
+                             b = mean(pars$b))
+      } else if (input$mod_selec_tot_fc == "2 and 4") {
+        pars <- param_dist3b$dist[[4]]
+        params <- data.frame(beta1 = mean(pars$beta1),
+                             beta2 = mean(pars$beta2),
+                             beta3 = mean(pars$beta3))
+      }
     }
     if("Initial Conditions" %in% input$fc_uncertB | "Total" %in% input$fc_uncertB) {
       mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
@@ -3586,7 +3795,7 @@ shinyServer(function(input, output, session) {
       if(input$mod_selec_tot_fc == "1 and 3") {
         mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
       } else if (input$mod_selec_tot_fc == "2 and 4") {
-        mat[mem, ] <- mat[mem-1, ] + Wt
+        mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
       }
     }
 
@@ -3646,7 +3855,7 @@ shinyServer(function(input, output, session) {
     )
 
     p <- ggplot() +
-      geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "dodge") +
+      geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
@@ -4858,19 +5067,20 @@ shinyServer(function(input, output, session) {
     if (curr_tab1 == "mtab4") {
       curr_obj <- input$tabseries1
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj1") idx2 <- idx2 - 1 # Move off Activty A label
+      if(curr_obj == "obj1") idx2 <- idx2 - 1 # Move off Activity A label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if (curr_tab1 == "mtab5") {
       curr_obj <- input$tabseries2
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj3") idx2 <- idx2 - 1 # Move off Activty B label
+      if(curr_obj == "obj3") idx2 <- idx2 - 1 # Move off Activity B label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if (curr_tab1 == "mtab6") {
       curr_obj <- input$tabseries3
+      print(curr_obj)
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj6") idx2 <- idx2 - 1 # Move off Activty B label
+      if(curr_obj == "obj6") idx2 <- idx2 - 1 # Move off Activity C label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if(curr_tab1 == "mtab1") {
@@ -4885,35 +5095,43 @@ shinyServer(function(input, output, session) {
   # Advancing Tabs
   observeEvent(input$nextBtn1, {
 
-    curr_tab1 <- input$maintab
-    idx <- which(tab_names$tab_id == curr_tab1)
-    if (curr_tab1 == "mtab4" & rv1a$nxt < 3) {
-      curr_obj <- input$tabseries1
-
-      updateTabsetPanel(session, "tabseries1",
-                        selected = paste0("obj", rv1a$nxt))
-
-    } else if (curr_tab1 == "mtab5" & rv2a$nxt < 6) {
-      curr_obj <- input$tabseries2
-
-      updateTabsetPanel(session, "tabseries2",
-                        selected = paste0("obj", rv2a$nxt))
-
-    } else if (curr_tab1 == "mtab6" & rv3a$nxt < 10) {
-      curr_obj <- input$tabseries3
-      updateTabsetPanel(session, "tabseries3",
-                        selected = paste0("obj", rv3a$nxt))
+    if(input$nextBtn1 %in% c(5, 9, 15)) {
+      showModal(
+        modalDialog(
+          title = "Save Progress",
+          "Don't forget to save your progress as you go just in case you lose connection with the server. Click 'Download user input' at the bottom of the page to save a snapshot of your answers so far.")
+      )
     } else {
-      updateTabsetPanel(session, "tabseries1",
-                        selected = "obj1")
-      updateTabsetPanel(session, "tabseries2",
-                        selected = "obj3")
-      updateTabsetPanel(session, "tabseries3",
-                        selected = "obj6")
-      updateTabsetPanel(session, "maintab",
-                        selected = paste0("mtab", rv1$nxt))
+      curr_tab1 <- input$maintab
+      idx <- which(tab_names$tab_id == curr_tab1)
+      if (curr_tab1 == "mtab4" & rv1a$nxt < 3) {
+        curr_obj <- input$tabseries1
+
+        updateTabsetPanel(session, "tabseries1",
+                          selected = paste0("obj", rv1a$nxt))
+
+      } else if (curr_tab1 == "mtab5" & rv2a$nxt < 6) {
+        curr_obj <- input$tabseries2
+
+        updateTabsetPanel(session, "tabseries2",
+                          selected = paste0("obj", rv2a$nxt))
+
+      } else if (curr_tab1 == "mtab6" & rv3a$nxt < 12) {
+        curr_obj <- input$tabseries3
+        updateTabsetPanel(session, "tabseries3",
+                          selected = paste0("obj", rv3a$nxt))
+      } else {
+        updateTabsetPanel(session, "tabseries1",
+                          selected = "obj1")
+        updateTabsetPanel(session, "tabseries2",
+                          selected = "obj3")
+        updateTabsetPanel(session, "tabseries3",
+                          selected = "obj6")
+        updateTabsetPanel(session, "maintab",
+                          selected = paste0("mtab", rv1$nxt))
+      }
+      shinyjs::runjs("window.scrollTo(0, 0)") # scroll to top of page
     }
-    shinyjs::runjs("window.scrollTo(0, 0)") # scroll to top of page
   })
 
   # Moving back through tabs
@@ -4922,7 +5140,6 @@ shinyServer(function(input, output, session) {
     idx <- which(tab_names$tab_id == curr_tab1)
     if (curr_tab1 == "mtab4" & rv1a$prev > 0) {
       curr_obj <- input$tabseries1
-      print(curr_obj)
 
       updateTabsetPanel(session, "tabseries1",
                         selected = paste0("obj", rv1a$prev))
@@ -4943,7 +5160,7 @@ shinyServer(function(input, output, session) {
       updateTabsetPanel(session, "tabseries2",
                         selected = "obj5")
       updateTabsetPanel(session, "tabseries3",
-                        selected = "obj9")
+                        selected = "obj11")
       updateTabsetPanel(session, "maintab",
                         selected = paste0("mtab", rv1$prev))
     }
@@ -5144,8 +5361,8 @@ shinyServer(function(input, output, session) {
     updateTextAreaInput(session, "q4e", value = up_answers$a4e)
     updateTextAreaInput(session, "q4f", value = up_answers$a4f)
     updateTextAreaInput(session, "q5", value = up_answers$a5)
-    updateTextAreaInput(session, "q6", value = up_answers$a5)
-    updateTextAreaInput(session, "q7", value = up_answers$a5)
+    updateTextAreaInput(session, "q6", value = up_answers$a6)
+    updateTextAreaInput(session, "q7", value = up_answers$a7)
     updateTextAreaInput(session, "q8", value = up_answers$a8)
     updateTextAreaInput(session, "q9", value = up_answers$a9)
     updateTextAreaInput(session, "q10", value = up_answers$a10)
