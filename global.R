@@ -109,4 +109,7 @@ app_update_txt <- paste0("This app was last updated on: ", app_time)
 # Tab names for updating buttons
 tab_names <- read.csv("data/tab_names.csv", fileEncoding = "UTF-8-BOM")
 
+# Model names
+mod_names <- c("Pers", "Wtemp", "Atemp", "Both")
+
 # end
