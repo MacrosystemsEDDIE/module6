@@ -770,8 +770,8 @@ border-color: #FFF;
                                                                        br(),
                                                                        h4("Linear Regression"),
                                                                        div("The formula for a linear regression is: $$y = m \\times x + b$$"),
-                                                                       p("In our case we will be using ", tags$b("air temperature"), " (airtemp) to model ", tags$b("water temperature"), " (wtemp) using the following model:"),
-                                                                       div("$$wtemp = m \\times airtemp + b$$"),
+                                                                       p("In our case we will be using ", tags$b("air temperature"), " (atemp) to model ", tags$b("water temperature"), " (wtemp) using the following model:"),
+                                                                       div("$$wtemp = m \\times atemp + b$$"),
                                                                        p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
                                                                        p(tags$b("R-squared"), module_text["r_squared", ]),
                                                                        div("$$R^2 = \\frac{Explained\\ Variation}{Total\\ Variation} $$")
@@ -792,12 +792,13 @@ border-color: #FFF;
                                              fluidRow(
                                                column(3,
                                                       h3("Investigate how collecting more data affects your model"),
-                                                      p("When monitoring a lake site, deciding on the sampling frequency is an important decision. Here you will investigate how four different frequencies of data collection can affect model performance (assessed by the R-squared value). Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
+                                                      p("When monitoring a lake site, deciding on the sampling frequency is an important decision. Here you will investigate how four different frequencies of data collection can affect model STRUCTURE??? performance (assessed by the R-squared value). Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
                                                       p("Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
                                                       # " Use the time series plot above to guide your selection of dates. If there are values that look like a sensor malfunction then you can omit them from the selection."),
                                                       radioButtons("samp_freq", "Data collection frequency:", choices = samp_freq),
                                                       # uiOutput("date_slider1"),
-                                                      actionButton("plot_airt_swt2", "Plot")
+                                                      actionButton("plot_airt_swt2", "Plot"),
+                                                      actionButton("add_lm", "Get model parameters")
                                                       # p("Use the date slider to choose how much data is used to go into your model.")
                                                ),
                                                column(4,
@@ -806,7 +807,6 @@ border-color: #FFF;
                                                       DTOutput("lr_DT", width = "100%"),
                                                       br(),
                                                       # p("You do not need to get the percentages exactly right, but close enough will work fine."),
-                                                      actionButton("add_lm", "Get model parameters"),
                                                       br(),
                                                       wellPanel(
                                                         uiOutput("lm_mod")
@@ -834,8 +834,17 @@ border-color: #FFF;
                                                       )
                                              ),
                                              fluidRow(
+                                               column(8,
+                                                      h3("Water temperature time series"),
+                                                      p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
+                                                      p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
+                                                      wellPanel(
+                                                        plotlyOutput("lm_ts_plot")
+                                                        )
+                                                      ),
                                                column(4,
                                                       h3("Compare model performance"),
+                                                      h4("ADD TABLE WITH R2 VALUES"),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -846,14 +855,6 @@ border-color: #FFF;
                                                                    )
                                                             )
                                                           )
-                                                      ),
-                                               column(8,
-                                                      h3("Water temperature time series"),
-                                                      p("When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
-                                                      p("Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
-                                                      wellPanel(
-                                                        plotlyOutput("lm_ts_plot")
-                                                        )
                                                       )
                                                ),
                                              hr(),
@@ -1065,8 +1066,9 @@ border-color: #FFF;
                                                         div("$$wtemp_{t+1} = wtemp_{t}$$")
                                                       ),
                                                       p("Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The R-squared value will be calculated for the plotted data."),
-                                                      actionButton("plot_persist", "Plot"),
                                                       br(),
+                                                      actionButton("plot_persist", "Plot"),
+                                                      br(), br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1214,9 +1216,8 @@ border-color: #FFF;
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
-                                                      actionButton("load_driv1a", "Load driver data"),
                                                       actionButton("run_wtemp_fc1a", "Run forecast"),
-                                                      br(),
+                                                      br(), br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1323,7 +1324,7 @@ border-color: #FFF;
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
                                                       br(),
-                                                      actionButton("load_driv2", "Load driver data"),
+                                                      # actionButton("load_driv2", "Load driver data"),
                                                       actionButton("run_wtemp_fc2", "Run forecast"),
                                                       br(),
                                                       p("To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
@@ -1343,8 +1344,10 @@ border-color: #FFF;
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
                                                       ),
-                                                      uiOutput("sel_mod2"),
-                                                      textOutput("txt_fc_out2"),
+                                                      wellPanel(
+                                                        uiOutput("sel_mod2"),
+                                                        textOutput("txt_fc_out2")
+                                                      ),
                                                       conditionalPanel("input.run_wtemp_fc2 > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
@@ -1493,7 +1496,7 @@ border-color: #FFF;
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab4"),
                                                       br(),
-                                                      actionButton("load_driv4", "Load driver data"),
+                                                      # actionButton("load_driv4", "Load driver data"),
                                                       actionButton("run_wtemp_fc4", "Run forecast"),
                                                       br(),
                                                       p("We will use 100 different initial condtions in the forecast ensemble. These will be sampled from the distribution generated above."),
@@ -2122,7 +2125,7 @@ border-color: #FFF;
                    br(),
                    hover_action_button(
                      inputId = "prevBtn1",
-                     label = "< Module Overview",
+                     label = "< Previous",
                      button_animation = "glow",
                      style = paste0("color: ", nav_txt, "; background-color: ", nav_butt, "; border-color: #00664B; padding:15px; font-size:22px;")
                    ),
@@ -2144,7 +2147,7 @@ border-color: #FFF;
                    use_hover(popback = TRUE),
                    hover_action_button(
                      inputId = "nextBtn1",
-                     label = "Presentation >",
+                     label = "Next >",
                      button_animation = "glow",
                      style = paste0("color: ", nav_txt, "; background-color: ", nav_butt, "; border-color: #00664B; padding:15px; font-size:22px;")
                    ),
