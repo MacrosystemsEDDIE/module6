@@ -430,13 +430,13 @@ shinyServer(function(input, output, session) {
     # Date slider
     # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
 
-    if(input$samp_freq == "Monthly") {
+    if(input$samp_freq == "Month") {
       idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 month")
-    } else if(input$samp_freq == "Weekly") {
+    } else if(input$samp_freq == "Week") {
       idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 week")
-    } else if(input$samp_freq == "Fortnightly") {
+    } else if(input$samp_freq == "Fortnight") {
       idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "2 week")
-    } else if(input$samp_freq == "Daily") {
+    } else if(input$samp_freq == "Day") {
       idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
     }
 
@@ -651,19 +651,21 @@ shinyServer(function(input, output, session) {
     df <- airt_swt$df
     df$airt[is.na(df$wtemp)] <- NA
     df$wtemp[is.na(df$airt)] <- NA
+    df <- df[df$Date > "2020-01-01", ]
 
     pars <- na.exclude(lr_pars$dt)
     freq_idx <- which(!is.na(lr_pars$dt[, 1]))
 
     if(nrow(pars) > 0) {
       mod <- lapply(1:nrow(pars), function(x) {
-        data.frame(Date = airt_swt$df$Date,
-                   Model = pars$m_est[x] * airt_swt$df$airt + pars$b_est[x],
+        data.frame(Date = df$Date,
+                   Model = pars$m_est[x] * df$airt + pars$b_est[x],
                    Frequency = samp_freq[freq_idx[x]])
       })
       # names(mod) <- pars$label
       # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
       mlt <- do.call(rbind, mod)
+      # mlt <- mlt[mlt$Date > "2020-01-01", ]
       mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
 
       # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
@@ -720,7 +722,7 @@ shinyServer(function(input, output, session) {
     # } else {
     # Old version with ability to re-fit models
       # idx <- which(is.na(lr_pars$dt$m_est))[1]
-      idx <- which(samp_freq %in% input$samp_freq)
+      idx <- which(samp_freq2 %in% input$samp_freq)
       lr_pars$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
       lr_pars$dt$b_est[idx] <- round(out$coefficients[1, 1], 1)
       lr_pars$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
@@ -755,7 +757,7 @@ shinyServer(function(input, output, session) {
     lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t} + ", round(out$coefficients[1, 1], 2), " $$")
 
     # For model selection table
-    if(input$samp_freq == "Daily") {
+    if(input$samp_freq == "Day") {
       mod_selec_tab$dt$eqn[3] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t+1} + ", round(out$coefficients[1, 1], 2), " $$")
       mod_selec_tab$dt$r2[3] <- round(out$r.squared, 2)
     }
@@ -1269,13 +1271,13 @@ shinyServer(function(input, output, session) {
     mean_terms <- NULL
     lag_terms <- NULL
 
-    if(any(grepl("today", input$mult_lin_reg_vars))) {
-      idx <- grep("today", input$mult_lin_reg_vars)
+    if(any(grepl("tomorrow", input$mult_lin_reg_vars))) {
+      idx <- grep("tomorrow", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       lag_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], collapse = "\\\\ \\ &+ ")
     }
-    if(any(grepl("yesterday", input$mult_lin_reg_vars))) {
-      idx <- grep("yesterday", input$mult_lin_reg_vars)
+    if(any(grepl("today", input$mult_lin_reg_vars))) {
+      idx <- grep("today", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       mean_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], collapse = "\\\\ \\ &+ ")
     }
@@ -1333,13 +1335,13 @@ shinyServer(function(input, output, session) {
     lag_terms <- NULL
 
 
-    if(any(grepl("today", input$mult_lin_reg_vars))) {
-      idx <- grep("today", input$mult_lin_reg_vars)
+    if(any(grepl("tomorrow", input$mult_lin_reg_vars))) {
+      idx <- grep("tomorrow", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       lag_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], collapse = "+ ")
     }
-    if(any(grepl("yesterday", input$mult_lin_reg_vars))) {
-      idx <- grep("yesterday", input$mult_lin_reg_vars)
+    if(any(grepl("today", input$mult_lin_reg_vars))) {
+      idx <- grep("today", input$mult_lin_reg_vars)
       idx2 <- which(lin_reg_vars$Name %in% input$mult_lin_reg_vars[idx])
       mean_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], collapse = "+ ")
     }
@@ -1709,44 +1711,9 @@ shinyServer(function(input, output, session) {
 
   # Driver Uncertainty
   wtemp_fc_data5 <- reactiveValues(lst = NULL)
-  observeEvent(input$load_driv5, {
-    req(input$table01_rows_selected != "")
-
-    mlt <- noaa_df$airt
-    mlt$Date <- as.Date(mlt$time)
-    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-    mlt <- mlt[mlt$Date <= "2020-10-02", ]
-
-    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
-    wid <- as.data.frame(wid)
-
-
-    idx <- input$mod_selec_tab5_rows_selected
-
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
-
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
-
-    wtemp_fc_data5$lst <- lapply(1:input$noaa_n_mems, function(x) {
-      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-      dat$wtemp[dat$Date > fc_date] <- NA
-      dat$forecast <- NA
-      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
-      dat$wtemp_yday[dat$Date > lag_date] <- NA
-      dat$airt_yday[dat$Date > mn_date] <- NA
-
-      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-      df <- merge(dat, df, by = "Date", all.y = TRUE)
-    })
-  })
+  # observeEvent(input$load_driv5, {
+  #
+  # })
 
   mod_selec_tab <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
                                                   mean = rep(0, 4),
@@ -2177,7 +2144,7 @@ shinyServer(function(input, output, session) {
 
     # Run forecast
 
-    Wt <- 0.1 # Process Uncertainty Noise Std Dev.
+    Wt <- 0.2 # Process Uncertainty Noise Std Dev.
 
     df <- wtemp_fc_data2$lst[[input$mod_selec_tab2_rows_selected]]
 
@@ -2418,21 +2385,29 @@ shinyServer(function(input, output, session) {
 
   #** Generate parameter distributions ----
   param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)))
+  observeEvent(input$mod_selec_tab3_rows_selected, {
+    if(input$mod_selec_tab3_rows_selected == 1) {
+      param_dist3b$dist[[1]] <- "None"
+    }
+  })
   observeEvent(input$gen_params3b, {
     req(input$mod_selec_tab3_rows_selected != "")
 
     idx <- input$mod_selec_tab3_rows_selected
 
-    if(idx == 1) {
+    if(idx == 3) {
+      req(!is.na(lr_pars$dt$m_est[4]))
       df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
                        b = rnorm(5000, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
+    } else if(idx == 1) {
+      df <- "None"
     } else if(idx == 2) {
-      df <- NA
-    } else if(idx == 3) {
+      req(!is.na(mlr_fit$lst[[1]]))
       out <- summary(mlr_fit$lst[[1]])
       df <- data.frame(m = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
                        b = rnorm(5000, out$coefficients[1, 1], out$coefficients[1, 2]))
     } else if(idx == 4) {
+      req(!is.na(mlr_fit$lst[[2]]))
       coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
       out <- summary(mlr_fit$lst[[2]])
       df <- data.frame(beta1 = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
@@ -2452,9 +2427,9 @@ shinyServer(function(input, output, session) {
     )
     idx <- input$mod_selec_tab3_rows_selected
 
-    if(idx == 2) {
+    if(idx == 1) {
       validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Oh oh! Looks like the model you selected has no parameters, but you can still generate a forecast with it below.")
+        need(param_dist3b$dist[[idx]] != "None", "Uh oh! Looks like the model you selected has no parameters, but you can still generate a forecast with it below.")
       )
     }
 
@@ -2477,10 +2452,13 @@ shinyServer(function(input, output, session) {
   observeEvent(input$run_wtemp_fc3b, {
     # NEEDS CHECKS
 
+    req(input$mod_selec_tab3_rows_selected != "")
     idx <- input$mod_selec_tab3_rows_selected
 
+    req(!is.na(param_dist3b$dist[[idx]]))
+
     pars <- param_dist3b$dist[[idx]]
-    if(!is.na(pars)) {
+    if(idx != 1) {
       pars <- pars[sample(1:nrow(pars), size = 100), ]
     }
 
@@ -2494,11 +2472,11 @@ shinyServer(function(input, output, session) {
     df <- df[(df$Date >= fc_date), ]
     for(mem in 2:nrow(mat)) {
 
-      if(idx == 1) {
+      if(idx == 3) {
         mat[mem, ] <- df$airt[mem] * pars$m + pars$b
-      } else if(idx == 2) {
+      } else if(idx == 1) {
         mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 3) {
+      } else if(idx == 2) {
         mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
       } else if(idx == 4) {
         mat[mem, ] <- df$airt[mem] * pars$beta1 + mat[mem-1, ] * pars$beta2 + pars$beta3
@@ -2537,7 +2515,7 @@ shinyServer(function(input, output, session) {
 
     idx <- input$mod_selec_tab3_rows_selected
 
-    if(idx != 2) {
+    if(idx != 1) {
       validate(
         need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameters'.")
       )
@@ -2568,6 +2546,12 @@ shinyServer(function(input, output, session) {
         sub_lst <- wtemp_fc_out3b$mlt[!is.null(wtemp_fc_out3b$mlt)]
         mlt <- do.call(rbind, sub_lst)
         mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
 
         p <- p +
           geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
@@ -2577,6 +2561,12 @@ shinyServer(function(input, output, session) {
         sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
         mlt <- do.call(rbind, sub_lst)
         mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
 
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
@@ -2868,8 +2858,43 @@ shinyServer(function(input, output, session) {
   wtemp_fc5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)))
   # Run forecast WITH forecasted & Driver UC air temperature
   observeEvent(input$run_wtemp_fc5, {
-    req(input$mod_selec_tab5_rows_selected != "")
 
+    req(input$table01_rows_selected != "")
+
+    mlt <- noaa_df$airt
+    mlt$Date <- as.Date(mlt$time)
+    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+
+    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+    wid <- as.data.frame(wid)
+
+
+    idx <- input$mod_selec_tab5_rows_selected
+
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
+                      airt = airt_swt$df$airt,
+                      wtemp_yday = NA,
+                      airt_yday = NA)
+
+    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+
+    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
+    mn_date <- (as.Date(fc_date) + 1)
+
+    wtemp_fc_data5$lst <- lapply(1:input$noaa_n_mems, function(x) {
+      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+      dat$wtemp[dat$Date > fc_date] <- NA
+      dat$forecast <- NA
+      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
+      dat$wtemp_yday[dat$Date > lag_date] <- NA
+      dat$airt_yday[dat$Date > mn_date] <- NA
+
+      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+      df <- merge(dat, df, by = "Date", all.y = TRUE)
+    })
 
     df <- wtemp_fc_data5$lst[[1]]
 
@@ -2879,14 +2904,13 @@ shinyServer(function(input, output, session) {
     idx <- input$mod_selec_tab5_rows_selected
     driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
     for(mem in 2:nrow(mat)) {
-
       if(idx == 1) {
-        mat[mem, ] <- driv_mat[mem, ] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
-      } else if(idx == 2) {
         mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 3) {
+      } else if(idx == 2) {
         coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
         mat[mem, ] <- mat[mem-1, ] * coeffs[2] + coeffs[1]
+      } else if(idx == 3) {
+        mat[mem, ] <- driv_mat[mem, ] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
       } else if(idx == 4) {
         coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
         mat[mem, ] <- driv_mat[mem, ] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1]
@@ -2943,6 +2967,12 @@ shinyServer(function(input, output, session) {
         sub_lst <- wtemp_fc_out5$mlt[!is.null(wtemp_fc_out5$mlt)]
         mlt <- do.call(rbind, sub_lst)
         mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
 
         p <- p +
           geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
@@ -2952,6 +2982,12 @@ shinyServer(function(input, output, session) {
         sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
         mlt <- do.call(rbind, sub_lst)
         mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
 
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
@@ -2999,6 +3035,12 @@ shinyServer(function(input, output, session) {
       sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
       mlt <- do.call(rbind, sub_lst)
       mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
+        }
+      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
 
       p <- p +
         geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
@@ -3039,6 +3081,12 @@ shinyServer(function(input, output, session) {
       sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
       mlt <- do.call(rbind, sub_lst)
       mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
+        }
+      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
 
       p <- p +
         geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
@@ -3086,6 +3134,12 @@ shinyServer(function(input, output, session) {
       sub_lst <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
       mlt <- do.call(rbind, sub_lst)
       mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
+        }
+      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
 
       p <- p +
         geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
@@ -3133,6 +3187,12 @@ shinyServer(function(input, output, session) {
       sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
       mlt <- do.call(rbind, sub_lst)
       mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
+        }
+      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
 
       p <- p +
         geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
@@ -3159,14 +3219,40 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
     )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
 
-    if(input$mod_selec_tot_fc == "1 and 3") {
-      txt <- "We will use model 1, the model that uses forecasted water temperature as the driving variable."
-    } else if (input$mod_selec_tot_fc == "2 and 4") {
-      txt <- "We will use model 2, the model that uses yesterday's water temperature as a driving variable."
+    if(input$mod_selec_tot_fc[1] == "Pers") {
+      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
+    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
+      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
+      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[1] == "Both") {
+      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
     }
     return(txt)
+  })
 
+  output$modB_txt <- renderText({
+    validate(
+      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+
+    if(input$mod_selec_tot_fc[2] == "Pers") {
+      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
+    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
+      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[2] == "Both") {
+      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
+    }
+    return(txt)
   })
 
   output$modA_eqn <- renderUI({
@@ -3175,13 +3261,17 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
     )
 
-    if(input$mod_selec_tot_fc == "1 and 3") {
+    if(input$mod_selec_tot_fc[1] == "Pers") {
       eqn <- mod_selec_tab$dt[1, 1]
-    } else if (input$mod_selec_tot_fc == "2 and 4") {
+    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
       eqn <- mod_selec_tab$dt[2, 1]
+    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
+      eqn <- mod_selec_tab$dt[3, 1]
+    } else if (input$mod_selec_tot_fc[1] == "Both") {
+      eqn <- mod_selec_tab$dt[4, 1]
     }
     eqn <- gsub("[$$]+", "", eqn)
     eqn <- paste0("$$", eqn, " + W_{t}$$")
@@ -3197,14 +3287,19 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
     )
 
-    if(input$mod_selec_tot_fc == "1 and 3") {
+    if(input$mod_selec_tot_fc[2] == "Pers") {
+      eqn <- mod_selec_tab$dt[1, 1]
+    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+      eqn <- mod_selec_tab$dt[2, 1]
+    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
       eqn <- mod_selec_tab$dt[3, 1]
-    } else if (input$mod_selec_tot_fc == "2 and 4") {
+    } else if (input$mod_selec_tot_fc[2] == "Both") {
       eqn <- mod_selec_tab$dt[4, 1]
     }
+
     eqn <- gsub("[$$]+", "", eqn)
     eqn <- paste0("$$", eqn, " + W_{t}$$")
 
@@ -3221,6 +3316,9 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.na(mlr$dt$Equation[2]),
            message = "Complete Objective 5")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
     )
 
 
@@ -3248,7 +3346,7 @@ shinyServer(function(input, output, session) {
     quantfcA$df <- NULL
   })
 
-  # Uncertainty plots A
+  #** Plot - Total Forecast Uncertainty A ----
   output$tot_fc_uncertA <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -3258,11 +3356,8 @@ shinyServer(function(input, output, session) {
       need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
     )
 
-    if(input$mod_selec_tot_fc == "1 and 3") {
-      sel_col <- cols[3]
-    } else if (input$mod_selec_tot_fc == "2 and 4") {
-      sel_col <- cols[4]
-    }
+    idx <- which(mod_names == input$mod_selec_tot_fc[1])
+    sel_col <- cols[idx]
 
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
 
@@ -3334,17 +3429,43 @@ shinyServer(function(input, output, session) {
       } else {
         driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
       }
-      if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
-      } else {
-        Wt <- 0
-      }
       if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        params <- data.frame(m = rnorm(input$tot_fc_mem, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
-                             b = rnorm(input$tot_fc_mem, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
+
+        idx <- sample(1:5000, input$tot_fc_mem)
+
+        if(input$mod_selec_tot_fc[1] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = pars$beta1[idx],
+                               beta2 = pars$beta2[idx],
+                               beta3 = pars$beta3[idx])
+        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else {
+          params <- "NULL"
+        }
       } else {
-        params <- data.frame(m = lr_pars$dt$m_est[4],
-                             b = lr_pars$dt$b_est[4])
+        if(input$mod_selec_tot_fc[1] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = mean(pars$beta1),
+                               beta2 = mean(pars$beta2),
+                               beta3 = mean(pars$beta3))
+        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else {
+          params <- "NULL"
+        }
       }
       if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
@@ -3353,10 +3474,22 @@ shinyServer(function(input, output, session) {
       }
 
       for(mem in 2:nrow(mat)) {
-        if(input$mod_selec_tot_fc == "1 and 3") {
+
+        # Calculate process noise each time step
+        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+          Wt <- rnorm(input$tot_fc_mem, 0, 0.2)
+        } else {
+          Wt <- 0
+        }
+
+        if(input$mod_selec_tot_fc[1] == "Atemp") {
           mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc == "2 and 4") {
+        } else if (input$mod_selec_tot_fc[1] == "Pers") {
           mat[mem, ] <- mat[mem-1, ] + Wt
+        } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
+          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
         }
       }
 
@@ -3458,12 +3591,12 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(tot_fc_dataB$dist), "Click 'Run forecast'")
     )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select a model above.")
+    )
 
-    if(input$mod_selec_tot_fc == "1 and 3") {
-      sel_col <- cols[5]
-    } else if (input$mod_selec_tot_fc == "2 and 4") {
-      sel_col <- cols[6]
-    }
+    idx <- which(mod_names == input$mod_selec_tot_fc[2])
+    sel_col <- cols[idx]
 
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
 
@@ -3520,13 +3653,13 @@ shinyServer(function(input, output, session) {
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
-    for(fc_uncertB in uc_sources) {
+    for(fc_uncertA in uc_sources) {
 
       mat <- matrix(NA, 8, input$tot_fc_mem)
 
-      tot_fc_dataB$lab <- paste(fc_uncertB, collapse = " & ")
+      tot_fc_dataB$lab <- paste(fc_uncertA, collapse = " & ")
 
-      if("Driver" %in% fc_uncertB | "Total" %in% fc_uncertB) {
+      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
         tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
         M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
@@ -3534,49 +3667,65 @@ shinyServer(function(input, output, session) {
       } else {
         driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
       }
-      if("Process" %in% fc_uncertB | "Total" %in% fc_uncertB) {
-        Wt <- rnorm(input$tot_fc_mem, 0, 0.1)
-      } else {
-        Wt <- 0
-      }
-      if("Parameter" %in% fc_uncertB | "Total" %in% fc_uncertB) {
-
+      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
 
         idx <- sample(1:5000, input$tot_fc_mem)
 
-        if(input$mod_selec_tot_fc == "1 and 3") {
-          pars <- param_dist3b$dist[[3]]
+        if(input$mod_selec_tot_fc[2] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
           params <- data.frame(m = pars$m[idx],
                                b = pars$b[idx])
-        } else if (input$mod_selec_tot_fc == "2 and 4") {
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
           pars <- param_dist3b$dist[[4]]
           params <- data.frame(beta1 = pars$beta1[idx],
                                beta2 = pars$beta2[idx],
                                beta3 = pars$beta3[idx])
-        }
-
-      } else {
-        if(input$mod_selec_tot_fc == "1 and 3") {
+        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
           pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else {
+          params <- "NULL"
+        }
+      } else {
+        if(input$mod_selec_tot_fc[2] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
           params <- data.frame(m = mean(pars$m),
                                b = mean(pars$b))
-        } else if (input$mod_selec_tot_fc == "2 and 4") {
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
           pars <- param_dist3b$dist[[4]]
           params <- data.frame(beta1 = mean(pars$beta1),
                                beta2 = mean(pars$beta2),
                                beta3 = mean(pars$beta3))
+        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else {
+          params <- "NULL"
         }
       }
-      if("Initial Conditions" %in% fc_uncertB | "Total" %in% fc_uncertB) {
+      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
       } else {
         mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
       }
 
       for(mem in 2:nrow(mat)) {
-        if(input$mod_selec_tot_fc == "1 and 3") {
+        # Calculate process noise each step
+        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+          Wt <- rnorm(input$tot_fc_mem, 0, 0.2)
+        } else {
+          Wt <- 0
+        }
+
+        if(input$mod_selec_tot_fc[2] == "Atemp") {
           mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc == "2 and 4") {
+        } else if (input$mod_selec_tot_fc[2] == "Pers") {
+          mat[mem, ] <- mat[mem-1, ] + Wt
+        } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
           mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
         }
       }
@@ -3584,7 +3733,7 @@ shinyServer(function(input, output, session) {
       # Calculate distributions
       tot_fc_dataB$mat <- mat
 
-      if(fc_uncertB == "Total") {
+      if(fc_uncertA == "Total") {
         dat <- apply(mat, 1, function(x) {
           quantile(x, c(0.05, 0.5, 0.95))
         })
@@ -3600,7 +3749,7 @@ shinyServer(function(input, output, session) {
         tot_fc_dataB$mlt <- mlt
       }
 
-      if(fc_uncertB != "Total") {
+      if(fc_uncertA != "Total") {
         # Quantify UC
         std <- apply(tot_fc_dataB$mat, 1, sd)
 
