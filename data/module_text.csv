@@ -66,3 +66,5 @@ mod_error,Model error is the difference between an observation and the estimate 
 actB_q1,Q. Which source of uncertainty do you think contributes the most to total forecast uncertainty for a forecast of water temperature?
 actB_q2,"Q. You have been given $5,000 to improve your water temperature forecasts, what would you spend it on to reduce your forecast uncertainty?"
 actB_q3,Q. Do you think that different lake sites would have the same or different quantities of uncertainty? Why?
+scen_p1,You are a Water Resource Manager for the local hydroelectric dam which provides energy and drinking water to your local town.
+scne_p2,Within 
