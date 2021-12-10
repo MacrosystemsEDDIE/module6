@@ -98,6 +98,7 @@ fc_date <- "2020-09-25"
 
 # Sampling frequency
 samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
+samp_freq2 <- c("Month", "Fortnight", "Week", "Day")
 
 # Uncertainty sources to include
 uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver", "Total")
