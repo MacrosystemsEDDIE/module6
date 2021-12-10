@@ -5,6 +5,7 @@ EDDIE,"Project EDDIE (Environmental Data-Driven Inquiry and Exploration) is a su
 Macro,"Macrosystems ecology is the study of ecological dynamics at multiple interacting spatial and temporal scales. Our interdisciplinary team is developing flexible classroom modules that introduce undergraduate students to the core concepts of macrosystems ecology and ecological forecasting, supported by the NSF Macrosystems Biology program grant 1926050."
 act_A,Activity A: Explore and quantify different sources of uncertainty when generating an ecological forecast of primary productivity for a selected NEON site.
 act_B,Activity B: Quantify the different sources of uncertainty
+act_B_overview,Generate multiple forecasts of water temperature and examine how different sources of uncertainty affect the different models.
 act_C,Activity C: Identify ways in which to reduce uncertainty within the ecological forecast.
 what_forecast,A forecast is a prediction of future conditions with uncertainty.
 why_forecast,We forecast because it help us to make decisions and the information is used to plan for the future.
@@ -30,8 +31,8 @@ obj_06,
 obj_07,
 obj_08,
 obj_09,
-obj_10,
-obj_11,
+obj_10,Generate forecasts of water temperature with total forecast uncertainty and quantify the uncertainty at each forecast horizon and its source.
+obj_11,As a Water Resource Manager you will use forecasts to make decisions with regards to water withdrawal from a reservoir. With your partner you will explore how forecast uncertainty affects your decisions.
 obj_12,
 obj_13,
 weather_forecast1,A weather forecast is probably the most widely used and applied forecast. Here we will examine the output from a weather forecast model from NOAA.
