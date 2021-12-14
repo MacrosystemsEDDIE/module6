@@ -13,6 +13,7 @@ scale_fill_discrete <- ggthemes::scale_fill_colorblind
 cols <- RColorBrewer::brewer.pal(8, "Dark2")
 cols2 <- ggthemes::ggthemes_data$colorblind$value
 l.cols <- RColorBrewer::brewer.pal(8, "Set2")[-c(1, 2)]
+p.cols <- RColorBrewer::brewer.pal(12, "Paired")
 
 # Functions required
 source("R/download_phenocam.R")
@@ -112,5 +113,39 @@ tab_names <- read.csv("data/tab_names.csv", fileEncoding = "UTF-8-BOM")
 
 # Model names
 mod_names <- c("Pers", "Wtemp", "Atemp", "Both")
+
+# Dam levels
+dam_lev <- c("Surface", "Bottom")
+
+# Scenario Forecast #1
+set.seed(123)
+scen_fc1 <- data.frame(Date = seq.Date(as.Date("2021-08-16"), as.Date("2021-08-22"), by = 1),
+                       surftemp = c(9.2, 9.5, 10.1, 9.9, 10.8, 11.4, 11.8),
+                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.9))
+scen_fc1$bottemp <- scen_fc1$bottemp + 1.4
+
+bsd <- rnorm(nrow(scen_fc1), 1.1, 0.1) - 0.9
+ssd <- rnorm(nrow(scen_fc1), 1.25, 0.18) - 0.9
+
+scen_fc1$surf_uci <- scen_fc1$surftemp + ssd[order(ssd)]
+scen_fc1$surf_lci <- scen_fc1$surftemp - ssd[order(ssd)]
+
+scen_fc1$bot_uci <- scen_fc1$bottemp + bsd[order(bsd)]
+scen_fc1$bot_lci <- scen_fc1$bottemp - bsd[order(bsd)]
+
+# Scenario Forecast #2
+scen_fc2 <- data.frame(Date = seq.Date(as.Date("2021-08-16"), as.Date("2021-08-22"), by = 1),
+                       surftemp = c(9.2, 9.5, 10.1, 9.9, 10.8, 11.4, 11.8),
+                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.9))
+scen_fc2$bottemp <- scen_fc2$bottemp + 1.4
+set.seed(123)
+bsd <- rnorm(nrow(scen_fc2), 1.75, 0.6) - 0.9
+ssd <- rnorm(nrow(scen_fc2), 1.2, 0.25) - 0.9
+
+scen_fc2$surf_uci <- scen_fc2$surftemp + ssd[order(ssd)]
+scen_fc2$surf_lci <- scen_fc2$surftemp - ssd[order(ssd)]
+
+scen_fc2$bot_uci <- scen_fc2$bottemp + bsd[order(bsd)]
+scen_fc2$bot_lci <- scen_fc2$bottemp - bsd[order(bsd)]
 
 # end
