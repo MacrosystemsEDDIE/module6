@@ -33,3 +33,5 @@ q25,Q25. What factors can lead to an increase in initial conditions uncertainty?
 q26,Q26. What potential steps could be taken to reduce initial conditions uncertainty?
 q27,Q27. Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7-days)? Why do you think that is?
 q28,Q28. Can you think of a way to reduce driver uncertainty in your forecast of water temperature?
+q61,QXX. Did the uncertainty visualization affect your decision? How
+q62,QXX. Can you think of any potential risks when using a forecast without all soures of uncertainty included?
