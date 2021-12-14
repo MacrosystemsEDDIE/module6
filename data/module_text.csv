@@ -22,8 +22,8 @@ workflow1,"After the instructor completes the PowerPoint presentation, students 
 workflow2,There are questions in green text boxes embedded throughout the Shiny app which students can  input answers into.
 workflow3,"When all of the objectives are completed and questions are answered, navigate to the ""Generate Report"" section in the ""Introduction"" tab. This will then create a Microsoft Word document with all of the forecasts and answers embedded within, which can be downloaded and finalized before submitting to the instructor."
 workflow4,"You can save your progress by downloading the user input before you leave the page (see ""Save your progress"" on this webpage for instructions on how to do this). This will allow you to return to this Shiny app and start from where you left off."
-obj_01,
-obj_02,
+obj_01,"Select a NEON site from the table, then click on the """"View live feed"""" button to load the latest image from that site. Follow the link at the bottom of the 'About Site' section to find out more about the site."
+obj_02,Explore the data measured at the selected site. This is data that has been downloaded from the NEON Data Portal. The variables shown have been selected for this module but there are a wide range of variables collected at each NEON site.
 obj_03,
 obj_04,
 obj_05,
@@ -68,3 +68,4 @@ actB_q2,"Q. You have been given $5,000 to improve your water temperature forecas
 actB_q3,Q. Do you think that different lake sites would have the same or different quantities of uncertainty? Why?
 scen_p1,You are a Water Resource Manager for the local hydroelectric dam which provides energy and drinking water to your local town.
 scne_p2,Within 
+phenocam,A 'phenocam' is a digital camera capturing time-lapse images of foliage and lake sites. It can be used to generate quantitative measures of plant phenology.
