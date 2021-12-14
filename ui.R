@@ -422,15 +422,15 @@ border-color: #FFF;
                                                #** Site photo ----
                                                column(4,
                                                       h2("Phenocam"),
-                                                      textOutput("prompt1"),
+                                                      # textOutput("prompt1"),
                                                       wellPanel(
                                                         imageOutput("pheno"),
                                                         p(id = "txt_j", module_text["phenocam", ])
                                                       )
                                                )
                                              ), br(),
-                                             span(textOutput("site_name1"), style = "font-size: 22px;
-                                        font-style: bold;"),
+                                        #      span(textOutput("site_name1"), style = "font-size: 22px;
+                                        # font-style: bold;"),
                                              fluidRow(
                                                wellPanel(
                                                  h4(tags$b("About Site")),
@@ -685,12 +685,12 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Water Temperature"),
-                                                      p("Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
-                                                      p("Freshwater ecosystems are currently experiencing a multitude of stressors such as landuse change and climate change."),
-                                                      p("Being able to predict how such systems can change in the short-term (up to 7-days into the future) will provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
+                                                      p(id = "txt_j", "Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
+                                                      p(id = "txt_j", "Freshwater ecosystems are currently experiencing a multitude of stressors such as landuse change and climate change."),
+                                                      p(id = "txt_j", "Being able to predict how such systems can change in the short-term (up to 7-days into the future) will provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
                                                       ),
                                                column(8,
-                                                     img(src = "lake_image.jpg", height = "100%", id = "bla_border",
+                                                     img(src = "lake_image2.jpg", height = "100%", id = "bla_border",
                                                          width = "100%", tags$style("border: solid 2px black;"))
                                                      )
                                              ),
@@ -901,7 +901,7 @@ border-color: #FFF;
                                                                ),
                                                         column(6, align = "center",
                                                                 sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
-                                                                actionButton("gen_lr_dist_plot", "Generate plot!"),
+                                                                actionButton("gen_lr_dist_plot", "Generate distributions"),
                                                                p("Note: When generating the plots for Q14-15, make sure to deselect the row in the model table. This will add the distributions drawn as 'User input'")
                                                                 ),
                                                         column(6, align = "center",
@@ -1061,7 +1061,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h3("Create a Forecast model"),
-                                                      p("The model we have built uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
+                                                      p("The model built in the Objective 3 uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
                                                       p("The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a ", tags$b("persistence model.")),
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),
@@ -1121,8 +1121,10 @@ border-color: #FFF;
                                                       actionButton("fit_mlr", "Fit model")
                                                ),
                                                column(6,
-                                                      plotlyOutput("mlr_ts_plot"),
+                                                      h4("Timeseries of Better Models"),
                                                       wellPanel(
+                                                        plotlyOutput("mlr_ts_plot"),
+                                                        br(),
                                                         uiOutput("mlr_mod")
                                                       ),
                                                       DTOutput("mlr_dt"),
@@ -1203,6 +1205,7 @@ border-color: #FFF;
                                                           width = "60%", tags$style("border: solid 2px black;"))
                                                       )
                                                ),
+                                             hr(),
                                              #** View Weather Forecast Data ----
                                              fluidRow(
                                                column(6,
@@ -1212,13 +1215,15 @@ border-color: #FFF;
                                                       p("With this air temperature forecast we can use the models that we built in Activity A that require air temperature, to forecast water temperature:")
                                                ),
                                                column(6,
-                                                      h4("Forecasted Air temperature"),
-                                                      plotlyOutput("airt1_fc_plot")
+                                                      h4("Air temperature forecast"),
+                                                      wellPanel(
+                                                        plotlyOutput("airt1_fc_plot")
+                                                        )
                                                ),
                                              ),
                                              fluidRow(
                                                column(6,
-                                                      h4("Forecast water temperature"),
+                                                      h3("Deterministic Forecasts"),
                                                       p("Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
                                                       actionButton("load_mods", "Load models"),
@@ -1238,7 +1243,7 @@ border-color: #FFF;
                                                       )
                                                ),
                                                column(6,
-                                                      h3("Deterministic Forecasts"),
+                                                      h4("Water temperature forecast"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
@@ -1248,6 +1253,7 @@ border-color: #FFF;
                                                         )
                                                       )
                                                ),
+                                             br(),
                                              fluidRow(
                                                column(6,
                                                       h4("What is wrong with these forecasts?"),
@@ -1268,32 +1274,6 @@ border-color: #FFF;
                                                                 )
                                                       )
                                              ),
-                                             hr(),
-                                             #** DEPRECATED Model Selection Uncertainty ----
-                                             # fluidRow(
-                                             #   column(6,
-                                             #          h3("Model Selection Uncertainty"),
-                                             #          p(module_text["mod_selec_uc", ]),
-                                             #          p("To account for model selection uncertainty, we will use three different models, which you developed in the last objective, to generate 7-day ahead forecasts of water temperature at your site."),
-                                             #          p("Select a model from the table below and then click 'Run Forecast' to add a forecast to the plot"),
-                                             #          div("$$ wtemp_{t+1} = ?? $$"),
-                                             #          # p("Depending on your model selection, the necessary required driving variables are shown."),
-                                             #          actionButton("load_mods", "Load models"),
-                                             #          p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                             #          DTOutput("mod_selec_tab")
-                                             #   ),
-                                             #   column(6,
-                                             #          wellPanel(
-                                             #            plotlyOutput("wtemp_fc1")
-                                             #          ),
-                                             #          wellPanel(
-                                             #            actionButton("load_driv1", "Load driver data"),
-                                             #            actionButton("run_wtemp_fc1", "Run forecast"),
-                                             #            uiOutput("sel_mod"),
-                                             #            textOutput("txt_fc_out")
-                                             #          )
-                                             #   )
-                                             # ),
                                              hr(),
                                              #** Process Uncertainty ----
                                              fluidRow(
@@ -1587,6 +1567,7 @@ border-color: #FFF;
                                                       DTOutput("mod_selec_tab5"),
                                                       br(),
                                                       actionButton("run_wtemp_fc5", "Run forecast"),
+                                                      br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod5"),
                                                         textOutput("txt_fc_out5"),
@@ -1741,10 +1722,11 @@ border-color: #FFF;
                                                       )
                                                ),
                                                column(6, align = "center", offset = 2,
-                                                      img(src = "tot_uc.png", height = "60%",
+                                                      img(src = "tot_uc2.png", height = "60%",
                                                           width = "60%", align = "center")
                                                )
                                              ),
+                                             hr(),
                                              #** Model A - UC partitioning ----
                                              fluidRow(
                                                column(4,
@@ -1875,9 +1857,86 @@ border-color: #FFF;
                                                                 h3("Objective 11 - Management Scenario"),
                                                                 p(id = "txt_j", module_text["obj_11", ])
                                                                 )
+                                                      ),
+                                               column(4,
+                                                      h3("Management Scenario"),
+                                                      p("For this activity you are a Water Resource Manager for the local hydroelectric dam which provides water to agricultural users downstream and energy to the local town."),
+                                                      p("During the summer, water temperatures at the surface increase, while temperatures at the bottom increase much slower creating a difference in temperature between the surface and the bottom."),
+                                                      p("This reservoir can release water either from near to the surface of the dam or from the bottom of the dam."),
+                                                      p("Fish downstream of the dam are influenced by stream water temperature."),
+                                                      p("Some fish species, such as Chinook salmon ", tags$em("(Oncorhynchus tshawytscha),"), "have eggs which have higher rates of survival at colder temperatures."),
+                                                      p("You will make decisions about where the water should be withdrawn for the next 7-days to optimize survival rates for Chinook salmon based on water temperature forecasts for surface and bottom temperatures within the reservoir.")
+                                                      ),
+                                               column(8, align = "center",
+                                                      img(src = "salmon_underwater_dam.jpg", height = "60%",
+                                                          width = "60%", align = "center"),
+                                                      br(),
+                                                      a("Image source", href = "http://www.hatchmag.com/sites/default/files/styles/extra-large/public/field/image/pinksalmon-elwha.jpg", target = "_blank")
+                                                      # h2("Image of Water Resource manager & SALMON")
+                                                     )
+                                               ),
+                                             hr(),
+                                             #** Decision #1 ----
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Decision #1"),
+                                                      p("Use the forecast of surface and bottom temperature (across) to make a decision."),
+                                                      p("This forecast was generated only including parameter uncertainty"),
+                                                      radioButtons("dec_scen1", "Which level should be used to release water from the dam?", choices = dam_lev,
+                                                                   selected = character(0)),
+                                                      actionButton("scen1_dec", "Decide")
+                                                      ),
+                                               column(8,
+                                                      h4("Forecast of water temperature at the surface and bottom of the reservoir"),
+                                                      wellPanel(
+                                                        plotOutput("scen1_plot")
+                                                        )
+                                                      )
+                                               ),
+                                             hr(),
+                                             #** Decision #2 ----
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Decision #2"),
+                                                      p("Use the forecast of surface and bottom temperature (across) to make a decision."),
+                                                      p("This forecast was generated and includes process, parameter, initial conditions and driver uncertainty."),
+                                                      radioButtons("dec_scen2", "Which level should be used to release water from the dam?", choices = dam_lev,
+                                                                   selected = character(0)),
+                                                      actionButton("scen2_dec", "Decide")
+                                               ),
+                                               column(8,
+                                                      h4("Forecast of water temperature at the surface and bottom of the reservoir"),
+                                                      wellPanel(
+                                                        plotOutput("scen2_plot")
+                                                        )
+                                                      )
+                                               ),
+                                             hr(),
+                                             # Think, Pair, Share
+                                             fluidRow(
+                                               column(12,
+                                                      h3("Think, Pair, Share!")
+                                               ),
+                                               column(4,
+                                                      p("With your partner, compare your decisions and discuss how the uncertainty visualization affected your decision."),
+                                                      p("Answer the questions across.")
+                                                      ),
+                                               column(6, offset = 2,
+
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   textAreaInput2(inputId = "q61", label = quest["q61", ], width = "90%"),
+                                                                   textAreaInput2(inputId = "q62", label = quest["q62", ], width = "90%")
+                                                                   )
+                                                            )
+                                                          )
                                                       )
                                                )
                                              ),
+                                    # ),
                                     #* Activity C - Summary ====
                                     tabPanel(title = "Summary", value = "obj13",
                                              fluidRow(
@@ -1891,7 +1950,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(12,
                                                       h2("Completed Activity C!"),
-                                                      p("This is the end of Activity C. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report before completing Activity C. Otherwise you could lose your progress.")
+                                                      p("This is the end of Activity C. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report. Otherwise you could lose your answers.")
                                                       )
                                                )
                                              )
@@ -1949,8 +2008,8 @@ border-color: #FFF;
              br(),
              p(module_text["acknowledgement", ], id = "ackn"),
              p(app_update_txt, id = "ackn")
-      ),
-    )
+             )
+      )
     )
   }
 

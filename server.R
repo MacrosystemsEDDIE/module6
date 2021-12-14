@@ -1194,6 +1194,7 @@ shinyServer(function(input, output, session) {
     )
 
     df <- persist_df$df
+    df <- df[df$Date > "2020-01-01", ]
     # df <- df[df$Date >= input$persist_date[1] & df$Date <= input$persist_date[2], ]
     # validate(
     #   need(nrow(df) > 0, "No data between those dates. Adjust the Date range.")
@@ -1616,6 +1617,8 @@ shinyServer(function(input, output, session) {
     df$airt[is.na(df$wtemp)] <- NA
     df$wtemp[is.na(df$airt)] <- NA
 
+    df <- df[df$Date > "2020-01-01", ]
+
     # separate into train & test
     # df$per <- NA
     # df$per[df$Date >= input$train_date[1] & df$Date <= input$train_date[2]] <- "Training"
@@ -1634,6 +1637,11 @@ shinyServer(function(input, output, session) {
       mlt <- reshape::melt(sub_lst, id.vars = "Date")
       colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
       mlt$Label <- as.character(mlt$Label)
+
+      mlt$Label[mlt$Label == 1] <- "Wtemp"
+      mlt$Label[mlt$Label == 2] <- "Both"
+
+      mlt <- mlt[mlt$Date > "2020-01-01", ]
 
       # separate into train & test
       # mlt$per <- NA
@@ -1654,10 +1662,11 @@ shinyServer(function(input, output, session) {
     if(nrow(na.exclude(mlr$dt)) > 0) {
       p <- p +
         geom_line(data = mlt, aes(Date, value, color = Label)) +
-        scale_color_manual(values = cols)
+        scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6]))
     }
 
-    # return(p)
     return(ggplotly(p, dynamicTicks = TRUE))
   })
 
@@ -3801,7 +3810,10 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(quantfcB$df), "Click 'Quantify uncertainty'")
+      need(!is.null(quantfcB$df), "Click 'Run forecast' above.")
+    )
+    validate(
+      need(input$quant_ucB > 0, "Click 'Quantify uncertainty'")
     )
 
     p <- ggplot() +
@@ -3818,6 +3830,92 @@ shinyServer(function(input, output, session) {
   })
 
   #####
+
+  #** Scenario Plots ----
+
+  output$scen1_plot <- renderPlot({
+
+    p <- ggplot(scen_fc1) +
+      geom_hline(yintercept = 12, linetype = "dashed") +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.2) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.2) +
+      geom_line(aes(Date, surftemp, color = "Surface")) +
+      geom_line(aes(Date, bottemp, color = "Bottom")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Day") +
+      guides(color = "none") +
+      labs(fill = "Location") +
+      scale_x_date(breaks = "1 day", date_labels = "%a") +
+      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+      # scale_fill_discrete(breaks = c("Surface", "Bottom")) +
+      coord_cartesian(ylim = c(8, 14)) +
+      theme_bw(base_size = 22)
+    return(p)
+
+    # gp <- ggplotly(p, dynamicTicks = TRUE)
+    # # Code to remove parentheses in plotly
+    # for (i in 1:length(gp$x$data)){
+    #   if (!is.null(gp$x$data[[i]]$name)){
+    #     gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+    #   }
+    # }
+    # return(gp)
+  })
+
+  output$scen2_plot <- renderPlot({
+
+    validate(
+      need(input$scen1_dec > 0, "Complete Decision #1 above.")
+    )
+
+    p <- ggplot(scen_fc2) +
+      geom_hline(yintercept = 12, linetype = "dashed") +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.2) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.2) +
+      geom_line(aes(Date, surftemp, color = "Surface")) +
+      geom_line(aes(Date, bottemp, color = "Bottom")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Day") +
+      guides(color = "none") +
+      labs(fill = "Location") +
+      scale_x_date(breaks = "1 day", date_labels = "%a") +
+      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+      coord_cartesian(ylim = c(8, 14)) +
+      theme_bw(base_size = 22)
+    return(p)
+
+    # gp <- ggplotly(p, dynamicTicks = TRUE)
+    # # Code to remove parentheses in plotly
+    # for (i in 1:length(gp$x$data)){
+    #   if (!is.null(gp$x$data[[i]]$name)){
+    #     gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+    #   }
+    # }
+    # return(gp)
+  })
+
+  observeEvent(input$scen1_dec, {
+    shinyjs::disable("dec_scen1")
+    shinyjs::disable("scen1_dec")
+
+    shinyjs::enable("dec_scen2")
+    shinyjs::enable("scen2_dec")
+  })
+
+  observe({
+    if(input$scen1_dec < 1) {
+      shinyjs::disable("dec_scen2")
+      shinyjs::disable("scen2_dec")
+    }
+  })
+
+  observeEvent(input$scen2_dec, {
+    shinyjs::disable("dec_scen2")
+    shinyjs::disable("scen2_dec")
+  })
+
 
 
   #** Load NOAA airT ----
