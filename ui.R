@@ -304,7 +304,6 @@ ui <- function(req) {
                                  wellPanel(
                                    htmlOutput("check_list")
                                  )
-
                           )
                         ),
                         fluidRow(
@@ -446,20 +445,20 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(7, offset = 1,
                                                                    h3("Questions"),
-                                                                   h4(quest["q4", 1]),
+                                                                   h4(quest["q3", 1]),
                                                                    p("If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
                                                             )
                                                           ),
                                                           fluidRow(
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q4a", label = quest["q4a", 1] , width = "90%"),
-                                                                   textInput(inputId = "q4b", label = quest["q4b", 1], width = "90%"),
-                                                                   textInput(inputId = "q4c", label = quest["q4c", 1], width = "90%")
+                                                                   textInput(inputId = "q3a", label = quest["q3a", 1] , width = "90%"),
+                                                                   textInput(inputId = "q3b", label = quest["q3b", 1], width = "90%"),
+                                                                   textInput(inputId = "q3c", label = quest["q3c", 1], width = "90%")
                                                             ),
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = "q4d", label = quest["q4d", 1] , width = "90%"),
-                                                                   textInput(inputId = "q4e", label = quest["q4e", 1], width = "90%"),
-                                                                   textInput(inputId = "q4f", label = quest["q4f", 1], width = "90%")
+                                                                   textInput(inputId = "q3d", label = quest["q3d", 1] , width = "90%"),
+                                                                   textInput(inputId = "q3e", label = quest["q3e", 1], width = "90%"),
+                                                                   textInput(inputId = "q3f", label = quest["q3f", 1], width = "90%")
                                                             )
                                                           )
                                                       )
@@ -510,9 +509,6 @@ border-color: #FFF;
                                                       ),
                                                       plotlyOutput("var_plot"),
                                                       useShinyjs(),  # Set up shinyjs
-                                                      # splitLayout(cellWidths = c("75%", "25%"),
-                                                      actionButton("clear_sel1", "Clear Selection"),
-                                                      # ),
                                                       wellPanel(
                                                         h4("Variable Description"),
                                                         textOutput("txt_out")
@@ -917,13 +913,12 @@ border-color: #FFF;
                                                                             textAreaInput2(inputId = "q12", label = quest["q12", ], width = "90%"),
                                                                             )
                                                                      )
-                                                                   ),
-                                                               p("You will use the parameter sliders to answer Q 14-15.")
+                                                                   )
                                                                )
                                                         )
                                                       )
                                                ),
-                                             hr(),
+                                             # hr(),
                                              # #* Adding multiple lines ----
                                              # fluidRow(
                                              #   column(3,
@@ -1309,7 +1304,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Process Uncertainty"),
-                                                      p("First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with differing numbers of members and observe how the forecast outcome changes."),
+                                                      p("First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with differing numbers of members and observe how the forecast outcome changes. We will generate forecasts from today (Sep 25th), which is represented in the plots as the vertical dashed line, for seven days into the future (Oct 2nd)."),
                                                       p("Select a model from the table below and then load the driver data and run the forecast."),
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
@@ -1425,9 +1420,10 @@ border-color: #FFF;
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc3b")
                                                       ),
-                                                      # actionButton("load_driv2", "Load driver data"),
-                                                      uiOutput("sel_mod3b"),
-                                                      textOutput("txt_fc_out3b"),
+                                                      wellPanel(
+                                                        uiOutput("sel_mod3b"),
+                                                        textOutput("txt_fc_out3b")
+                                                      ),
                                                       conditionalPanel("input.run_wtemp_fc3b > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
@@ -1468,14 +1464,21 @@ border-color: #FFF;
                                                ),
                                              hr(),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       h4("Forecasting with Initial Conditions Uncertainty"),
                                                       p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
                                                       p("Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
                                                       sliderInput("ic_uc", "Standard deviation", min = 0.05, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
-                                               column(6,
+                                               column(4,
+                                                      h4("Recent Observations"),
+                                                      wellPanel(
+                                                        plotlyOutput("ic_obs_plot")
+                                                        )
+                                                      ),
+                                               column(4,
+                                                      h4("Distribution of Initial Conditions"),
                                                       wellPanel(
                                                         plotOutput("ic_uc_plot")
                                                         )
@@ -1748,7 +1751,7 @@ border-color: #FFF;
                                                       h3("Quantify Forecast Uncertainty"),
                                                       p("For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
-                                                      radioButtons("q51", "Q.51 Which source of uncertainty contributes the most to total forecast uncertainty?", choices = uc_sources[1:4])
+                                                      radioButtons("q51", "Q.51 Which source of uncertainty contributes the most to total forecast uncertainty?", choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       h4("Water Temperature Forecast with Total Uncertainty"),
@@ -1784,7 +1787,8 @@ border-color: #FFF;
                                                column(4,
                                                       h3("Quantify Forecast Uncertainty"),
                                                       p("Quantify uncertainty for the other model you have select and compare the two results below and answer questions."),
-                                                      actionButton("quant_ucB", "Quantify uncertainty")
+                                                      actionButton("quant_ucB", "Quantify uncertainty"),
+                                                      radioButtons("q52", "Q.52 Which source of uncertainty contributes the most to total forecast uncertainty for model 2?", choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       wellPanel(
@@ -1817,7 +1821,7 @@ border-color: #FFF;
                                                ),
                                                column(5, offset = 1,
                                                       radioButtons("uc_manage", "Select a source of uncertainty below and learn of ways to reduce it:",
-                                                                   choices = uc_sources, selected = character(0), inline = TRUE),
+                                                                   choices = uc_sources[1:4], selected = character(0), inline = TRUE),
                                                       conditionalPanel("input.uc_manage == 'Process'",
                                                                        h4("Process Uncertainty"),
                                                                        tags$ul(
@@ -1942,15 +1946,35 @@ border-color: #FFF;
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Summary"),
-                                                                p(id = "txt_j", module_text["act_C_summary", ])
+                                                                h3("Summary")
                                                       )
                                                )
                                              ),
                                              fluidRow(
-                                               column(12,
-                                                      h2("Completed Activity C!"),
+                                               column(4,
+                                                      h3("Completed Activity C!"),
                                                       p("This is the end of Activity C. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report. Otherwise you could lose your answers.")
+                                                      ),
+                                               column(4,
+                                                      h3("Generate Report"),
+                                                      h1("NEEDS TO BE CONENCTED SERVER END!"),
+                                                      p("This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting. Return here when you have completed the module."),
+                                                      actionButton("generate2", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
+                                                                   # id = "dl_btn", # This is the only button that shows up when the app is loaded
+                                                                   # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+                                                      ), br(), br(),
+                                                      tags$style(type="text/css", "#download2 {background-color:#579277;color: white}"),
+                                                      conditionalPanel(condition = "output.reportbuilt2", # This button appears after the report has been generated and is ready for download.
+                                                                       downloadButton("download2", "Download Report", width = "60px", style = "width:190px;"
+                                                                                      )
+                                                                       )
+
+                                                      ),
+                                               column(4,
+                                                      h3(tags$b("Questions to be completed:")),
+                                                      wellPanel(
+                                                        htmlOutput("check_list2")
+                                                      )
                                                       )
                                                )
                                              )
