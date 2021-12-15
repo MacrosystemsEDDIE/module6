@@ -1641,6 +1641,8 @@ shinyServer(function(input, output, session) {
       mlt$Label[mlt$Label == 1] <- "Wtemp"
       mlt$Label[mlt$Label == 2] <- "Both"
 
+      mlt$Label <- factor(mlt$Label, levels = c("Wtemp", "Both"))
+
       mlt <- mlt[mlt$Date > "2020-01-01", ]
 
       # separate into train & test
@@ -2606,9 +2608,8 @@ shinyServer(function(input, output, session) {
 
   #** Generate IC distribution ----
   observeEvent(input$gen_ic, {
-
-    # NEEDS CHECKS
-
+    req(input$table01_rows_selected != "")
+    req(!is.null(wtemp_fc_data$hist))
     mn_wtemp <- wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date == fc_date]
     ic_dist$df <- data.frame(value = rnorm(1000, mn_wtemp, input$ic_uc))
   })
@@ -2616,6 +2617,10 @@ shinyServer(function(input, output, session) {
   #** Plot - IC distribution ----
   output$ic_uc_plot <- renderPlot({
 
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
     validate(
       need(!is.null(ic_dist$df), "Click 'Generate distribution")
     )
@@ -2723,6 +2728,39 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out4$mlt[[idx]] <- mlt
 
     wtemp_fc_out4$lst[[idx]] <- df[, c("Date", "forecast")]
+  })
+
+  # Recent obs timeseries
+  output$ic_obs_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    df <- wtemp_fc_data$hist[2:5, ]
+
+    p <- ggplot()
+
+    if(!is.null(ic_dist$df)) {
+      quants <- quantile(ic_dist$df$value, c(0.25, 0.75))
+
+      err_bar <- data.frame(x = df$Date[4], ymin = quants[1], ymax = quants[2])
+      p <- p +
+        geom_errorbar(data = err_bar, aes(x, ymin = ymin, ymax = ymax, width = 0.5), )
+    }
+
+    p <- p +
+      geom_point(data = df, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Date") +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      theme_bw(base_size = 12)
+
+
+
+    return(ggplotly(p, dynamicTicks = TRUE))
   })
 
   #** Plot - IC Forecast ----
@@ -3401,7 +3439,8 @@ shinyServer(function(input, output, session) {
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
 
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -3420,12 +3459,17 @@ shinyServer(function(input, output, session) {
     req(!is.null(wtemp_fc_data5$lst))
     req(!is.na(lr_pars$dt$m_est[4]))
 
-    # NEED CHECKS
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = paste0("Forecasting water temperature"),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished loading.", value = 0.05)
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
     for(fc_uncertA in uc_sources) {
 
+      pidx <- which(uc_sources == fc_uncertA)
       mat <- matrix(NA, 8, input$tot_fc_mem)
 
       tot_fc_dataA$lab <- paste(fc_uncertA, collapse = " & ")
@@ -3540,6 +3584,8 @@ shinyServer(function(input, output, session) {
           }
         }
       }
+
+      progress$set(value = (pidx / length(uc_sources)))
     }
   })
 
@@ -3583,7 +3629,7 @@ shinyServer(function(input, output, session) {
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
-      scale_x_date(date_breaks = "1 day") +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
       labs(fill = "Uncertainty") +
       theme_bw(base_size = 12)
 
@@ -3639,7 +3685,9 @@ shinyServer(function(input, output, session) {
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
+
 
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -3658,13 +3706,18 @@ shinyServer(function(input, output, session) {
     req(!is.null(wtemp_fc_data5$lst))
     req(!is.na(lr_pars$dt$m_est[4]))
 
-    # NEED CHECKS
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = paste0("Forecasting water temperature"),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished loading.", value = 0.05)
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
     for(fc_uncertA in uc_sources) {
 
       mat <- matrix(NA, 8, input$tot_fc_mem)
+      pidx <- which(uc_sources == fc_uncertA)
 
       tot_fc_dataB$lab <- paste(fc_uncertA, collapse = " & ")
 
@@ -3777,6 +3830,7 @@ shinyServer(function(input, output, session) {
           }
         }
       }
+      progress$set(value = (pidx / length(uc_sources)))
     }
   })
 
@@ -3821,7 +3875,7 @@ shinyServer(function(input, output, session) {
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
-      scale_x_date(date_breaks = "1 day") +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
       labs(fill = "Uncertainty") +
       theme_bw(base_size = 12)
 
@@ -3837,8 +3891,8 @@ shinyServer(function(input, output, session) {
 
     p <- ggplot(scen_fc1) +
       geom_hline(yintercept = 12, linetype = "dashed") +
-      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.2) +
-      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.2) +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
       geom_line(aes(Date, surftemp, color = "Surface")) +
       geom_line(aes(Date, bottemp, color = "Bottom")) +
       ylab("Temperature (\u00B0C)") +
@@ -3871,8 +3925,8 @@ shinyServer(function(input, output, session) {
 
     p <- ggplot(scen_fc2) +
       geom_hline(yintercept = 12, linetype = "dashed") +
-      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.2) +
-      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.2) +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
       geom_line(aes(Date, surftemp, color = "Surface")) +
       geom_line(aes(Date, bottemp, color = "Bottom")) +
       ylab("Temperature (\u00B0C)") +
@@ -5244,6 +5298,7 @@ shinyServer(function(input, output, session) {
 
   #** Render Report ----
   report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
+  report2 <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
 
   observeEvent(input$generate, {
 
@@ -5262,13 +5317,12 @@ shinyServer(function(input, output, session) {
                    id_number = input$id_number,
                    a1 = input$q1,
                    a2 = input$q2,
-                   a3 = input$q3,
-                   a4a = input$q4a,
-                   a4b = input$q4b,
-                   a4c = input$q4c,
-                   a4d = input$q4d,
-                   a4e = input$q4e,
-                   a4f = input$q4f,
+                   a3a = input$q3a,
+                   a3b = input$q3b,
+                   a3c = input$q3c,
+                   a3d = input$q3d,
+                   a3e = input$q3e,
+                   a3f = input$q3f,
                    a5 = input$q5,
                    a6 = input$q6,
                    a7 = input$q7,
@@ -5314,6 +5368,12 @@ shinyServer(function(input, output, session) {
   })
   outputOptions(output, 'reportbuilt', suspendWhenHidden= FALSE)
 
+  # Hide download button until report is generated
+  output$reportbuilt2 <- reactive({
+    return(!is.null(report2$filepath))
+  })
+  outputOptions(output, 'reportbuilt2', suspendWhenHidden= FALSE)
+
 
   #** Download Report ----
 
@@ -5344,12 +5404,12 @@ shinyServer(function(input, output, session) {
       a1 = input$q1,
       a2 = input$q2,
       a3 = input$q3,
-      a4a = input$q4a,
-      a4b = input$q4b,
-      a4c = input$q4c,
-      a4d = input$q4d,
-      a4e = input$q4e,
-      a4f = input$q4f,
+      a3a = input$q3a,
+      a3b = input$q3b,
+      a3c = input$q3c,
+      a3d = input$q3d,
+      a3e = input$q3e,
+      a3f = input$q3f,
       a5 = input$q5,
       a6 = input$q6,
       a7 = input$q7,
@@ -5402,13 +5462,12 @@ shinyServer(function(input, output, session) {
     updateTextAreaInput(session, "id_number", value = up_answers$id_number)
     updateTextAreaInput(session, "q1", value = up_answers$a1)
     updateTextAreaInput(session, "q2", value = up_answers$a2)
-    updateTextAreaInput(session, "q3", value = up_answers$a3)
-    updateTextAreaInput(session, "q4a", value = up_answers$a4a)
-    updateTextAreaInput(session, "q4b", value = up_answers$a4b)
-    updateTextAreaInput(session, "q4c", value = up_answers$a4c)
-    updateTextAreaInput(session, "q4d", value = up_answers$a4d)
-    updateTextAreaInput(session, "q4e", value = up_answers$a4e)
-    updateTextAreaInput(session, "q4f", value = up_answers$a4f)
+    updateTextAreaInput(session, "q3a", value = up_answers$a3a)
+    updateTextAreaInput(session, "q3b", value = up_answers$a3b)
+    updateTextAreaInput(session, "q3c", value = up_answers$a3c)
+    updateTextAreaInput(session, "q3d", value = up_answers$a3d)
+    updateTextAreaInput(session, "q3e", value = up_answers$a3e)
+    updateTextAreaInput(session, "q3f", value = up_answers$a3f)
     updateTextAreaInput(session, "q5", value = up_answers$a5)
     updateTextAreaInput(session, "q6", value = up_answers$a6)
     updateTextAreaInput(session, "q7", value = up_answers$a7)
@@ -5445,7 +5504,7 @@ shinyServer(function(input, output, session) {
       if(input$q1 == "") "Introduction: Q. 1",
       if(input$q2 == "") "Introduction: Q. 2",
       # if(input$q3 == "") "Introduction: Q. 3",
-      if(input$q4a == "" | input$q4b == "" | input$q4c == "" | input$q4d == "" | input$q4e == "" | input$q4f == "") "Site Selection: Objective 1 -  Q. 4",
+      if(input$q3a == "" | input$q3b == "" | input$q3c == "" | input$q3d == "" | input$q3e == "" | input$q3f == "") "Site Selection: Objective 1 -  Q. 3",
       if(input$q5 == "") "Site Selection: Objective 2 - Q. 5",
       if(input$q6 == "") "Site Selection: Objective 2 - Q. 6",
       if(input$q7 == "") "Activity A: Objective 3 - Q. 7",
