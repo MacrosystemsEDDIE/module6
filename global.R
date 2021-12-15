@@ -120,11 +120,11 @@ dam_lev <- c("Surface", "Bottom")
 # Scenario Forecast #1
 set.seed(123)
 scen_fc1 <- data.frame(Date = seq.Date(as.Date("2021-08-16"), as.Date("2021-08-22"), by = 1),
-                       surftemp = c(9.2, 9.5, 10.1, 9.9, 10.8, 11.4, 11.8),
-                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.9))
-scen_fc1$bottemp <- scen_fc1$bottemp + 1.4
+                       surftemp = c(9.6, 9.8, 10.1, 11.1, 11.5, 11.4, 11.8),
+                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.4))
+scen_fc1$bottemp <- scen_fc1$bottemp + 1.9
 
-bsd <- rnorm(nrow(scen_fc1), 1.1, 0.1) - 0.9
+bsd <- rnorm(nrow(scen_fc1), 1.2, 0.1) - 0.9
 ssd <- rnorm(nrow(scen_fc1), 1.25, 0.18) - 0.9
 
 scen_fc1$surf_uci <- scen_fc1$surftemp + ssd[order(ssd)]
@@ -135,15 +135,17 @@ scen_fc1$bot_lci <- scen_fc1$bottemp - bsd[order(bsd)]
 
 # Scenario Forecast #2
 scen_fc2 <- data.frame(Date = seq.Date(as.Date("2021-08-16"), as.Date("2021-08-22"), by = 1),
-                       surftemp = c(9.2, 9.5, 10.1, 9.9, 10.8, 11.4, 11.8),
-                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.9))
-scen_fc2$bottemp <- scen_fc2$bottemp + 1.4
+                       surftemp = c(9.6, 9.8, 10.1, 11.1, 11.5, 11.4, 11.8),
+                       bottemp = c(7.3, 7.6, 7.9, 8.2, 8.6, 9.2, 9.4))
+scen_fc2$bottemp <- scen_fc2$bottemp + 1.9
 set.seed(123)
 bsd <- rnorm(nrow(scen_fc2), 1.75, 0.6) - 0.9
 ssd <- rnorm(nrow(scen_fc2), 1.2, 0.25) - 0.9
 
 scen_fc2$surf_uci <- scen_fc2$surftemp + ssd[order(ssd)]
+scen_fc2$surf_uci[5] <- scen_fc2$surftemp[5] + max(ssd)
 scen_fc2$surf_lci <- scen_fc2$surftemp - ssd[order(ssd)]
+scen_fc2$surf_lci[5] <- scen_fc2$surftemp[5] - max(ssd)
 
 scen_fc2$bot_uci <- scen_fc2$bottemp + bsd[order(bsd)]
 scen_fc2$bot_lci <- scen_fc2$bottemp - bsd[order(bsd)]
