@@ -28,6 +28,9 @@ q24,Which model was most sensitive to initial conditions (e.g. had a large distr
 q25,What factors can lead to an increase in initial conditions uncertainty?,Activity B: Objective 8
 q26,What potential steps could be taken to reduce initial conditions uncertainty?,Activity B: Objective 8
 q27,Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7-days)? Why do you think that is?,Activity B: Objective 9
-q28,Can you think of a way to reduce driver uncertainty in your forecast of water temperature?,Activity C: Objective 10
-q61,Did the uncertainty visualization affect your decision? How,Activity C: Objective 11
+q28,Can you think of a way to reduce driver uncertainty in your forecast of water temperature?,Activity b: Objective 9
+q29,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,Activity C: Quantify Uncertainty
+q30,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,
+q31,"With your partner, compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",
+q61,Did the uncertainty visualization affect your decision? How?,Activity C: Objective 11
 q62,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,Activity C: Objective 11

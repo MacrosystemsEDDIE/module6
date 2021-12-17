@@ -6,6 +6,7 @@ Macro,"Macrosystems ecology is the study of ecological dynamics at multiple inte
 act_A,Activity A: Explore and quantify different sources of uncertainty when generating an ecological forecast of primary productivity for a selected NEON site.
 act_B,Activity B: Quantify the different sources of uncertainty
 act_B_overview,Generate multiple forecasts of water temperature and examine how different sources of uncertainty affect the different models.
+act_B_summ,"Inform your instructor that you have completed Activity B. If you have time, think of some answers for the discussion questions below."
 act_C,Activity C: Identify ways in which to reduce uncertainty within the ecological forecast.
 what_forecast,A forecast is a prediction of future conditions with uncertainty.
 why_forecast,We forecast because it help us to make decisions and the information is used to plan for the future.
