@@ -45,7 +45,7 @@ quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(ques
 answers <- quest
 quest$location <- NULL
 colnames(answers)[1] <- "Answer"
-answers[, 1] <- NA
+answers[, 1] <- ""
 
 # Slides
 recap_slides <- list.files("www/shiny_slides", full.names = TRUE)
