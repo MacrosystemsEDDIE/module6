@@ -5359,39 +5359,9 @@ shinyServer(function(input, output, session) {
     # Set up parameters to pass to Rmd document
     params <- list(name = input$name,
                    id_number = input$id_number,
-                   a1 = input$q1,
-                   a2 = input$q2,
-                   a3a = input$q3a,
-                   a3b = input$q3b,
-                   a3c = input$q3c,
-                   a3d = input$q3d,
-                   a3e = input$q3e,
-                   a3f = input$q3f,
-                   a4 = input$q4,
-                   a6 = input$q6,
-                   a7 = input$q7,
-                   a8 = input$q8,
-                   a9 = input$q9,
-                   a10 = input$q10,
-                   a11 = input$q11,
-                   a12 = input$q12,
-                   a13 = input$q13,
-                   a14 = input$q14,
-                   a15 = input$q15,
-                   a16 = input$q16,
-                   a17 = input$q17,
-                   a18 = input$q18,
-                   a19 = input$q19,
-                   a20 = input$q20,
-                   a21 = input$q21,
-                   a22 = input$q22,
-                   a23 = input$q23,
-                   a24 = input$q24,
-                   a25 = input$q25,
-                   a26 = input$q26,
-                   a27 = input$q27,
-                   a28 = input$q28
+                   answers = answers
     )
+    print(params)
 
 
     tmp_file <- paste0(tempfile(), ".docx") #Creating the temp where the .pdf is going to be stored
@@ -5444,7 +5414,7 @@ shinyServer(function(input, output, session) {
   observe({
     for(i in 1:nrow(answers)) {
       if(length(input[[qid[i]]]) != 0) {
-        answers[qid[i], 1] <- input[[qid[i]]]
+        answers[qid[i], 1] <<- input[[qid[i]]]
       }
     }
 
