@@ -483,12 +483,12 @@ shinyServer(function(input, output, session) {
   })
 
   # Reset plot when adjusting dates
-  observeEvent(input$date1, {
-    airt_swt$sub <- NULL
-    lm_fit$fit <- NULL
-    lm_fit$plt_orig <- TRUE
-    lm_fit$eqn <- NULL
-  })
+  # observeEvent(input$date1, {
+  #   airt_swt$sub <- NULL
+  #   lm_fit$fit <- NULL
+  #   lm_fit$plt_orig <- TRUE
+  #   lm_fit$eqn <- NULL
+  # })
 
   # Reset plot when adjusting dates
   observeEvent(input$samp_freq, {
@@ -509,7 +509,7 @@ shinyServer(function(input, output, session) {
   # Data table to store 10 lines
   lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 4), m_se = rep(NA, 4),
                                             b_est = rep(NA, 4), b_se = rep(NA, 4),
-                                            r2 = rep(NA, 4), N = rep(NA, 4)))
+                                            r2 = rep(NA, 4), N = rep(NA, 4), rmse = rep(NA, 4)))
   # output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
   #                          options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
   #                                         columnDefs = list(list(width = '10%', targets = "_all"))
@@ -535,6 +535,14 @@ shinyServer(function(input, output, session) {
                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
+
+  output$r2_tab <- renderDT(data.frame(lr_pars$dt$rmse), selection = "none",
+                               options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                              columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                               ), colnames = c("RMSE"),
+                               rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                               # container = sketch2,
+                               server = FALSE, escape = FALSE)
 
   # Add red saved lines to plot & DT
   # observeEvent(input$save_line, {
@@ -658,15 +666,30 @@ shinyServer(function(input, output, session) {
 
     if(nrow(pars) > 0) {
       mod <- lapply(1:nrow(pars), function(x) {
-        data.frame(Date = df$Date,
+        df2 <- data.frame(Date = df$Date,
                    Model = pars$m_est[x] * df$airt + pars$b_est[x],
                    Frequency = samp_freq[freq_idx[x]])
+        df2$rmse <- round(sqrt(mean((df2$Model - df$wtemp)^2, na.rm = TRUE)), 2)
+        return(df2)
       })
       # names(mod) <- pars$label
       # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
       mlt <- do.call(rbind, mod)
       # mlt <- mlt[mlt$Date > "2020-01-01", ]
       mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
+      print(unique(mlt$rmse))
+
+      for(freq in samp_freq) {
+        sub <- mlt[mlt$Frequency == freq, ]
+        fidx <- which(samp_freq == freq)
+        if(nrow(sub) > 0) {
+          lr_pars$dt$rmse[fidx] <- sub$rmse[1]
+          if(freq == "Daily") {
+            mod_selec_tab$dt$rmse[3] <- sub$rmse[1]
+          }
+        }
+      }
+      print(lr_pars$dt)
 
       # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
       # mlt$Percentage <- factor(as.character(mlt$N))
@@ -730,6 +753,7 @@ shinyServer(function(input, output, session) {
       lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
       # lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
       lr_pars$dt$N[idx] <- nrow(df)
+      lr_pars$dt$rmse[idx] <- 0
 
       lr_eqn$dt$eqn[idx] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t} + ", round(out$coefficients[1, 1], 2), " $$")
       lr_eqn$dt$r2[idx] <- round(out$r.squared, 2)
@@ -1235,10 +1259,13 @@ shinyServer(function(input, output, session) {
     out <- summary(fit)
 
     r2 <- round(out$r.squared, 2) # round(cor(df$wtemp, df$Mod), 2)
+    rmse <- round(sqrt(mean((df$Mod - df$wtemp)^2, na.rm = TRUE)), 2)
     mod_selec_tab$dt$eqn[1] <- "$$wtemp_{t+1} = wtemp_{t}$$"
     mod_selec_tab$dt$r2[1] <- r2
+    mod_selec_tab$dt$rmse[1] <- rmse
+    print(mod_selec_tab$dt)
     withMathJax(
-      tags$p(paste0("$$R^2 = ", r2, "$$"))
+      tags$p(paste0("$$RMSE = ", rmse, "\u00B0C$$"))
     )
   })
 
@@ -1295,10 +1322,22 @@ shinyServer(function(input, output, session) {
   mlr_fit <- reactiveValues(lst = as.list(rep(NA, 2)))
   mlr_pred <- reactiveValues(lst = as.list(rep(NA, 2)))
 
+  mlr_params <- reactiveValues(df = data.frame(beta1 = rep(NA,2),
+                                               beta2 = rep(NA,2),
+                                               beta3 = rep(NA,2),
+                                               beta1_se = rep(NA,2),
+                                               beta2_se = rep(NA,2),
+                                               beta3_se = rep(NA,2)))
+
   observeEvent(input$fit_mlr, {
     req(!is.null(input$mult_lin_reg_vars))
 
-    inp_row <- which(is.na(mlr$dt$Equation))[1]
+
+    if(!is.null(input$mlr_dt_rows_selected)) {
+      inp_row <- input$mlr_dt_rows_selected
+    } else {
+      inp_row <- which(is.na(mlr$dt$Equation))[1]
+    }
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                       airt = airt_swt$df$airt,
@@ -1317,6 +1356,22 @@ shinyServer(function(input, output, session) {
     eval(parse(text = paste0("fit <- lm(wtemp ~ ", paste0(lin_reg_vars$var[idx], collapse = " + "), ", data = dat)")))
 
     mlr_out$txt <- summary(fit)
+    out <- summary(fit)
+    if(nrow(out$coefficients) == 2) {
+      mlr_params$df$beta1[inp_row] <- out$coefficients[2, 1]
+      mlr_params$df$beta1_se[inp_row] <- out$coefficients[2, 2]
+      mlr_params$df$beta2[inp_row] <- out$coefficients[1, 1]
+      mlr_params$df$beta2_se[inp_row] <- out$coefficients[1, 2]
+    } else if(nrow(out$coefficients) == 3) {
+      mlr_params$df$beta1[inp_row] <- out$coefficients[2, 1]
+      mlr_params$df$beta1_se[inp_row] <- out$coefficients[2, 2]
+      mlr_params$df$beta2[inp_row] <- out$coefficients[3, 1]
+      mlr_params$df$beta2_se[inp_row] <- out$coefficients[3, 2]
+      mlr_params$df$beta3[inp_row] <- out$coefficients[1, 1]
+      mlr_params$df$beta3_se[inp_row] <- out$coefficients[1, 2]
+    }
+
+    print(mlr_params$df)
 
     coeffs <- round(fit$coefficients, 2)
     if(coeffs[1] >= 0) {
@@ -1330,6 +1385,7 @@ shinyServer(function(input, output, session) {
     df2 <- na.exclude(df2)
     r2 <- round(mlr_out$txt$r.squared, 2) #round(cor(df2$obs, df2$mod), 2)
     err <- mean(mod - dat$wtemp, na.rm = TRUE)
+    rmse <- round(sqrt(mean((mod - dat$wtemp)^2, na.rm = TRUE)), 2)
 
     # Latex eqn
     mean_terms <- NULL
@@ -1356,20 +1412,22 @@ shinyServer(function(input, output, session) {
       mlr$dt$Equation[input$mlr_dt_rows_selected] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
       mlr$dt$lag[input$mlr_dt_rows_selected] <- 1
       # mlr$dt$mean_day[input$mlr_dt_rows_selected] <- input$mean_t
-      mlr$dt$mean_err[input$mlr_dt_rows_selected] <- r2
+      mlr$dt$mean_err[input$mlr_dt_rows_selected] <- rmse
       mlr_pred$lst[[input$mlr_dt_rows_selected]] <- data.frame(Date = dat$Date,
                                             Model = mod)
-      mlr_fit$lst[[input$mlr_dt_rows_selected]] <- fit
+      print(mlr$dt)
 
       if(input$mlr_dt_rows_selected == 1) {
         mod_selec_tab$dt$eqn[2] <- text
         mod_selec_tab$dt$r2[2] <- r2
+        mod_selec_tab$dt$rmse[2] <- rmse
         # mod_selec_tab$dt$mean[2] <- input$mean_t
         mod_selec_tab$dt$lag[2] <- 1
       }
       if(input$mlr_dt_rows_selected == 2) {
         mod_selec_tab$dt$eqn[4] <- text
         mod_selec_tab$dt$r2[4] <- r2
+        mod_selec_tab$dt$rmse[4] <- rmse
         # mod_selec_tab$dt$mean[4] <- input$mean_t
         mod_selec_tab$dt$lag[4] <- 1
       }
@@ -1379,20 +1437,21 @@ shinyServer(function(input, output, session) {
       mlr$dt$Equation[inp_row] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
       mlr$dt$lag[inp_row] <- 1
       # mlr$dt$mean_day[inp_row] <- input$mean_t
-      mlr$dt$mean_err[inp_row] <- r2
+      mlr$dt$mean_err[inp_row] <- rmse
       mlr_pred$lst[[inp_row]] <- data.frame(Date = dat$Date,
                                             Model = mod)
-      mlr_fit$lst[[inp_row]] <- fit
 
       if(inp_row == 1) {
         mod_selec_tab$dt$eqn[2] <- text
         mod_selec_tab$dt$r2[2] <- r2
+        mod_selec_tab$dt$rmse[2] <- rmse
         # mod_selec_tab$dt$mean[2] <- input$mean_t
         mod_selec_tab$dt$lag[2] <- 1
       }
       if(inp_row == 2) {
         mod_selec_tab$dt$eqn[4] <- text
         mod_selec_tab$dt$r2[4] <- r2
+        mod_selec_tab$dt$rmse[4] <- rmse
         # mod_selec_tab$dt$mean[4] <- input$mean_t
         mod_selec_tab$dt$lag[4] <- 1
       }
@@ -1585,7 +1644,7 @@ shinyServer(function(input, output, session) {
     #
     #     MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
     # }")
-                            ), colnames = c("Model", "R-squared"), rownames = mod_names[c(2, 4)],
+                            ), colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names[c(2, 4)],
 
                             server = FALSE, escape = FALSE)
 
@@ -1619,20 +1678,23 @@ shinyServer(function(input, output, session) {
 
     df <- df[df$Date > "2020-01-01", ]
 
-    # separate into train & test
-    # df$per <- NA
-    # df$per[df$Date >= input$train_date[1] & df$Date <= input$train_date[2]] <- "Training"
-    # df$per[df$Date >= input$test_date[1] & df$Date <= input$test_date[2]] <- "Testing"
-    # df <- df[!is.na(df$per), ]
-    # df$per <- factor(df$per, levels = c("Training", "Testing"))
-    # validate(
-    #   need(nrow(df) > 1,
-    #        message = "Select Training and Testing periods which have water temperature data.")
-    # )
 
 
-    if(nrow(na.exclude(mlr$dt)) > 0) {
-      sub_lst <- mlr_pred$lst[!is.na(mlr_pred$lst)]
+    p <- ggplot() +
+      geom_point(data = df, aes(Date, wtemp), color = "black") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      # facet_wrap(~per, scales = "free_x") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      theme_bw(base_size = 12)
+
+    sub_lst <- mlr_pred$lst[!is.na(mlr_pred$lst)]
+
+    if(length(sub_lst) > 0) {
+
       # names(sub_lst) <- 1:5
       mlt <- reshape::melt(sub_lst, id.vars = "Date")
       colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
@@ -1645,28 +1707,8 @@ shinyServer(function(input, output, session) {
 
       mlt <- mlt[mlt$Date > "2020-01-01", ]
 
-      # separate into train & test
-      # mlt$per <- NA
-      # mlt$per[mlt$Date >= input$train_date[1] & mlt$Date <= input$train_date[2]] <- "Training"
-      # mlt$per[mlt$Date >= input$test_date[1] & mlt$Date <= input$test_date[2]] <- "Testing"
-      # mlt <- mlt[!is.na(mlt$per), ]
-      # mlt$per <- factor(mlt$per, levels = c("Training", "Testing"))
-    }
-
-    p <- ggplot() +
-      geom_point(data = df, aes(Date, wtemp), color = "black") +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Time") +
-      # facet_wrap(~per, scales = "free_x") +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
-      theme_bw(base_size = 12)
-
-    if(nrow(na.exclude(mlr$dt)) > 0) {
       p <- p +
-        geom_line(data = mlt, aes(Date, value, color = Label)) +
-        scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                      "Pers" = cols[3], "Wtemp" = cols[4],
-                                      "Atemp" = cols[5], "Both" = cols[6]))
+        geom_line(data = mlt, aes(Date, value, color = Label))
     }
 
     return(ggplotly(p, dynamicTicks = TRUE))
@@ -1729,7 +1771,8 @@ shinyServer(function(input, output, session) {
   mod_selec_tab <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
                                                   mean = rep(0, 4),
                                                   lag = rep(0, 4),
-                                                  r2 = rep(NA, 4)))
+                                                  r2 = rep(NA, 4),
+                                                  rmse = rep(NA, 4)))
 
 
   output$mod_selec_tab <- renderDT({
@@ -1759,12 +1802,12 @@ shinyServer(function(input, output, session) {
       need(input$load_mods > 0,
            message = "Please click 'Load models'.")
     )
-    mod_selec_tab$dt[, c(1, 4)]
+    mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "R-squared"), rownames = mod_names,
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   # For forecast with Process Uncertainty
@@ -1874,9 +1917,6 @@ shinyServer(function(input, output, session) {
       need(!is.null(input$mod_selec_tab_rows_selected), "Select a model in the table.")
     )
     validate(
-      need(!is.na(wtemp_fc_data$lst[[input$mod_selec_tab_rows_selected]]), "Click 'Load driver data'")
-    )
-    validate(
       need(!is.na(wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]]), "Click 'Run forecast'")
     )
     "Forecast complete!"
@@ -1947,9 +1987,9 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(input$mod_selec_tab5_rows_selected), "Select a model in the table.")
     )
-    validate(
-      need(!is.na(wtemp_fc_data5$lst[[input$mod_selec_tab5_rows_selected]]), "Click 'Load driver data'")
-    )
+    # validate(
+    #   need(!is.na(wtemp_fc_data5$lst[[input$mod_selec_tab5_rows_selected]]), "Click 'Load driver data'")
+    # )
     validate(
       need(!is.na(wtemp_fc_out5$mlt[[input$mod_selec_tab5_rows_selected]]), "Click 'Run forecast'")
     )
@@ -1971,17 +2011,14 @@ shinyServer(function(input, output, session) {
         df$forecast[i] <- df$forecast[i-1]
       }
     } else if(input$mod_selec_tab_rows_selected == 3) {
-      coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
-
+      coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1] * coeffs[2] + coeffs[1]
+        df$forecast[i] <- df$forecast[i-1] * coeffs[1] + coeffs[2]
       }
     } else if(input$mod_selec_tab_rows_selected == 4) {
-
-      coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
-
+      coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[2] + df$forecast[i-1] * coeffs[3] + coeffs[1]
+        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
       }
     }
     wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]] <- df[, c("Date", "forecast")]
@@ -2030,14 +2067,14 @@ shinyServer(function(input, output, session) {
         df$forecast[i] <- df$forecast[i-1]
       }
     } else if(input$mod_selec_tab1a_rows_selected == 2) {
-      coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
+      coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1] * coeffs[2] + coeffs[1]
+        df$forecast[i] <- df$forecast[i-1] * coeffs[1] + coeffs[2]
       }
     } else if(input$mod_selec_tab1a_rows_selected == 4) {
-      coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
+      coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[2] + df$forecast[i-1] * coeffs[3] + coeffs[1]
+        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
       }
     }
     wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]] <- df[, c("Date", "forecast")]
@@ -2170,11 +2207,11 @@ shinyServer(function(input, output, session) {
       } else if(idx == 1) {
         mat[mem, ] <- mat[mem-1, ] + rnorm(input$n_mem2, 0, Wt)
       } else if(idx == 2) {
-        coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
-        mat[mem, ] <- mat[mem-1, ] * coeffs[2] + coeffs[1] + rnorm(input$n_mem2, 0, Wt)
+        coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2] + rnorm(input$n_mem2, 0, Wt)
       } else if(idx == 4) {
-        coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
-        mat[mem, ] <- df$airt[mem] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1] + rnorm(input$n_mem2, 0, Wt)
+        coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
+        mat[mem, ] <- df$airt[mem] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3] + rnorm(input$n_mem2, 0, Wt)
       }
     }
 
@@ -2320,16 +2357,16 @@ shinyServer(function(input, output, session) {
 
   # Run one lr wtemp forecast
   wtemp_fc3a <- reactiveValues(df = NULL)
-  observeEvent(input$run_wtemp_fc3a, {
-    # NEEDS CHECKS
-
-    df <- airt1_fc$df
-    colnames(df)[2] <- "airt"
-    mod <- predict(lm_fit$fit, df)
-    dat <- data.frame(Date = df$Date, model = mod)
-    dat$model[1] <- wtemp_fc_data$hist$wtemp[which(wtemp_fc_data$hist$Date == fc_date)]
-    wtemp_fc3a$df <- dat
-  })
+  # observeEvent(input$run_wtemp_fc3a, {
+  #   # NEEDS CHECKS
+  #
+  #   df <- airt1_fc$df
+  #   colnames(df)[2] <- "airt"
+  #   mod <- predict(lm_fit$fit, df)
+  #   dat <- data.frame(Date = df$Date, model = mod)
+  #   dat$model[1] <- wtemp_fc_data$hist$wtemp[which(wtemp_fc_data$hist$Date == fc_date)]
+  #   wtemp_fc3a$df <- dat
+  # })
 
   output$param_fcast3b <- renderPlot({
     validate(
@@ -2413,17 +2450,14 @@ shinyServer(function(input, output, session) {
     } else if(idx == 1) {
       df <- "None"
     } else if(idx == 2) {
-      req(!is.na(mlr_fit$lst[[1]]))
-      out <- summary(mlr_fit$lst[[1]])
-      df <- data.frame(m = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
-                       b = rnorm(5000, out$coefficients[1, 1], out$coefficients[1, 2]))
+      req(!is.na(mlr_params$df$beta1[1]))
+      df <- data.frame(m = rnorm(5000, mlr_params$df$beta1[1], mlr_params$df$beta1_se[1]),
+                       b = rnorm(5000, mlr_params$df$beta2[1], mlr_params$df$beta2_se[1]))
     } else if(idx == 4) {
-      req(!is.na(mlr_fit$lst[[2]]))
-      coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
-      out <- summary(mlr_fit$lst[[2]])
-      df <- data.frame(beta1 = rnorm(5000, out$coefficients[2, 1], out$coefficients[2, 2]),
-                       beta2 = rnorm(5000, out$coefficients[3, 1], out$coefficients[3, 2]),
-                       beta3 = rnorm(5000, out$coefficients[1, 1], out$coefficients[1, 2]))
+      req(!is.na(mlr_params$df$beta1[2]))
+      df <- data.frame(beta1 = rnorm(5000, mlr_params$df$beta1[2], mlr_params$df$beta1_se[2]),
+                       beta2 = rnorm(5000, mlr_params$df$beta2[2], mlr_params$df$beta2_se[2]),
+                       beta3 = rnorm(5000, mlr_params$df$beta3[2], mlr_params$df$beta3_se[2]))
     }
     param_dist3b$dist[[idx]] <- df
   })
@@ -2451,8 +2485,8 @@ shinyServer(function(input, output, session) {
     mlt <- reshape::melt(param_dist3b$dist[[idx]])
 
     ggplot(mlt) +
-      geom_density(aes(value), fill = l.cols[idx], alpha = 0.3) +
-      facet_wrap(~variable, nrow = 1, scales = "free") +
+      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
+      facet_wrap(~variable, nrow = 1, scales = "free_x") +
       # scale_fill_manual(values = l.cols[idx]) +
       theme_bw(base_size = 16)
 
@@ -2703,11 +2737,11 @@ shinyServer(function(input, output, session) {
       } else if(idx == 1) {
         mat[mem, ] <- mat[mem-1, ]
       } else if(idx == 2) {
-        coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
-        mat[mem, ] <- mat[mem-1, ] * coeffs[2] + coeffs[1]
+        coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2]
       } else if(idx == 4) {
-        coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
-        mat[mem, ] <- df$airt[mem] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1]
+        coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
+        mat[mem, ] <- df$airt[mem] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3]
       }
     }
 
@@ -2743,7 +2777,7 @@ shinyServer(function(input, output, session) {
     if(!is.null(ic_dist$df)) {
       quants <- quantile(ic_dist$df$value, c(0.25, 0.75))
 
-      err_bar <- data.frame(x = df$Date[4], ymin = quants[1], ymax = quants[2])
+      err_bar <- data.frame(x = as.Date(fc_date), ymin = quants[1], ymax = quants[2])
       p <- p +
         geom_errorbar(data = err_bar, aes(x, ymin = ymin, ymax = ymax, width = 0.5), )
     }
@@ -2756,7 +2790,8 @@ shinyServer(function(input, output, session) {
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      theme(legend.position = "none")
 
 
 
@@ -2954,13 +2989,13 @@ shinyServer(function(input, output, session) {
       if(idx == 1) {
         mat[mem, ] <- mat[mem-1, ]
       } else if(idx == 2) {
-        coeffs <- round(mlr_fit$lst[[1]]$coefficients, 2)
-        mat[mem, ] <- mat[mem-1, ] * coeffs[2] + coeffs[1]
+        coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2]
       } else if(idx == 3) {
         mat[mem, ] <- driv_mat[mem, ] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
       } else if(idx == 4) {
-        coeffs <- round(mlr_fit$lst[[2]]$coefficients, 2)
-        mat[mem, ] <- driv_mat[mem, ] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1]
+        coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
+        mat[mem, ] <- driv_mat[mem, ] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3]
       }
     }
 
@@ -3434,6 +3469,11 @@ shinyServer(function(input, output, session) {
       }
     }
 
+    # if(input$add_obs1) {
+    #   p <- p +
+    #     geom_point(data = wtemp_fc_data$fut, aes(Date, wtemp, color = "F Water temp."))
+    # }
+
     p <- p +
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
@@ -3456,8 +3496,12 @@ shinyServer(function(input, output, session) {
   observeEvent(input$run_tot_fcA, {
 
     req(input$table01_rows_selected != "")
+    req(length(input$mod_selec_tot_fc) == 2)
+
+    idx <- which(mod_names == input$mod_selec_tot_fc[1])
+
+    req(!is.na(param_dist3b$dist[[idx]]))
     req(!is.null(wtemp_fc_data5$lst))
-    req(!is.na(lr_pars$dt$m_est[4]))
 
     progress <- shiny::Progress$new()
     on.exit(progress$close())
@@ -5323,7 +5367,7 @@ shinyServer(function(input, output, session) {
                    a3d = input$q3d,
                    a3e = input$q3e,
                    a3f = input$q3f,
-                   a5 = input$q5,
+                   a4 = input$q4,
                    a6 = input$q6,
                    a7 = input$q7,
                    a8 = input$q8,
@@ -5398,42 +5442,23 @@ shinyServer(function(input, output, session) {
   # Save answers in .eddie file
   ans_list <- reactiveValues()
   observe({
+    for(i in 1:nrow(answers)) {
+      if(length(input[[qid[i]]]) != 0) {
+        answers[qid[i], 1] <- input[[qid[i]]]
+      }
+    }
+
     ans_list <<- list(
       name = input$name,
       id_number = input$id_number,
-      a1 = input$q1,
-      a2 = input$q2,
-      a3 = input$q3,
-      a3a = input$q3a,
-      a3b = input$q3b,
-      a3c = input$q3c,
-      a3d = input$q3d,
-      a3e = input$q3e,
-      a3f = input$q3f,
-      a5 = input$q5,
-      a6 = input$q6,
-      a7 = input$q7,
-      a8 = input$q8,
-      a9 = input$q9,
-      a10 = input$q10,
-      a11 = input$q11,
-      a12 = input$q12,
-      a13 = input$q13,
-      a14 = input$q14,
-      a15 = input$q15,
-      a16 = input$q16,
-      a17 = input$q17,
-      a18 = input$q18,
-      a19 = input$q19,
-      a20 = input$q20,
-      a21 = input$q21,
-      a22 = input$q22,
-      a23 = input$q23,
-      a24 = input$q24,
-      a25 = input$q25,
-      a26 = input$q26,
-      a27 = input$q27,
-      a28 = input$q28
+      answers = answers,
+      lr_eqn_dt = lr_eqn$dt,
+      lr_pars_dt = lr_pars$dt,
+      linr_stats_dt = linr_stats$dt,
+      mlr_dt = mlr$dt,
+      mod_selec_tab_dt = mod_selec_tab$dt,
+      site_row = input$table01_rows_selected,
+      mlr_params_df = mlr_params$df
     )
   })
 
@@ -5460,36 +5485,43 @@ shinyServer(function(input, output, session) {
     up_answers <<- readRDS(input$upload_answers$datapath)
     updateTextAreaInput(session, "name", value = up_answers$name)
     updateTextAreaInput(session, "id_number", value = up_answers$id_number)
-    updateTextAreaInput(session, "q1", value = up_answers$a1)
-    updateTextAreaInput(session, "q2", value = up_answers$a2)
-    updateTextAreaInput(session, "q3a", value = up_answers$a3a)
-    updateTextAreaInput(session, "q3b", value = up_answers$a3b)
-    updateTextAreaInput(session, "q3c", value = up_answers$a3c)
-    updateTextAreaInput(session, "q3d", value = up_answers$a3d)
-    updateTextAreaInput(session, "q3e", value = up_answers$a3e)
-    updateTextAreaInput(session, "q3f", value = up_answers$a3f)
-    updateTextAreaInput(session, "q5", value = up_answers$a5)
-    updateTextAreaInput(session, "q6", value = up_answers$a6)
-    updateTextAreaInput(session, "q7", value = up_answers$a7)
-    updateTextAreaInput(session, "q8", value = up_answers$a8)
-    updateTextAreaInput(session, "q9", value = up_answers$a9)
-    updateTextAreaInput(session, "q10", value = up_answers$a10)
-    updateTextAreaInput(session, "q11", value = up_answers$a11)
-    updateTextAreaInput(session, "q12", value = up_answers$a12)
-    updateTextAreaInput(session, "q13", value = up_answers$a13)
-    updateTextAreaInput(session, "q14", value = up_answers$a14)
-    updateTextAreaInput(session, "q15", value = up_answers$a15)
-    updateTextAreaInput(session, "q16", value = up_answers$a16)
-    updateTextAreaInput(session, "q17", value = up_answers$a17)
-    updateTextAreaInput(session, "q18", value = up_answers$a18)
-    updateTextAreaInput(session, "q19", value = up_answers$a19)
-    updateTextAreaInput(session, "q20", value = up_answers$a20)
-    updateTextAreaInput(session, "q21", value = up_answers$a21)
-    updateTextAreaInput(session, "q22", value = up_answers$a22)
-    updateTextAreaInput(session, "q23", value = up_answers$a23)
-    updateTextAreaInput(session, "q24", value = up_answers$a24)
-    updateTextAreaInput(session, "q25", value = up_answers$a25)
-    updateTextAreaInput(session, "q26", value = up_answers$a26)
+
+    lr_eqn$dt <- up_answers$lr_eqn_dt
+    lr_pars$dt <- up_answers$lr_pars_dt
+    linr_stats$dt <- up_answers$linr_stats_dt
+    mlr$dt <- up_answers$mlr_dt
+    mod_selec_tab$dt <- up_answers$mod_selec_tab_dt
+    mlr_params$df = up_answers$mlr_params_df
+
+
+    for(i in 1:nrow(up_answers$answers)) {
+      if(qid[i] == "q7") {
+        updateRadioButtons(session, qid[i], selected = up_answers$answers[qid[i], 1])
+      } else if(!(qid[i] %in% c("q3", "q7"))) {
+        updateTextAreaInput(session, qid[i], value = up_answers$answers[qid[i], 1])
+      }
+    }
+
+    showModal(
+      modalDialog(
+        title = "Upload complete!",
+        "All your answers have been uploaded and your models. You will need to regenerate the plots within the Shiny app before generating your final report.")
+    )
+
+  })
+
+  # Select site when uploading answers
+  observe({
+    req(input$maintab == "mtab4" & exists("up_answers") & input$tabseries1 == "obj1")
+    req(!is.null(up_answers$site_row))
+    tryCatch(updateSelectizeInput(session, "row_num", selected = up_answers$site_row), error = function(e) {NA})
+  })
+  observe({
+    if(input$row_num != "") {
+      dt_proxy <- dataTableProxy("table01")
+      print(input$row_num)
+      selectRows(dt_proxy, input$row_num)
+    }
   })
 
   # Checklist for user inputs
@@ -5500,36 +5532,20 @@ shinyServer(function(input, output, session) {
   chk_list <- reactive({
     out_chk <- c(
       if(input$name == "") "Introduction: Name",
-      if(input$id_number == "") "Introduction: ID number",
-      if(input$q1 == "") "Introduction: Q. 1",
-      if(input$q2 == "") "Introduction: Q. 2",
-      # if(input$q3 == "") "Introduction: Q. 3",
-      if(input$q3a == "" | input$q3b == "" | input$q3c == "" | input$q3d == "" | input$q3e == "" | input$q3f == "") "Site Selection: Objective 1 -  Q. 3",
-      if(input$q5 == "") "Site Selection: Objective 2 - Q. 5",
-      if(input$q6 == "") "Site Selection: Objective 2 - Q. 6",
-      if(input$q7 == "") "Activity A: Objective 3 - Q. 7",
-      if(is.null(input$q8)) "Activity A: Objective 3 - Q. 8",
-      if(input$q9 == "") "Activity A: Objective 3 - Q. 9",
-      if(input$q10 == "") "Activity A: Objective 3 - Q. 10",
-      if(input$q11 == "") "Activity A: Objective 3 - Q. 11",
-      if(input$q12 == "") "Activity A: Objective 4 - Q. 12",
-      if(input$q13 == "") "Activity A: Objective 4 - Q. 13",
-      if(input$q14 == "") "Activity A: Objective 4 - Q. 14",
-      if(input$q15 == "") "Activity A: Objective 4 - Q. 15",
-      if(input$q16 == "") "Activity A: Objective 5 - Q. 16",
-      if(input$q17 == "") "Activity A: Objective 5 - Q. 17",
-      if(input$q18 == "") "Activity A: Objective 5 - Q. 18",
-      if(input$q19 == "") "Activity A: Objective 5 - Q. 19",
-      if(input$q20 == "") "Activity B: Objective 6 - Q. 20",
-      if(input$q21 == "") "Activity B: Objective 6 - Q. 21",
-      if(input$q22 == "") "Activity B: Objective 6 - Q. 22",
-      if(input$q23 == "") "Activity B: Objective 6 - Q. 23",
-      if(input$q24 == "") "Activity B: Objective 7 - Q. 24",
-      if(input$q25 == "") "Activity B: Objective 7 - Q. 25",
-      if(input$q26 == "") "Activity B: Objective 7 - Q. 26",
-      if(input$q27 == "") "Activity B: Objective 8 - Q. 27",
-      if(input$q28 == "") "Activity B: Objective 8 - Q. 28"
+      if(input$id_number == "") "Introduction: ID number"
     )
+
+    for(i in 1:nrow(answers)) {
+      if(qid[i] == "q7") {
+        if(is.null(input[[qid[i]]])) out_chk <- c(out_chk, answers[qid[i], 2])
+      } else if(grepl("q3", qid[i])) {
+        if(!("Site Selection: Objective 1 - Q.3" %in% out_chk)) {
+          if(is.na(answers["q3", 1])) out_chk <- c(out_chk, answers[qid[i], 2])
+        }
+      } else {
+        if(input[[qid[i]]] == "") out_chk <- c(out_chk, answers[qid[i], 2])
+      }
+    }
 
     if(length(out_chk) == 0) {
       out_chk <- "Finished! All answers have been input into the app."
@@ -5541,8 +5557,6 @@ shinyServer(function(input, output, session) {
         collapse = "<br/>"
       )
     )
-
-
   })
 
 
