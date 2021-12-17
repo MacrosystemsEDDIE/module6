@@ -69,3 +69,4 @@ actB_q3,Q. Do you think that different lake sites would have the same or differe
 scen_p1,You are a Water Resource Manager for the local hydroelectric dam which provides energy and drinking water to your local town.
 scne_p2,Within 
 phenocam,A 'phenocam' is a digital camera capturing time-lapse images of foliage and lake sites. It can be used to generate quantitative measures of plant phenology.
+rmse,(RMSE) is a metric used to assess how well a regression model fits a dataset. It tells us the average distance between the predicted values from the model and the actual values in the dataset.
