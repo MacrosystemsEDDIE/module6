@@ -6,39 +6,7 @@ output:
 params:
   name: ""
   id_number: ""
-  a1: ""
-  a2: ""
-  a3: ""
-  a4a: ""
-  a4b: ""
-  a4c: ""
-  a4d: ""
-  a4e: ""
-  a4f: ""
-  a5: ""
-  a6: ""
-  a7: ""
-  a8: ""
-  a9: ""
-  a10: ""
-  a11: ""
-  a12: ""
-  a13: ""
-  a14: ""
-  a15: ""
-  a16: ""
-  a17: ""
-  a18: ""
-  a19: ""
-  a20: ""
-  a21: ""
-  a22: ""
-  a23: ""
-  a24: ""
-  a25: ""
-  a26: ""
-  a27: ""
-  a28: ""
+  answers: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -49,7 +17,32 @@ time <- Sys.time()
 
 
 # Read in assessment questions
+# Load and format questions
 quest <- read.csv("data/student_questions.csv", row.names = 1)
+
+idx <- which(grepl("Name of selected ", quest$Question))
+idx2 <- which(grepl("Elevation", quest$Question))
+# Number rows
+row.names(quest) <- NULL
+row.names(quest)[1:(idx-1)] <- paste0("q", 1:(idx-1))
+row.names(quest)[idx:(idx2)] <- paste0("q", (idx-1), letters[1:length(idx:idx2)])
+row.names(quest)[(idx2+1):nrow(quest)] <- paste0("q", ((idx2+1):nrow(quest) - 6))
+qid <- row.names(quest)
+# Number location
+quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1))
+# quest$location[idx:(idx2)] <- paste0(quest$location[idx:idx2],letters[1:length(idx:idx2)], ". ", )
+quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
+
+answers <- params$answers
+
+if(answers == "") {
+  answers <- quest
+quest$location <- NULL
+colnames(answers)[1] <- "Answer"
+answers[, 1] <- ""
+}
+
+# Load in text
 module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
 
 
@@ -78,6 +71,7 @@ By the end of this module, you will be able to:
 - Describe how forecast horizon affects forecast uncertainty
 - Explain the importance of specifying uncertainty in ecological forecasts for application
 
+![](www/Schematic_Draft_v3.png){width=250px}
 
 # Why macrosystems ecology and ecological forecasting?
 
@@ -131,13 +125,13 @@ The questions you must answer are embedded in the Shiny interface. You can answe
 \
 Answer the following questions:
 
-1. `r substr(quest["q1", ], 4, nchar(quest["q1", ]))`  
+1. `r quest[qid[1], 1]`  
 \
-**Answer:** `r params$a1`\
+**Answer:** `r answers[qid[1], 1]`\
 
-2. `r substr(quest["q2", ], 4, nchar(quest["q2", ]))`   
+2. `r quest[qid[2], 1]`   
 \
-**Answer:** `r params$a2`\
+**Answer:** `r answers[qid[2], 1]`\
 
 
 Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/module6) to answer the rest of the questions.
@@ -151,18 +145,19 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-4. `r substr(quest["q4", ], 4, nchar(quest["q4", ]))`  
+3. `r quest[qid[3], 1]`  
 
 *Table 1. Site Characteristics*
 
 | | |
 | --- | --- |
-| `r substr(quest["q4a", ], 3, nchar(quest["q4a", ]))` | `r params$a4a` |
-| `r substr(quest["q4b", ], 3, nchar(quest["q4b", ]))` | `r params$a4b` |
-| `r substr(quest["q4c", ], 3, nchar(quest["q4c", ]))` | `r params$a4c` |
-| `r substr(quest["q4d", ], 3, nchar(quest["q4d", ]))` | `r params$a4d` |
-| `r substr(quest["q4e", ], 3, nchar(quest["q4e", ]))` | `r params$a4e` |
-
+| `r quest[qid[4], 1]` | `r answers[qid[4], 1]` |
+| `r quest[qid[5], 1]` | `r answers[qid[5], 1]` |
+| `r quest[qid[6], 1]` | `r answers[qid[6], 1]` |
+| `r quest[qid[7], 1]` | `r answers[qid[7], 1]` |
+| `r quest[qid[8], 1]` | `r answers[qid[8], 1]` |
+| `r quest[qid[9], 1]` | `r answers[qid[9], 1]` |
+\
 
 ## Objective 2: Explore data\
 
@@ -171,13 +166,13 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-5. `r substr(quest["q5", ], 4, nchar(quest["q5", ]))`  
+4. `r quest[qid[10], 1]`  
 \
-**Answer:** `r params$a5`\
+**Answer:** `r answers[qid[10], 1]`\
 
-6. `r substr(quest["q6", ], 4, nchar(quest["q6", ]))`   
+5. `r quest[qid[11], 1]`   
 \
-**Answer:** `r params$a6`\
+**Answer:** `r answers[qid[11], 1]`\
 
 
 # Activity A - Build a Model with Uncertainty
@@ -189,30 +184,36 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-7. `r substr(quest["q7", ], 4, nchar(quest["q7", ]))`
+6. `r quest[qid[12], 1]`
 \
-**Answer:** `r params$a7`  
-\
-
-8. `r substr(quest["q8", ], 4, nchar(quest["q8", ]))`  
-\
-**Answer:** `r params$a8`  
+**Answer:** `r answers[qid[12], 1]`  
 \
 
-9. `r substr(quest["q9", ], 4, nchar(quest["q9", ]))`  
+Plot of Time series of air temperature and water temperature
+
+7. `r quest[qid[13], 1]`  
 \
-**Answer:** `r params$a9`  
+**Answer:** `r answers[qid[13], 1]`  
 \
 
-10. `r substr(quest["q10", ], 4, nchar(quest["q10", ]))`  
+8. `r quest[qid[14], 1]`  
 \
-**Answer:** `r params$a10`  
+**Answer:** `r answers[qid[14], 1]`  
 \
 
-11. `r substr(quest["q11", ], 4, nchar(quest["q11", ]))`  
+Figure Timeseries of models
+
+9. `r quest[qid[15], 1]`  
 \
-**Answer:** `r params$a11`  
+**Answer:** `r answers[qid[15], 1]`  
 \
+
+10. `r quest[qid[16], 1]`  
+\
+**Answer:** `r answers[qid[16], 1]`  
+\
+
+Table of models & RMSE
 
 ## Objective 4: Explore Parameters\
 
@@ -221,22 +222,12 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-12. `r substr(quest["q12", ], 4, nchar(quest["q12", ]))`  
+11. `r quest[qid[17], 1]`  
 \
-**Answer:** `r params$a12`  
+**Answer:** `r answers[qid[17], 1]`  
 \
-13. `r substr(quest["q13", ], 4, nchar(quest["q13", ]))`  
-\
-**Answer:** `r params$a13`  
-\
-14. `r substr(quest["q14", ], 4, nchar(quest["q14", ]))`  
-\
-**Answer:** `r params$a14`  
-\
-15. `r substr(quest["q15", ], 4, nchar(quest["q15", ]))`  
-\
-**Answer:** `r params$a15`  
-\
+
+Plot of parameter distributions
 
 ## Objective 5: Improve Model for Forecasting\
 
@@ -245,85 +236,144 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-16. `r substr(quest["q16", ], 4, nchar(quest["q16", ]))`  
+### Persistence model\
+
+Plot of Persistence model
+
+
+12. `r quest[qid[18], 1]`  
 \
-**Answer:** `r params$a16`  
+**Answer:** `r answers[qid[18], 1]`  
 \
-17. `r substr(quest["q17", ], 4, nchar(quest["q17", ]))`  
+
+Plot of better models
+
+Table of better models
+
+
+13. `r quest[qid[19], 1]`  
 \
-**Answer:** `r params$a17`  
+**Answer:** `r answers[qid[19], 1]`  
 \
-18. `r substr(quest["q18", ], 4, nchar(quest["q18", ]))`  
+14. `r quest[qid[20], 1]`  
 \
-**Answer:** `r params$a18`  
+**Answer:** `r answers[qid[20], 1]`  
 \
-19. `r substr(quest["q19", ], 4, nchar(quest["q19", ]))`  
+15. `r quest[qid[21], 1]`  
 \
-**Answer:** `r params$a19`  
+**Answer:** `r answers[qid[21], 1]`  
 \
 
 
 # Activity B: Explore Forecast Uncertainty\
 
-## Objective 6: Model Uncertainty\
+## Overview\
+
+***
+`r module_text["act_B_overview", ]`
+***
+
+### Deterministic forecasting\
+
+TEXT
+
+Plot of Deterministic forecast
+
+
+16. `r quest[qid[22], 1]`  
+\
+**Answer:** `r answers[qid[22], 1]`  
+\
+
+
+## Objective 6: Process Uncertainty\
 
 ***
 `r module_text["obj_06", ]`
 
 ***
 
-20. `r substr(quest["q20", ], 6, nchar(quest["q20", ]))`  
+17. `r quest[qid[23], 1]`  
 \
-**Answer:** `r params$a20`
-\
-21. `r substr(quest["q21", ], 6, nchar(quest["q21", ]))`  
-\
-**Answer:** `r params$a21`
-\
-22. `r substr(quest["q22", ], 6, nchar(quest["q22", ]))`  
-\
-**Answer:** `r params$a22`
-\
-23. `r substr(quest["q23", ], 6, nchar(quest["q23", ]))`  
-\
-**Answer:** `r params$a23`
+**Answer:** `r answers[qid[23], 1]`  
 \
 
 
-## Objective 7: Initial Conditions Uncertainty\
+
+## Objective 7: Parameter Uncertainty\
 
 ***
 `r module_text["obj_07", ]`
 
 ***
-24. `r substr(quest["q24", ], 6, nchar(quest["q24", ]))`  
+18. `r quest[qid[24], 1]`  
 \
-**Answer:** `r params$a24`
+**Answer:** `r answers[qid[24], 1]`  
 \
-25. `r substr(quest["q25", ], 6, nchar(quest["q25", ]))`  
+19. `r quest[qid[25], 1]`  
 \
-**Answer:** `r params$a25`
-\
-26. `r substr(quest["q26", ], 6, nchar(quest["q26", ]))`  
-\
-**Answer:** `r params$a26`
+**Answer:** `r answers[qid[25], 1]`  
 \
 
-## Objective 8: Driver Uncertainty\
+## Objective 8: Initial Conditions Uncertainty\
 
 ***
 `r module_text["obj_08", ]`
 
 ***
+20. `r quest[qid[26], 1]`  
+\
+**Answer:** `r answers[qid[26], 1]`  
+\
+21. `r quest[qid[27], 1]`  
+\
+**Answer:** `r answers[qid[27], 1]`  
+\
+22. `r quest[qid[28], 1]`  
+\
+**Answer:** `r answers[qid[28], 1]`  
+\
 
-27. `r substr(quest["q27", ], 6, nchar(quest["q27", ]))`  
+## Objective 9: Driver Uncertainty\
+
+***
+`r module_text["obj_09", ]`
+***
+23. `r quest[qid[29], 1]`  
 \
-**Answer:** `r params$a27`
+**Answer:** `r answers[qid[29], 1]`  
 \
-28. `r substr(quest["q28", ], 6, nchar(quest["q28", ]))`  
+24. `r quest[qid[30], 1]`  
 \
-**Answer:** `r params$a28`
+**Answer:** `r answers[qid[30], 1]`  
 \
+
+## Summary\
+***
+`r module_text["act_B_summ", ]`
+
+***
+
+### Discussion Questions\
+
+_Use the figures below to answer the questions._
+
+
+Q. `r module_text["actB_q1", ]`\
+Q. `r module_text["actB_q2", ]`\
+Q. `r module_text["actB_q3", ]`\
+
+
+PLOT OF FORECAST UNCERTAINTY
+
+
+# Activty C: Managing Uncertainty\
+
+## Objective 10: Quantify Uncertainty\
+
+***
+`r module_text["obj_10", ]`
+***
 
 
 
