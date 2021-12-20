@@ -50,6 +50,7 @@ ui <- function(req) {
 })();"),
     tags$style(type = "text/css", "text-align: justify"),
     tags$head(tags$link(rel = "shortcut icon", href = "macroeddi_ico_green.ico")), # Add icon for web bookmarks
+    tags$head(includeHTML(("google-analytics.html"))),
     fluidPage(
       column(1, offset = 11, align = "right",
              introBox(

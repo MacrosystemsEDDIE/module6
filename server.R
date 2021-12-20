@@ -3510,13 +3510,12 @@ shinyServer(function(input, output, session) {
                      when it is finished loading.", value = 0.05)
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
+    tot_fc_dataA$lab <- input$mod_selec_tot_fc[1]
 
     for(fc_uncertA in uc_sources) {
 
       pidx <- which(uc_sources == fc_uncertA)
       mat <- matrix(NA, 8, input$tot_fc_mem)
-
-      tot_fc_dataA$lab <- paste(fc_uncertA, collapse = " & ")
 
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
@@ -3614,7 +3613,7 @@ shinyServer(function(input, output, session) {
         std <- apply(tot_fc_dataA$mat, 1, sd)
 
         df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
-                          sd = std, label = tot_fc_dataA$lab)
+                          sd = std, label = fc_uncertA)
 
         if(is.null(quantfcA$df)) {
           quantfcA$df <- df2
@@ -3758,12 +3757,13 @@ shinyServer(function(input, output, session) {
 
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
 
+    tot_fc_dataB$lab <- input$mod_selec_tot_fc[2]
+
     for(fc_uncertA in uc_sources) {
 
       mat <- matrix(NA, 8, input$tot_fc_mem)
       pidx <- which(uc_sources == fc_uncertA)
 
-      tot_fc_dataB$lab <- paste(fc_uncertA, collapse = " & ")
 
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
@@ -3860,7 +3860,7 @@ shinyServer(function(input, output, session) {
         std <- apply(tot_fc_dataB$mat, 1, sd)
 
         df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
-                          sd = std, label = tot_fc_dataB$lab)
+                          sd = std, label = fc_uncertA)
 
         if(is.null(quantfcB$df)) {
           quantfcB$df <- df2
@@ -4831,7 +4831,7 @@ shinyServer(function(input, output, session) {
     df <- pars_dist$nut_uptake
 
     p <- ggplot(df) +
-      geom_vline(xintercept = pars_dist$nut_uptake_vline) +
+      geom_vline(xintercept = pars_dist$nut_uptake_vline, size = l_siz) +
       geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
       coord_cartesian(xlim = c(0, 1)) +
       ylab("Density") +
@@ -5351,7 +5351,11 @@ shinyServer(function(input, output, session) {
     on.exit(progress$close())
     progress$set(message = "Gathering data and building report.",
                  detail = "This may take a while. This window will disappear
-                     when the report is ready.", value = 1)
+                     when the report is ready.", value = 0)
+
+    # Generate tables
+    table_list <- list()
+
 
     # Generate plots
     plot_list <- list(airt_wtemp_ts = NA,
@@ -5378,9 +5382,9 @@ shinyServer(function(input, output, session) {
       df <- airt_swt$df
       df$airt[is.na(df$wtemp)] <- NA
       df$wtemp[is.na(df$airt)] <- NA
-      df <- df$Date[df$Date > "2019-01-01", ]
+      df <- df[df$Date > "2019-01-01", ]
       p <- ggplot() +
-        geom_line(data = df, aes(Date, airt, color = "Air"), size = 0.1) +
+        geom_line(data = df, aes(Date, airt, color = "Air"), size = l_siz) +
         geom_line(data = df, aes(Date, wtemp, color = "Water"), size = l_siz) +
         scale_color_manual(values = cols[5:6]) +
         # geom_point(data = airt_swt$df, aes(airt, wtemp), color = "black") +
@@ -5388,16 +5392,616 @@ shinyServer(function(input, output, session) {
         xlab("Time") +
         guides(color = guide_legend(title = "", override.aes = list(size = 3))) +
         theme_bw(base_size = 18) +
-        theme(legend.position = "bottom",
-              legend.text = element_text(size = 14),
-              legend.title = element_text(size = 14))
+        png_theme
+
       ggsave("www/out_plots/airt_wtemp_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/airt_wtemp_ts.png"
     }, error = function(e) {NULL})
+    progress$set(value = 1/length(plot_list))
 
-    print(plot_list$airt_wtemp_ts)
+    plot_list$param_dist_lr <- tryCatch({
+      lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
 
+      mlt <- do.call(rbind, lst)
+
+      y_max_m <- lapply(lst, function(x) {
+        dens_m <- density(x$m)
+        max(dens_m$y)
+      })
+
+      ylims_m <- c(0, max(c(6, max(unlist(y_max_m), na.rm = TRUE))))
+
+      y_max_b <- lapply(lst, function(x) {
+        dens_b <- density(x$b)
+        max(dens_b$y)
+      })
+
+      ylims_b <- c(0, max(c(1.5, max(unlist(y_max_b), na.rm = TRUE))))
+
+
+      xlims_m <- c(min(0, mlt$m), max(2, mlt$m))
+      xlims_b <- c(min(-2.5, mlt$b), max(10, mlt$b))
+
+
+      p1 <- ggplot() +
+        geom_density(data = mlt, aes(m, fill = Frequency), color = NA, alpha = 0.5) +
+        coord_cartesian(xlim = xlims_m, ylim = ylims_m) +
+        ylab("Density") +
+        xlab("Value") +
+        ggtitle("Slope (m)") +
+        scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      p2 <- ggplot() +
+        geom_density(data = mlt, aes(b, fill = Frequency), color = NA, alpha = 0.5) +
+        coord_cartesian(xlim = xlims_b, ylim = ylims_b) +
+        ylab("Density") +
+        xlab("Value") +
+        ggtitle("Intercept (b)") +
+        scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      g <- ggpubr::ggarrange(p1, p2, nrow = 1, align = "h", common.legend = TRUE, legend = "bottom")
+
+      ggsave("www/out_plots/param_dist_lr.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/param_dist_lr.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 2/length(plot_list))
+
+    plot_list$pers_mod <- tryCatch({
+
+      df <- persist_df$df
+      df <- df[df$Date > "2020-01-01", ]
+
+      p <- ggplot() +
+        geom_point(data = df, aes(Date, wtemp, color = "Obs")) +
+        ylab("Water temperature (\u00B0C)") +
+        xlab("Time") +
+        scale_color_manual(values = c("Pers" = cols[3], "Obs" = "black")) +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3))) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      if(input$plot_persist > 0) {
+        p <- p +
+          geom_line(data = df, aes(Date, Mod, color = "Pers"), size = l_siz)
+      }
+
+      ggsave("www/out_plots/pers_mod.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/pers_mod.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 3/length(plot_list))
+
+    plot_list$mlr_mod_ts <- tryCatch({
+
+      df <- airt_swt$df
+      df$airt[is.na(df$wtemp)] <- NA
+      df$wtemp[is.na(df$airt)] <- NA
+
+      df <- df[df$Date > "2020-01-01", ]
+
+      p <- ggplot() +
+        geom_point(data = df, aes(Date, wtemp), color = "black") +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Time") +
+        # facet_wrap(~per, scales = "free_x") +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3))) +
+        scale_color_manual(values = c("Wtemp" = cols[4],"Both" = cols[6])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      sub_lst <- mlr_pred$lst[!is.na(mlr_pred$lst)]
+
+      if(length(sub_lst) > 0) {
+        mlt <- reshape::melt(sub_lst, id.vars = "Date")
+        colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+        mlt$Label <- as.character(mlt$Label)
+
+        mlt$Label[mlt$Label == 1] <- "Wtemp"
+        mlt$Label[mlt$Label == 2] <- "Both"
+
+        mlt$Label <- factor(mlt$Label, levels = c("Wtemp", "Both"))
+
+        mlt <- mlt[mlt$Date > "2020-01-01", ]
+
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = Label), size = l_siz)
+      }
+
+      ggsave("www/out_plots/mlr_mod_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/mlr_mod_ts.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 4/length(plot_list))
+
+    plot_list$deter_fc <- tryCatch({
+
+      if(any(!is.na(wtemp_fc_out1a$lst))) {
+        sub_lst <- wtemp_fc_out1a$lst[!is.null(wtemp_fc_out1a$lst)]
+        mlt <- reshape::melt(sub_lst, id.vars = "Date")
+        colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+        for(num in 1:4) {
+          if(num %in% mlt$Label) {
+            mlt$Label[mlt$Label == num] <- mod_names[num]
+          }
+        }
+        mlt$Label <- factor(mlt$Label, levels = mod_names)
+      }
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3))) +
+        ylab("Temperature (\u00B0C)") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      if(any(!is.na(wtemp_fc_out1a$lst))) {
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = Label), size = l_siz)
+      }
+
+      p <- p +
+        scale_color_manual(values = c("Obs" = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6]))
+
+
+
+      ggsave("www/out_plots/deter_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/deter_fc.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 5/length(plot_list))
+
+    plot_list$proc_uc_fc <- tryCatch({
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)")
+
+      if(any(!is.na(wtemp_fc_out2$dist))) {
+        sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level), size = l_siz)
+      }
+
+      p <- p +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3)), fill = "none") +
+        scale_color_manual(values = c("Obs" = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6])) +
+        scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                     "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/proc_uc_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+      p_proc <- p
+
+      "www/out_plots/proc_uc_fc.png"
+    }, error = function(e) {p_proc <- p;NULL})
+    progress$set(value = 6/length(plot_list))
+
+    plot_list$param_dist_fc <- tryCatch({
+
+      lst <- param_dist3b$dist
+      names(lst) <- mod_names
+      # mlt <- reshape::melt(lst)
+
+      pl <- lapply(names(lst), function(x) {
+        mlt <-  reshape::melt(lst[[x]])
+        if(nrow(mlt) == 1) mlt$variable = NA
+        ggplot(mlt) +
+          geom_density(aes(value, fill = x), alpha = 0.5) +
+          facet_wrap(~variable, nrow = 1, scales = "free_x") +
+          guides(fill = guide_legend(title = "Model:")) +
+          ggtitle(x) +
+          {if(nrow(mlt) != 1)scale_x_continuous(n.breaks = 4)} +
+          scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                       "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+          theme_bw(base_size = 12) +
+          theme(plot.title = element_text(hjust = 0.5)) +
+          png_theme
+      })
+
+      g <- ggarrange(plotlist = pl, common.legend = TRUE, legend = "bottom")
+
+      ggsave("www/out_plots/param_dist_fc.png", g, dpi = png_dpi, width = p_wid, height = p_wid, units = p_units)
+
+      "www/out_plots/param_dist_fc.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 7/length(plot_list))
+
+    plot_list$param_uc_fc <- tryCatch({
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      if(any(!is.na(wtemp_fc_out3b$dist))) {
+        sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level), size = l_siz)
+      }
+
+      p <- p +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3)), fill = "none") +
+        scale_color_manual(values = c("Obs" = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6])) +
+        scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                     "Atemp" = l.cols[3], "Both" = l.cols[4]))
+
+
+
+      ggsave("www/out_plots/param_uc_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+      p_param <- p
+
+      "www/out_plots/param_uc_fc.png"
+    }, error = function(e) {p_param <- p;NULL})
+    progress$set(value = 8/length(plot_list))
+
+    plot_list$ic_ts_dist <- tryCatch({
+
+      df <- wtemp_fc_data$hist[2:5, ]
+
+      p1 <- ggplot()
+
+      if(!is.null(ic_dist$df)) {
+        quants <- quantile(ic_dist$df$value, c(0.25, 0.75))
+
+        err_bar <- data.frame(x = as.Date(fc_date), ymin = quants[1], ymax = quants[2])
+        p1 <- p1 +
+          geom_errorbar(data = err_bar, aes(x, ymin = ymin, ymax = ymax, width = 0.5), size = (l_siz + 0.1))
+      }
+
+      p1 <- p1 +
+        geom_point(data = df, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Date") +
+        scale_color_manual(values = c("Obs" = cols[2])) +
+        guides(color = "none") +
+        theme_bw(base_size = 14) +
+        png_theme
+
+      df <- data.frame(x = wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date == fc_date],
+                       label = "Observed")
+
+      xlims <- c(df$x -1.5, df$x + 1.5)
+      ylims <- c(0,7)
+
+      p2 <- ggplot() +
+        geom_vline(xintercept = df$x, size = l_siz) +
+        geom_density(data = ic_dist$df, aes(value), fill = l.cols[2], alpha = 0.3) +
+        xlab("Temperature (\u00B0C)") +
+        ylab("Density") +
+        coord_cartesian(xlim = xlims, ylim = ylims) +
+        theme_bw(base_size = 14) +
+        png_theme
+
+      g <- ggarrange(p1, p2, nrow = 1, labels = "AUTO", align = "h")
+
+      ggsave("www/out_plots/ic_ts_dist.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/ic_ts_dist.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 9/length(plot_list))
+
+    plot_list$ic_uc_fc <- tryCatch({
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)")
+
+
+      if(any(!is.na(wtemp_fc_out4$dist))) {
+        sub_lst <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level), size = l_siz)
+      }
+
+      p <- p +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3)), fill = "none") +
+        scale_color_manual(values = c("Obs" = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6])) +
+        scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                     "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/ic_uc_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+      p_ic <- p
+
+      "www/out_plots/ic_uc_fc.png"
+    }, error = function(e) {p_ic <- p;NULL})
+    progress$set(value = 10/length(plot_list))
+
+    plot_list$airt_fc <- tryCatch({
+
+      mlt <- noaa_df$airt
+
+      mlt$Date <- as.Date(mlt$time)
+      mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+      mlt <- mlt[mlt$Date <= "2020-10-02", ]
+      mlt$time <- as.POSIXct(mlt$Date)
+      fut_offset <- lubridate::days(6) #+ lubridate::hours(19)
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp."), size = p_siz) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        theme_bw(base_size = 14) +
+        png_theme
+
+
+        mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
+        p1 <- p +
+          geom_line(data = mlt, aes(Date, value, group = variable), color = "gray", alpha = 0.6, size = l_siz)
+
+        wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+        wid <- wid[, 1:(input$noaa_n_mems + 2)]
+        df <- apply(wid[, -c(1, 2)], 1, function(x){
+          quantile(x, c(0.05, 0.5, 0.875, 0.95))
+        })
+        df <- as.data.frame(t(df))
+        colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
+        df$Date <- wid$Date
+        p2 <- p +
+          geom_ribbon(data = df, aes(Date, ymin = p5, ymax = p95), fill = l.cols[2], alpha = 0.3)+
+          geom_line(data = df, aes(Date, p50, color = "Median"), size = l_siz)
+
+      g <- ggarrange(p1, p2, nrow = 1, labels = "AUTO", align = "h")
+
+
+      ggsave("www/out_plots/airt_fc.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/airt_fc.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 11/length(plot_list))
+
+    plot_list$driver_uc_fc <- tryCatch({
+
+      if(any(!is.na(wtemp_fc_out5$lst))) {
+        sub_lst <- wtemp_fc_out5$lst[!is.na(wtemp_fc_out5$lst)]
+        mlt <- reshape::melt(sub_lst, id.vars = "Date")
+        colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+        mlt$Label <- as.character(mlt$Label)
+      }
+
+      p <- ggplot() +
+        geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Obs")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)")
+
+      if(any(!is.na(wtemp_fc_out5$dist))) {
+        sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level), size = l_siz)
+      }
+
+      p <- p +
+        guides(color = guide_legend(title = "Model:", override.aes = list(size = 3)), fill = "none") +
+        scale_color_manual(values = c("Obs" = cols[2],
+                                      "Pers" = cols[3], "Wtemp" = cols[4],
+                                      "Atemp" = cols[5], "Both" = cols[6])) +
+        scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                     "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/driver_uc_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+      p_driv <- p
+
+      "www/out_plots/driver_uc_fc.png"
+    }, error = function(e) {p_driv <- p;NULL})
+    progress$set(value = 12/length(plot_list))
+
+    plot_list$all_fc <- tryCatch({
+
+      pl <- list(p_proc + ggtitle(uc_sources[1]), p_param + ggtitle(uc_sources[2]), p_ic + ggtitle(uc_sources[3]), p_driv + ggtitle(uc_sources[4]))
+      g <- ggarrange(plotlist = pl, # labels = uc_sources[1:4],
+                     align = "hv", common.legend = TRUE, legend = "bottom")
+
+      ggsave("www/out_plots/all_fc.png", g, dpi = png_dpi, width = p_wid, height = 2*p_hei, units = p_units)
+
+      "www/out_plots/all_fc.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 13/length(plot_list))
+
+    plot_list$tot_uc_fc1 <- tryCatch({
+
+      idx <- which(mod_names == tot_fc_dataA$lab)
+      sel_col <- cols[idx]
+
+      dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
+
+
+      p <- ggplot() +
+        geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+
+      if(!is.null(tot_fc_dataA$dist)) {
+        mlt <- tot_fc_dataA$dist
+
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50), color = sel_col, size = l_siz)
+      }
+
+      ggsave("www/out_plots/tot_uc_fc1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/tot_uc_fc1.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 14/length(plot_list))
+
+    plot_list$quant_uc_fc1 <- tryCatch({
+
+      p <- ggplot() +
+        geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+        ylab("Standard Deviation (\u00B0C)") +
+        scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
+                                     "Driver" = cols2[4], "Total" = cols2[5])) +
+        scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+        labs(fill = "Uncertainty:") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/quant_uc_fc1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/quant_uc_fc1.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 15/length(plot_list))
+
+    plot_list$tot_uc_fc2 <- tryCatch({
+
+      idx <- which(mod_names == tot_fc_dataB$lab)
+      sel_col <- cols[idx]
+
+      dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
+
+      p <- ggplot() +
+        geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+        geom_vline(xintercept = as.Date(fc_date), linetype = "dashed", size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+
+      if(!is.null(tot_fc_dataB$dist)) {
+        mlt <- tot_fc_dataB$dist
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50), color = sel_col, size = l_siz)
+      }
+
+      ggsave("www/out_plots/tot_uc_fc2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/tot_uc_fc2.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 16/length(plot_list))
+
+    plot_list$quant_uc_fc2 <- tryCatch({
+
+      p <- ggplot() +
+        geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+        ylab("Standard Deviation (\u00B0C)") +
+        scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
+                                     "Driver" = cols2[4], "Total" = cols2[5])) +
+        scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+        labs(fill = "Uncertainty:") +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/quant_uc_fc2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/quant_uc_fc2.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 17/length(plot_list))
+
+    plot_list$dec1 <- tryCatch({
+      p <- ggplot(scen_fc1) +
+        geom_hline(yintercept = 12, linetype = "dashed", size = l_siz) +
+        geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+        geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
+        geom_line(aes(Date, surftemp, color = "Surface"), size = l_siz) +
+        geom_line(aes(Date, bottemp, color = "Bottom"), size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Day") +
+        guides(color = "none") +
+        labs(fill = "Location") +
+        scale_x_date(breaks = "1 day", date_labels = "%a") +
+        scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+        scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+        coord_cartesian(ylim = c(8, 14)) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/dec1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/dec1.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 18/length(plot_list))
+
+    plot_list$dec2 <- tryCatch({
+      p <- ggplot(scen_fc2) +
+        geom_hline(yintercept = 12, linetype = "dashed", size = l_siz) +
+        geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+        geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
+        geom_line(aes(Date, surftemp, color = "Surface"), size = l_siz) +
+        geom_line(aes(Date, bottemp, color = "Bottom"), size = l_siz) +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Day") +
+        guides(color = "none") +
+        labs(fill = "Location") +
+        scale_x_date(breaks = "1 day", date_labels = "%a") +
+        scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+        scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+        coord_cartesian(ylim = c(8, 14)) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      ggsave("www/out_plots/dec2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/dec2.png"
+    }, error = function(e) {NULL})
+    progress$set(value = 18/length(plot_list))
 
     # Set up parameters to pass to Rmd document
     params <- list(name = input$name,
@@ -5424,13 +6028,13 @@ shinyServer(function(input, output, session) {
   output$reportbuilt <- reactive({
     return(!is.null(report$filepath))
   })
-  outputOptions(output, 'reportbuilt', suspendWhenHidden= FALSE)
+  outputOptions(output, 'reportbuilt', suspendWhenHidden = FALSE)
 
   # Hide download button until report is generated
   output$reportbuilt2 <- reactive({
     return(!is.null(report2$filepath))
   })
-  outputOptions(output, 'reportbuilt2', suspendWhenHidden= FALSE)
+  outputOptions(output, 'reportbuilt2', suspendWhenHidden = FALSE)
 
 
   #** Download Report ----

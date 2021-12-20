@@ -21,13 +21,11 @@ p_wid <- 213
 p_hei <- 120
 p_units <- "mm"
 l_siz <- 0.6
-p_siz <- 1
+p_siz <- 1.6
 
 # Functions required
 source("R/download_phenocam.R")
 source("R/get_html.R")
-source("R/NP_model.R")
-source("R/create_np_inputs.R")
 source("R/textAreaInput2.R")
 
 # Load and format questions
@@ -123,6 +121,11 @@ mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = ele
                  panel.grid.major = element_line(colour = "gray"),
                  legend.text=element_text(size=16),
                  legend.title = element_text(size = 20))
+
+
+png_theme <- theme(legend.position = "bottom",
+                   legend.text = element_text(size = 14),
+                   legend.title = element_text(size = 14))
 # Linear regression variables ----
 lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
                          fileEncoding = "UTF-8-BOM")
