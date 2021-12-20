@@ -7,6 +7,30 @@ params:
   name: ""
   id_number: ""
   answers: ""
+  plot_list: ""
+  tab_list: ""
+  plot01_airt_wtemp_ts: ""
+  plot02_param_dist_lr: ""
+  plot03_pers_mod: ""
+  plot04_mlr_mod_ts: ""
+  plot05_deter_fc: ""
+  plot06_proc_uc_fc: ""
+  plot07_param_dist_fc: ""
+  plot08_param_uc_fc: ""
+  plot09_ic_ts_dist: ""
+  plot10_ic_uc_fc: ""
+  plot11_airt_fc: ""
+  plot12_driver_uc_fc: ""
+  plot13_all_fc: ""
+  plot14_tot_uc_fc1: ""
+  plot15_quant_uc_fc1: ""
+  plot16_tot_uc_fc2: ""
+  plot17_quant_uc_fc2: ""
+  plot18_dec1: ""
+  plot19_dec2: ""
+  tab_lr: "lr_models.csv"
+  tab_mlr: "mlr_models.csv"
+  tab_models: "fc_models.csv"
 ---
 
 ```{r setup, include=FALSE}
@@ -34,6 +58,19 @@ quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1
 quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
 
 answers <- params$answers
+plot_list <- params$plot_list
+# plot_list[[1]] <- "www/out_plots/airt_wtemp_ts.png"
+
+plt_chk <- lapply(plot_list, function(x) {
+  if(is.na(x)) {
+    return(FALSE)
+  } else {
+    file.exists(x)
+  }
+})
+
+
+
 
 if(answers == "") {
   answers <- quest
@@ -189,7 +226,14 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 **Answer:** `r answers[qid[12], 1]`  
 \
 
-Plot of Time series of air temperature and water temperature
+```{r results='asis', echo=FALSE}
+if (!plt_chk[[1]]) {cat("<!---")}
+```
+![](`r plot_list[[1]]`)  
+*Figure 1. TEST*
+```{r results='asis', echo=FALSE}
+if (!plt_chk[[1]]) {cat("-->")}
+```
 
 7. `r quest[qid[13], 1]`  
 \
@@ -277,6 +321,9 @@ Table of better models
 
 TEXT
 
+TABLE OF MODELS
+
+
 Plot of Deterministic forecast
 
 
@@ -293,6 +340,8 @@ Plot of Deterministic forecast
 
 ***
 
+Plot of Proc UC
+
 17. `r quest[qid[23], 1]`  
 \
 **Answer:** `r answers[qid[23], 1]`  
@@ -306,6 +355,11 @@ Plot of Deterministic forecast
 `r module_text["obj_07", ]`
 
 ***
+
+Plots of parameter UC
+
+Plot of forecast
+
 18. `r quest[qid[24], 1]`  
 \
 **Answer:** `r answers[qid[24], 1]`  
@@ -321,6 +375,11 @@ Plot of Deterministic forecast
 `r module_text["obj_08", ]`
 
 ***
+
+Timeseries plot & Distribution plot
+
+Forecast plot
+
 20. `r quest[qid[26], 1]`  
 \
 **Answer:** `r answers[qid[26], 1]`  
@@ -339,6 +398,10 @@ Plot of Deterministic forecast
 ***
 `r module_text["obj_09", ]`
 ***
+
+Plot of Weather FC
+Plot of forecas
+
 23. `r quest[qid[29], 1]`  
 \
 **Answer:** `r answers[qid[29], 1]`  
@@ -354,17 +417,16 @@ Plot of Deterministic forecast
 
 ***
 
+Plot of all forecasts together
+
 ### Discussion Questions\
 
-_Use the figures below to answer the questions._
+_Use the figures above to answer the questions._
 
 
 Q. `r module_text["actB_q1", ]`\
 Q. `r module_text["actB_q2", ]`\
 Q. `r module_text["actB_q3", ]`\
-
-
-PLOT OF FORECAST UNCERTAINTY
 
 
 # Activty C: Managing Uncertainty\
@@ -374,6 +436,32 @@ PLOT OF FORECAST UNCERTAINTY
 ***
 `r module_text["obj_10", ]`
 ***
+
+### Model 1\
+
+Plot of Model 1 Forecasts
+
+Plot of Model 1 Forecasts UC
+
+
+### Model 2\
+
+Plot of model 2
+
+## Objective 11: Management Scenario\
+
+***
+`r module_text["obj_11", ]`
+***
+
+Plot of decision 1
+Decision Made
+
+Plot of decision 2
+Decision Made
+
+
+## Activity C: Summary\
 
 
 

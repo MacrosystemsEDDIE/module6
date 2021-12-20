@@ -15,6 +15,14 @@ cols2 <- ggthemes::ggthemes_data$colorblind$value
 l.cols <- RColorBrewer::brewer.pal(8, "Set2")[-c(1, 2)]
 p.cols <- RColorBrewer::brewer.pal(12, "Paired")
 
+# Plot saving
+png_dpi <- 120
+p_wid <- 213
+p_hei <- 120
+p_units <- "mm"
+l_siz <- 0.6
+p_siz <- 1
+
 # Functions required
 source("R/download_phenocam.R")
 source("R/get_html.R")

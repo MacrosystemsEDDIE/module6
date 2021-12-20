@@ -5353,15 +5353,59 @@ shinyServer(function(input, output, session) {
                  detail = "This may take a while. This window will disappear
                      when the report is ready.", value = 1)
 
-    # Prepare regression equations
+    # Generate plots
+    plot_list <- list(airt_wtemp_ts = NA,
+                      param_dist_lr = NA,
+                      pers_mod = NA,
+                      mlr_mod_ts = NA,
+                      deter_fc = NA,
+                      proc_uc_fc = NA,
+                      param_dist_fc = NA,
+                      param_uc_fc = NA,
+                      ic_ts_dist = NA,
+                      ic_uc_fc = NA,
+                      airt_fc = NA,
+                      driver_uc_fc = NA,
+                      all_fc = NA,
+                      tot_uc_fc1 = NA,
+                      quant_uc_fc1 = NA,
+                      tot_uc_fc2 = NA,
+                      quant_uc_fc2 = NA,
+                      dec1 = NA,
+                      dec2 = NA)
+
+    plot_list$airt_wtemp_ts <- tryCatch({
+      df <- airt_swt$df
+      df$airt[is.na(df$wtemp)] <- NA
+      df$wtemp[is.na(df$airt)] <- NA
+      df <- df$Date[df$Date > "2019-01-01", ]
+      p <- ggplot() +
+        geom_line(data = df, aes(Date, airt, color = "Air"), size = 0.1) +
+        geom_line(data = df, aes(Date, wtemp, color = "Water"), size = l_siz) +
+        scale_color_manual(values = cols[5:6]) +
+        # geom_point(data = airt_swt$df, aes(airt, wtemp), color = "black") +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Time") +
+        guides(color = guide_legend(title = "", override.aes = list(size = 3))) +
+        theme_bw(base_size = 18) +
+        theme(legend.position = "bottom",
+              legend.text = element_text(size = 14),
+              legend.title = element_text(size = 14))
+      ggsave("www/out_plots/airt_wtemp_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/airt_wtemp_ts.png"
+    }, error = function(e) {NULL})
+
+    print(plot_list$airt_wtemp_ts)
 
 
     # Set up parameters to pass to Rmd document
     params <- list(name = input$name,
                    id_number = input$id_number,
-                   answers = answers
+                   answers = answers,
+                   plot_list = plot_list
     )
-    print(params)
+    # print(params)
 
 
     tmp_file <- paste0(tempfile(), ".docx") #Creating the temp where the .pdf is going to be stored
