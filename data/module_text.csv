@@ -23,15 +23,15 @@ workflow1,"After the instructor completes the PowerPoint presentation, students 
 workflow2,There are questions in green text boxes embedded throughout the Shiny app which students can  input answers into.
 workflow3,"When all of the objectives are completed and questions are answered, navigate to the ""Generate Report"" section in the ""Introduction"" tab. This will then create a Microsoft Word document with all of the forecasts and answers embedded within, which can be downloaded and finalized before submitting to the instructor."
 workflow4,"You can save your progress by downloading the user input before you leave the page (see ""Save your progress"" on this webpage for instructions on how to do this). This will allow you to return to this Shiny app and start from where you left off."
-obj_01,"Select a NEON site from the table, then click on the """"View live feed"""" button to load the latest image from that site. Follow the link at the bottom of the 'About Site' section to find out more about the site."
+obj_01,"Select a NEON site from the table, then click on the """"View latest photo"""" button to load the latest image from that site. Follow the link at the bottom of the 'About Site' section to find out more about the site."
 obj_02,Explore the data measured at the selected site. This is data that has been downloaded from the NEON Data Portal. The variables shown have been selected for this module but there are a wide range of variables collected at each NEON site.
-obj_03,
-obj_04,
-obj_05,
-obj_06,
-obj_07,
-obj_08,
-obj_09,
+obj_03,Use observed water temperature and air temperature data to build a linear regression model to predict water temperature.
+obj_04,Examine how data collection frequency affects the uncertainty of the parameters of your linear regression model.
+obj_05,There are limitations with using the linear regression model to predict future water temperature. You will build different models to predict water temperature.
+obj_06,Explore how process uncertainty affects the different models when forecasting water temperature.
+obj_07,Explore how parameter uncertainty affects the different models when forecasting water temperature.
+obj_08,Explore how initial conditions uncertainty affects the different models when forecasting water temperature.
+obj_09,Explore how driver uncertainty affects the different models when forecasting water temperature.
 obj_10,Generate forecasts of water temperature with total forecast uncertainty and quantify the uncertainty at each forecast horizon and its source.
 obj_11,As a Water Resource Manager you will use forecasts to make decisions with regards to water withdrawal from a reservoir. With your partner you will explore how forecast uncertainty affects your decisions.
 obj_12,
