@@ -277,8 +277,8 @@ ui <- function(req) {
                                  h3("Resume your progress"),
                                  p(id = "txt_j", "To reload the app input you can upload the downloaded '.eddie' file below and it will populate your answers into the Shiny app."),
                                  fileInput("upload_answers", "Upload data", accept = c(".eddie", ".rds")), # B77C2C
-                                 p(id = "txt_j", HTML(paste0(tags$b("Note:"), " You will need to navigate to tabs Objective 1, 2 and 3 in Activity A after uploading your file for the inputs to load there. You will also need to load the NOAA data in Objective 6."))),
-                                 p(id = "txt_j", "Currently the plots do not save to the file.  If you generated plots during your last session, you will need to reload the data and reproduce the plots before generating your report.  Additionally, the answers for Q.10 will need to be re-submitted.")
+                                 p(id = "txt_j", HTML(paste0(tags$b("Note:"), " You will need to navigate to tabs Objective 1 in Activity A after uploading your file for the site selection to load there."))),
+                                 p(id = "txt_j", "Currently the plots do not save to the file.  If you generated plots during your last session, you will need to reload the data and reproduce the plots before generating your report.")
                           ),
                           column(4, offset = 1,
                                  introBox(
@@ -1154,7 +1154,6 @@ border-color: #FFF;
                                                                 )
                                                       )
                                              ),
-                                             hr(),
                                              #** Process Uncertainty ----
                                              fluidRow(
                                                column(12,
@@ -1450,7 +1449,7 @@ border-color: #FFF;
                                                       actionButton("load_noaa_at", "Load forecast"),
                                                       verbatimTextOutput("noaa_at_loaded"),
                                                       p("You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
-                                                      numericInput("noaa_n_mems", "Number of forecasts (0-30)", 30, 1, 30),
+                                                      numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30),
                                                       p("Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
                                                       br(),
@@ -1745,7 +1744,7 @@ border-color: #FFF;
                                                )
                                              ),
                                     #* Objective 11 - Management Scenario ====
-                                    tabPanel(title = "Objective 11 - Management Scenario", value = "obj12",
+                                    tabPanel(title = "Objective 11 - Management Scenario", value = "obj13",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1833,7 +1832,7 @@ border-color: #FFF;
                                              ),
                                     # ),
                                     #* Activity C - Summary ====
-                                    tabPanel(title = "Summary", value = "obj13",
+                                    tabPanel(title = "Summary", value = "obj14",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),

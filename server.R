@@ -782,7 +782,7 @@ shinyServer(function(input, output, session) {
 
     # For model selection table
     if(input$samp_freq == "Day") {
-      mod_selec_tab$dt$eqn[3] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t+1} + ", round(out$coefficients[1, 1], 2), " $$")
+      mod_selec_tab$dt$eqn[3] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), " \\times atemp_{t+1} + ", round(out$coefficients[1, 1], 2), " $$")
       mod_selec_tab$dt$r2[3] <- round(out$r.squared, 2)
     }
 
@@ -5172,7 +5172,11 @@ shinyServer(function(input, output, session) {
 
   observe({
     toggleState(id = "prevBtn1", condition = rv1$prev > 0)
-    toggleState(id = "nextBtn1", condition = rv1$nxt < 8)
+    if(rv1$nxt > 7 & rv4a$nxt > 14) {
+      shinyjs::disable("nextBtn1")
+    } else {
+      shinyjs::enable("nextBtn1")
+    }
     hide(selector = ".page")
     # show(paste0("mtab", rv1$nxt))
   })
@@ -5199,9 +5203,13 @@ shinyServer(function(input, output, session) {
       new_nam <- tab_names$name[idx2 + 1]
     }
     if(curr_tab1 == "mtab7") {
+      curr_obj <- input$tabseries4
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      new_nam <- tab_names$name[idx2 + 1]
+    }
+    if(curr_tab1 == "mtab7" & rv4a$nxt > 14) {
       updateActionButton(session, inputId = "nextBtn1", label = paste("Next >"))
     } else {
-      # shinyjs::show(id = "nextBtn1")
       updateActionButton(session, inputId = "nextBtn1", label = paste(new_nam, ">"))
     }
   })
@@ -5228,6 +5236,12 @@ shinyServer(function(input, output, session) {
       curr_obj <- input$tabseries3
       idx2 <- which(tab_names$tab_id == curr_obj)
       if(curr_obj == "obj6") idx2 <- idx2 - 1 # Move off Activity C label
+      new_nam <- tab_names$name[idx2 - 1]
+    }
+    if(curr_tab1 == "mtab7") {
+      curr_obj <- input$tabseries4
+      idx2 <- which(tab_names$tab_id == curr_obj)
+      if(curr_obj == "obj12") idx2 <- idx2 - 1 # Move off Activity C label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if(curr_tab1 == "mtab1") {
@@ -5267,6 +5281,10 @@ shinyServer(function(input, output, session) {
         curr_obj <- input$tabseries3
         updateTabsetPanel(session, "tabseries3",
                           selected = paste0("obj", rv3a$nxt))
+      } else if (curr_tab1 == "mtab7" & rv4a$nxt < 15) {
+        curr_obj <- input$tabseries4
+        updateTabsetPanel(session, "tabseries4",
+                          selected = paste0("obj", rv4a$nxt))
       } else {
         updateTabsetPanel(session, "tabseries1",
                           selected = "obj1")
@@ -5274,6 +5292,8 @@ shinyServer(function(input, output, session) {
                           selected = "obj3")
         updateTabsetPanel(session, "tabseries3",
                           selected = "obj6")
+        updateTabsetPanel(session, "tabseries4",
+                          selected = "obj12")
         updateTabsetPanel(session, "maintab",
                           selected = paste0("mtab", rv1$nxt))
       }
@@ -5301,6 +5321,10 @@ shinyServer(function(input, output, session) {
       curr_obj <- input$tabseries3
       updateTabsetPanel(session, "tabseries3",
                         selected = paste0("obj", rv3a$prev))
+    } else if (curr_tab1 == "mtab7" & rv4a$prev > 11) {
+      curr_obj <- input$tabseries4
+      updateTabsetPanel(session, "tabseries4",
+                        selected = paste0("obj", rv4a$prev))
     } else {
       updateTabsetPanel(session, "tabseries1",
                         selected = "obj2")
@@ -5339,6 +5363,14 @@ shinyServer(function(input, output, session) {
     rv3a$nxt <- readr::parse_number(curr_tab1) + 1
   })
 
+  #* Tab 4a ----
+  rv4a <- reactiveValues(prev = 0, nxt = 2)
+  observeEvent(input$tabseries4, {
+    curr_tab1 <- input$tabseries4
+    rv4a$prev <- readr::parse_number(curr_tab1) - 1
+    rv4a$nxt <- readr::parse_number(curr_tab1) + 1
+  })
+
 
   #** Render Report ----
   report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
@@ -5354,11 +5386,29 @@ shinyServer(function(input, output, session) {
                      when the report is ready.", value = 0)
 
     # Generate tables
-    table_list <- list()
+    table_list <- list(tab_lr = NA,
+                       tab_mlr = NA,
+                       tab_models = NA)
 
+
+    table_list$tab_lr <- tryCatch({
+      write.csv(lr_eqn$dt, "data/out_tables/tab_lr.csv", row.names = FALSE)
+      "data/out_tables/tab_lr.csv"
+    }, error = function(e) {NULL})
+
+    table_list$tab_mlr <- tryCatch({
+      write.csv(mlr$dt, "data/out_tables/tab_mlr.csv", row.names = FALSE)
+      "data/out_tables/tab_mlr.csv"
+    }, error = function(e) {NULL})
+
+    table_list$tab_models <- tryCatch({
+      write.csv(mod_selec_tab$dt, "data/out_tables/tab_models.csv", row.names = mod_names)
+      "data/out_tables/tab_models.csv"
+    }, error = function(e) {NULL})
 
     # Generate plots
     plot_list <- list(airt_wtemp_ts = NA,
+                      lr_mod_ts = NA,
                       param_dist_lr = NA,
                       pers_mod = NA,
                       mlr_mod_ts = NA,
@@ -5378,6 +5428,7 @@ shinyServer(function(input, output, session) {
                       dec1 = NA,
                       dec2 = NA)
 
+    incr <- 1
     plot_list$airt_wtemp_ts <- tryCatch({
       df <- airt_swt$df
       df$airt[is.na(df$wtemp)] <- NA
@@ -5397,8 +5448,65 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/airt_wtemp_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/airt_wtemp_ts.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 1/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
+
+    plot_list$lr_mod_ts <- tryCatch({
+
+      df <- airt_swt$df
+      df$airt[is.na(df$wtemp)] <- NA
+      df$wtemp[is.na(df$airt)] <- NA
+      df <- df[df$Date > "2020-01-01", ]
+
+      pars <- na.exclude(lr_pars$dt)
+      freq_idx <- which(!is.na(lr_pars$dt[, 1]))
+
+      if(nrow(pars) > 0) {
+        mod <- lapply(1:nrow(pars), function(x) {
+          df2 <- data.frame(Date = df$Date,
+                            Model = pars$m_est[x] * df$airt + pars$b_est[x],
+                            Frequency = samp_freq[freq_idx[x]])
+          df2$rmse <- round(sqrt(mean((df2$Model - df$wtemp)^2, na.rm = TRUE)), 2)
+          return(df2)
+        })
+        mlt <- do.call(rbind, mod)
+        mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
+        print(unique(mlt$rmse))
+
+        for(freq in samp_freq) {
+          sub <- mlt[mlt$Frequency == freq, ]
+          fidx <- which(samp_freq == freq)
+          if(nrow(sub) > 0) {
+            lr_pars$dt$rmse[fidx] <- sub$rmse[1]
+            if(freq == "Daily") {
+              mod_selec_tab$dt$rmse[3] <- sub$rmse[1]
+            }
+          }
+        }
+      }
+
+      p <- ggplot() +
+        geom_point(data = df, aes(Date, wtemp), color = "black") +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Time") +
+        guides(color = guide_legend(override.aes = list(size = 3))) +
+        theme_bw(base_size = 18) +
+        png_theme
+
+      if(nrow(pars) > 0) {
+        p <- p +
+          geom_line(data = mlt, aes(Date, Model, color = Frequency)) +
+          scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
+          labs(color = "Frequency")
+      }
+
+      ggsave("www/out_plots/lr_mod_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
+
+      "www/out_plots/lr_mod_ts.png"
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$param_dist_lr <- tryCatch({
       lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
@@ -5449,8 +5557,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/param_dist_lr.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/param_dist_lr.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 2/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$pers_mod <- tryCatch({
 
@@ -5474,8 +5583,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/pers_mod.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/pers_mod.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 3/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$mlr_mod_ts <- tryCatch({
 
@@ -5516,8 +5626,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/mlr_mod_ts.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/mlr_mod_ts.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 4/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$deter_fc <- tryCatch({
 
@@ -5556,8 +5667,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/deter_fc.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/deter_fc.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 5/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$proc_uc_fc <- tryCatch({
 
@@ -5596,38 +5708,44 @@ shinyServer(function(input, output, session) {
       p_proc <- p
 
       "www/out_plots/proc_uc_fc.png"
-    }, error = function(e) {p_proc <- p;NULL})
-    progress$set(value = 6/length(plot_list))
+    }, error = function(e) {p_proc <- p;NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
-    plot_list$param_dist_fc <- tryCatch({
+    if(all(is.na(lst))) {
+      plot_list$param_dist_fc <- NA
+    } else {
+      plot_list$param_dist_fc <- tryCatch({
 
-      lst <- param_dist3b$dist
-      names(lst) <- mod_names
-      # mlt <- reshape::melt(lst)
+        lst <- param_dist3b$dist
+        names(lst) <- mod_names
+        # mlt <- reshape::melt(lst)
 
-      pl <- lapply(names(lst), function(x) {
-        mlt <-  reshape::melt(lst[[x]])
-        if(nrow(mlt) == 1) mlt$variable = NA
-        ggplot(mlt) +
-          geom_density(aes(value, fill = x), alpha = 0.5) +
-          facet_wrap(~variable, nrow = 1, scales = "free_x") +
-          guides(fill = guide_legend(title = "Model:")) +
-          ggtitle(x) +
-          {if(nrow(mlt) != 1)scale_x_continuous(n.breaks = 4)} +
-          scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                       "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-          theme_bw(base_size = 12) +
-          theme(plot.title = element_text(hjust = 0.5)) +
-          png_theme
-      })
+        pl <- lapply(names(lst), function(x) {
+          mlt <-  reshape::melt(lst[[x]])
+          if(nrow(mlt) == 1) mlt$variable = NA
+          ggplot(mlt) +
+            geom_density(aes(value, fill = x), alpha = 0.5) +
+            facet_wrap(~variable, nrow = 1, scales = "free_x") +
+            guides(fill = guide_legend(title = "Model:")) +
+            ggtitle(x) +
+            {if(nrow(mlt) != 1)scale_x_continuous(n.breaks = 4)} +
+            scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                         "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+            theme_bw(base_size = 12) +
+            theme(plot.title = element_text(hjust = 0.5)) +
+            png_theme
+        })
 
-      g <- ggarrange(plotlist = pl, common.legend = TRUE, legend = "bottom")
+        g <- ggarrange(plotlist = pl, common.legend = TRUE, legend = "bottom")
 
-      ggsave("www/out_plots/param_dist_fc.png", g, dpi = png_dpi, width = p_wid, height = p_wid, units = p_units)
+        ggsave("www/out_plots/param_dist_fc.png", g, dpi = png_dpi, width = p_wid, height = p_wid, units = p_units)
 
-      "www/out_plots/param_dist_fc.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 7/length(plot_list))
+        "www/out_plots/param_dist_fc.png"
+      }, error = function(e) {NA})
+    }
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$param_uc_fc <- tryCatch({
 
@@ -5668,8 +5786,9 @@ shinyServer(function(input, output, session) {
       p_param <- p
 
       "www/out_plots/param_uc_fc.png"
-    }, error = function(e) {p_param <- p;NULL})
-    progress$set(value = 8/length(plot_list))
+    }, error = function(e) {p_param <- p;NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$ic_ts_dist <- tryCatch({
 
@@ -5715,8 +5834,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/ic_ts_dist.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/ic_ts_dist.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 9/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$ic_uc_fc <- tryCatch({
 
@@ -5756,8 +5876,9 @@ shinyServer(function(input, output, session) {
       p_ic <- p
 
       "www/out_plots/ic_uc_fc.png"
-    }, error = function(e) {p_ic <- p;NULL})
-    progress$set(value = 10/length(plot_list))
+    }, error = function(e) {p_ic <- p;NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$airt_fc <- tryCatch({
 
@@ -5799,8 +5920,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/airt_fc.png", g, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/airt_fc.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 11/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$driver_uc_fc <- tryCatch({
 
@@ -5846,8 +5968,9 @@ shinyServer(function(input, output, session) {
       p_driv <- p
 
       "www/out_plots/driver_uc_fc.png"
-    }, error = function(e) {p_driv <- p;NULL})
-    progress$set(value = 12/length(plot_list))
+    }, error = function(e) {p_driv <- p;NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$all_fc <- tryCatch({
 
@@ -5858,8 +5981,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/all_fc.png", g, dpi = png_dpi, width = p_wid, height = 2*p_hei, units = p_units)
 
       "www/out_plots/all_fc.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 13/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$tot_uc_fc1 <- tryCatch({
 
@@ -5888,8 +6012,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/tot_uc_fc1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/tot_uc_fc1.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 14/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$quant_uc_fc1 <- tryCatch({
 
@@ -5906,8 +6031,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/quant_uc_fc1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/quant_uc_fc1.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 15/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$tot_uc_fc2 <- tryCatch({
 
@@ -5934,8 +6060,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/tot_uc_fc2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/tot_uc_fc2.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 16/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$quant_uc_fc2 <- tryCatch({
 
@@ -5952,8 +6079,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/quant_uc_fc2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/quant_uc_fc2.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 17/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$dec1 <- tryCatch({
       p <- ggplot(scen_fc1) +
@@ -5976,8 +6104,9 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/dec1.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/dec1.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 18/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     plot_list$dec2 <- tryCatch({
       p <- ggplot(scen_fc2) +
@@ -6000,16 +6129,20 @@ shinyServer(function(input, output, session) {
       ggsave("www/out_plots/dec2.png", p, dpi = png_dpi, width = p_wid, height = p_hei, units = p_units)
 
       "www/out_plots/dec2.png"
-    }, error = function(e) {NULL})
-    progress$set(value = 18/length(plot_list))
+    }, error = function(e) {NA})
+    progress$set(value = incr/length(plot_list))
+    incr <- incr + 1
 
     # Set up parameters to pass to Rmd document
     params <- list(name = input$name,
                    id_number = input$id_number,
                    answers = answers,
-                   plot_list = plot_list
+                   plot_list = plot_list,
+                   pheno_file = pheno_file$img,
+                   mod_selec1 = input$mod_selec_tot_fc[1],
+                   mod_selec2 = input$mod_selec_tot_fc[2]
     )
-    # print(params)
+    print(params$plot_list)
 
 
     tmp_file <- paste0(tempfile(), ".docx") #Creating the temp where the .pdf is going to be stored
@@ -6161,7 +6294,11 @@ shinyServer(function(input, output, session) {
           if(is.na(answers["q3", 1])) out_chk <- c(out_chk, answers[qid[i], 2])
         }
       } else {
-        if(input[[qid[i]]] == "") out_chk <- c(out_chk, answers[qid[i], 2])
+        if(is.null(input[[qid[i]]])) {
+          out_chk <- c(out_chk, answers[qid[i], 2])
+        } else if(input[[qid[i]]] == "") {
+          out_chk <- c(out_chk, answers[qid[i], 2])
+        }
       }
     }
 
