@@ -3,34 +3,19 @@ title: "Module 6: Understanding Uncertainty in Ecological Forecasts - Student Ha
 output: 
    word_document:
     reference_docx: report-style.docx
+  # officedown::rdocx_document:
+  #   reference_docx: report-style.docx
+  #   tables:
+  #     style: My Table
 params:
   name: ""
   id_number: ""
   answers: ""
   plot_list: ""
   tab_list: ""
-  plot01_airt_wtemp_ts: ""
-  plot02_param_dist_lr: ""
-  plot03_pers_mod: ""
-  plot04_mlr_mod_ts: ""
-  plot05_deter_fc: ""
-  plot06_proc_uc_fc: ""
-  plot07_param_dist_fc: ""
-  plot08_param_uc_fc: ""
-  plot09_ic_ts_dist: ""
-  plot10_ic_uc_fc: ""
-  plot11_airt_fc: ""
-  plot12_driver_uc_fc: ""
-  plot13_all_fc: ""
-  plot14_tot_uc_fc1: ""
-  plot15_quant_uc_fc1: ""
-  plot16_tot_uc_fc2: ""
-  plot17_quant_uc_fc2: ""
-  plot18_dec1: ""
-  plot19_dec2: ""
-  tab_lr: "lr_models.csv"
-  tab_mlr: "mlr_models.csv"
-  tab_models: "fc_models.csv"
+  pheno_file: NULL
+  mod_selec1: NULL
+  mod_selec2: NULL
 ---
 
 ```{r setup, include=FALSE}
@@ -58,7 +43,32 @@ quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1
 quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
 
 answers <- params$answers
-plot_list <- params$plot_list
+
+if(length(params$plot_list) == 1) {
+  plot_list <- list(airt_wtemp_ts = NA,
+                      lr_mod_ts = NA,
+                      param_dist_lr = NA,
+                      pers_mod = NA,
+                      mlr_mod_ts = NA,
+                      deter_fc = NA,
+                      proc_uc_fc = NA,
+                      param_dist_fc = NA,
+                      param_uc_fc = NA,
+                      ic_ts_dist = NA,
+                      ic_uc_fc = NA,
+                      airt_fc = NA,
+                      driver_uc_fc = NA,
+                      all_fc = NA,
+                      tot_uc_fc1 = NA,
+                      quant_uc_fc1 = NA,
+                      tot_uc_fc2 = NA,
+                      quant_uc_fc2 = NA,
+                      dec1 = NA,
+                      dec2 = NA)
+} else {
+  plot_list <- params$plot_list
+}
+
 # plot_list[[1]] <- "www/out_plots/airt_wtemp_ts.png"
 
 plt_chk <- lapply(plot_list, function(x) {
@@ -68,20 +78,40 @@ plt_chk <- lapply(plot_list, function(x) {
     file.exists(x)
   }
 })
+incr <- 1
 
+# Read in tables
+tab_lr <- read.csv("data/out_tables/tab_lr.csv")
+tab_lr[is.na(tab_lr)] <- ""
+tab_mlr <- read.csv("data/out_tables/tab_mlr.csv")
+tab_mlr[is.na(tab_mlr)] <- ""
+tab_models <- read.csv("data/out_tables/tab_models.csv", row.names = 1)
+tab_models[is.na(tab_models)] <- ""
 
+test_eqn <- "$$wtemp_{t+1} =  1 \\times  wtemp_{t}-0.02 $$"
 
-
-if(answers == "") {
+if(length(answers) == 1) {
   answers <- quest
-quest$location <- NULL
-colnames(answers)[1] <- "Answer"
-answers[, 1] <- ""
+  quest$location <- NULL
+  colnames(answers)[1] <- "Answer"
+  answers[, 1] <- ""
 }
 
 # Load in text
 module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
 
+# Check for existence of files
+pheno_chk <- !is.null(params$pheno_file)
+
+if(!is.null(params$mod_selec1)) {
+  idx <- which(row.names(tab_models) == params$mod_selec1)
+  mod_eqn1 <- tab_models[idx, 1]
+}
+
+if(!is.null(params$mod_selec2)) {
+  idx <- which(row.names(tab_models) == params$mod_selec2)
+  mod_eqn2 <- tab_models[idx, 1]
+}
 
 
 ```
@@ -107,8 +137,12 @@ By the end of this module, you will be able to:
 - Identify ways in which uncertainty can be reduced within an ecological forecast
 - Describe how forecast horizon affects forecast uncertainty
 - Explain the importance of specifying uncertainty in ecological forecasts for application
+\
 
-![](www/Schematic_Draft_v3.png){width=250px}
+```{r, echo=FALSE, fig.align="center", out.width="200px", fig.cap=""}
+knitr::include_graphics("www/Schematic_Draft_v3.png")
+```
+
 
 # Why macrosystems ecology and ecological forecasting?
 
@@ -182,6 +216,15 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
+```{r results='asis', echo=FALSE}
+if (!pheno_chk) {cat("<!---")}
+```
+![](`r params$pheno_file`)  
+*Figure 1. Phenocam image downloaded for `r quest[qid[4], 1]`.*
+```{r results='asis', echo=FALSE}
+if (!pheno_chk) {cat("-->")}
+```
+
 3. `r quest[qid[3], 1]`  
 
 *Table 1. Site Characteristics*
@@ -226,13 +269,15 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 **Answer:** `r answers[qid[12], 1]`  
 \
 
+
+
 ```{r results='asis', echo=FALSE}
-if (!plt_chk[[1]]) {cat("<!---")}
+if (!plt_chk$airt_wtemp_ts) {cat("<!---")}
 ```
-![](`r plot_list[[1]]`)  
-*Figure 1. TEST*
+![](`r plot_list$airt_wtemp_ts`)  
+*Figure 2. Timeseries of air temperature and water temperature measurements.*
 ```{r results='asis', echo=FALSE}
-if (!plt_chk[[1]]) {cat("-->")}
+if (!plt_chk$airt_wtemp_ts) {cat("-->")}
 ```
 
 7. `r quest[qid[13], 1]`  
@@ -245,7 +290,14 @@ if (!plt_chk[[1]]) {cat("-->")}
 **Answer:** `r answers[qid[14], 1]`  
 \
 
-Figure Timeseries of models
+```{r results='asis', echo=FALSE}
+if (!plt_chk$lr_mod_ts) {cat("<!---")}
+```
+![](`r plot_list$lr_mod_ts`)  
+*Figure 3. Timeseries of observed water temperature (points) with linear regression models fitted to different data collected at different frequencies. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$lr_mod_ts) {cat("-->")}
+```
 
 9. `r quest[qid[15], 1]`  
 \
@@ -257,7 +309,16 @@ Figure Timeseries of models
 **Answer:** `r answers[qid[16], 1]`  
 \
 
-Table of models & RMSE
+Table 1. Linear regression models fitted using data collected at different frequencies.
+
+| **Frequency** | **Equation** | **RMSE** |
+| --- | --- | --- |
+| Monthly | `r tab_lr[1, 1]` | `r tab_lr[1, 2]` |
+| Fortnightly | `r tab_lr[2, 1]` | `r tab_lr[2, 2]` |
+| Weekly |`r tab_lr[3, 1]` | `r tab_lr[3, 2]` |
+| Daily | `r tab_lr[4, 1]` | `r tab_lr[4, 2]` |
+\
+
 
 ## Objective 4: Explore Parameters\
 
@@ -271,7 +332,14 @@ Table of models & RMSE
 **Answer:** `r answers[qid[17], 1]`  
 \
 
-Plot of parameter distributions
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_dist_lr) {cat("<!---")}
+```
+![](`r plot_list$param_dist_lr`)  
+*Figure 4. Distribution of parameters calculated from the uncertainty of the parameters from the linear regression fit using data collected at different frequencies. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_dist_lr) {cat("-->")}
+```
 
 ## Objective 5: Improve Model for Forecasting\
 
@@ -282,17 +350,39 @@ Plot of parameter distributions
 
 ### Persistence model\
 
-Plot of Persistence model
+```{r results='asis', echo=FALSE}
+if (!plt_chk$pers_mod) {cat("<!---")}
+```
+![](`r plot_list$pers_mod`)  
+*Figure 5. Timeseries of observations and with the persistence model is added. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$pers_mod) {cat("-->")}
+```
 
+
+### Build a better model\
 
 12. `r quest[qid[18], 1]`  
 \
 **Answer:** `r answers[qid[18], 1]`  
 \
 
-Plot of better models
+```{r results='asis', echo=FALSE}
+if (!plt_chk$mlr_mod_ts) {cat("<!---")}
+```
+![](`r plot_list$mlr_mod_ts`)  
+*Figure 6. Timeseries of observations with the improved models for forecasting added.*
+```{r results='asis', echo=FALSE}
+if (!plt_chk$mlr_mod_ts) {cat("-->")}
+```
 
-Table of better models
+Table 2. Models fit to the data that are more suitable for forecasting.
+
+| **Model** | **Equation** | **RMSE** |
+| --- | --- | --- |
+| Wtemp |`r tab_mlr[1, 1]` | `r tab_mlr[1, 3]` |
+| Both | `r tab_mlr[2, 1]` | `r tab_mlr[2, 3]` |
+\
 
 
 13. `r quest[qid[19], 1]`  
@@ -321,10 +411,30 @@ Table of better models
 
 TEXT
 
-TABLE OF MODELS
+Table 3. Models that are used to explore forecast uncertainty.
+
+| **Model** | **Equation** | **RMSE** |
+| --- | --- | --- |
+| Pers | `r tab_models[1, 1]` | `r tab_models[1, 5]` |
+| Wtemp | `r tab_models[2, 1]` | `r tab_models[2, 5]` |
+| Atemp |`r tab_models[3, 1]` | `r tab_models[3, 5]` |
+| Both | `r tab_models[4, 1]` | `r tab_models[4, 5]` |
+\
+
+```{r}
+
+# knitr::kable(tab_models[, c(1, 5)], col.names = c("Equation", "RMSE"))
+```
 
 
-Plot of Deterministic forecast
+```{r results='asis', echo=FALSE}
+if (!plt_chk$deter_fc) {cat("<!---")}
+```
+![](`r plot_list$deter_fc`)  
+*Figure 7. Deterministic forecasts generated for water temperature using the different models. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$deter_fc) {cat("-->")}
+```
 
 
 16. `r quest[qid[22], 1]`  
@@ -340,7 +450,14 @@ Plot of Deterministic forecast
 
 ***
 
-Plot of Proc UC
+```{r results='asis', echo=FALSE}
+if (!plt_chk$proc_uc_fc) {cat("<!---")}
+```
+![](`r plot_list$proc_uc_fc`)  
+*Figure 8. Forecasts generated for water temperature using the different models including **process uncertainty**. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$proc_uc_fc) {cat("-->")}
+```
 
 17. `r quest[qid[23], 1]`  
 \
@@ -356,9 +473,23 @@ Plot of Proc UC
 
 ***
 
-Plots of parameter UC
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_dist_fc) {cat("<!---")}
+```
+![](`r plot_list$param_dist_fc`)  
+*Figure 9. Distribution of the parameters used for generating the forecasts for each of the different models. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_dist_fc) {cat("-->")}
+```
 
-Plot of forecast
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_uc_fc) {cat("<!---")}
+```
+![](`r plot_list$param_uc_fc`)  
+*Figure 10. Forecasts generated for water temperature using the different models including **parameter uncertainty**. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$param_uc_fc) {cat("-->")}
+```
 
 18. `r quest[qid[24], 1]`  
 \
@@ -376,9 +507,23 @@ Plot of forecast
 
 ***
 
-Timeseries plot & Distribution plot
+```{r results='asis', echo=FALSE}
+if (!plt_chk$ic_ts_dist) {cat("<!---")}
+```
+![](`r plot_list$ic_ts_dist`)  
+*Figure 11. Distribution of the range of possible values for the initial value to start the forecast. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$ic_ts_dist) {cat("-->")}
+```
 
-Forecast plot
+```{r results='asis', echo=FALSE}
+if (!plt_chk$ic_uc_fc) {cat("<!---")}
+```
+![](`r plot_list$ic_uc_fc`)  
+*Figure 12. Forecasts generated for water temperature using the different models including **initial conditions uncertainty**. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$ic_uc_fc) {cat("-->")}
+```
 
 20. `r quest[qid[26], 1]`  
 \
@@ -397,10 +542,26 @@ Forecast plot
 
 ***
 `r module_text["obj_09", ]`
+
 ***
 
-Plot of Weather FC
-Plot of forecas
+```{r results='asis', echo=FALSE}
+if (!plt_chk$airt_fc) {cat("<!---")}
+```
+![](`r plot_list$airt_fc`)  
+*Figure 13. Forecast of air temperature from NOAA GEFS 31-member ensemble for the next seven days showing the individual ensemble members (A) and the median and 95% confidence interval (B). *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$airt_fc) {cat("-->")}
+```
+
+```{r results='asis', echo=FALSE}
+if (!plt_chk$driver_uc_fc) {cat("<!---")}
+```
+![](`r plot_list$driver_uc_fc`)  
+*Figure 14. Forecasts generated for water temperature using the different models including **driver uncertainty**. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$driver_uc_fc) {cat("-->")}
+```
 
 23. `r quest[qid[29], 1]`  
 \
@@ -417,47 +578,115 @@ Plot of forecas
 
 ***
 
-Plot of all forecasts together
+```{r results='asis', echo=FALSE}
+if (!plt_chk$all_fc) {cat("<!---")}
+```
+![](`r plot_list$all_fc`)  
+*Figure 15. Summary plot showing all the forecasts generated accounting for the different sources of uncertaunty within each. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$all_fc) {cat("-->")}
+```
 
 ### Discussion Questions\
 
 _Use the figures above to answer the questions._
 
 
-Q. `r module_text["actB_q1", ]`\
-Q. `r module_text["actB_q2", ]`\
-Q. `r module_text["actB_q3", ]`\
+`r module_text["actB_q1", ]`\
+\
+`r module_text["actB_q2", ]`\
+\
+`r module_text["actB_q3", ]`\
+\
 
 
-# Activty C: Managing Uncertainty\
+# Activity C: Managing Uncertainty\
 
 ## Objective 10: Quantify Uncertainty\
 
 ***
 `r module_text["obj_10", ]`
+
 ***
 
 ### Model 1\
 
-Plot of Model 1 Forecasts
+Model selected:
+`r mod_eqn1`
 
-Plot of Model 1 Forecasts UC
 
+```{r results='asis', echo=FALSE}
+if (!plt_chk$tot_uc_fc1) {cat("<!---")}
+```
+![](`r plot_list$tot_uc_fc1`)  
+*Figure 16. Forecast of water temperature for the next seven days including each of the four different sources of uncertainty. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$tot_uc_fc1) {cat("-->")}
+```
+
+```{r results='asis', echo=FALSE}
+if (!plt_chk$quant_uc_fc1) {cat("<!---")}
+```
+![](`r plot_list$quant_uc_fc1`)  
+*Figure 17. Quantification of the different sources of uncertainty on each forecast day. Uncertainty is measured as the standard deviation across the ensemble members. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$quant_uc_fc1) {cat("-->")}
+```
+\
 
 ### Model 2\
 
-Plot of model 2
+Model selected:
+`r mod_eqn2`
+
+
+```{r results='asis', echo=FALSE}
+if (!plt_chk$tot_uc_fc2) {cat("<!---")}
+```
+![](`r plot_list$tot_uc_fc2`)  
+*Figure 18. Forecast of water temperature for the next seven days including each of the four different sources of uncertainty. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$tot_uc_fc2) {cat("-->")}
+```
+
+```{r results='asis', echo=FALSE}
+if (!plt_chk$quant_uc_fc2) {cat("<!---")}
+```
+![](`r plot_list$quant_uc_fc2`)  
+*Figure 19. Quantification of the different sources of uncertainty on each forecast day. Uncertainty is measured as the standard deviation across the ensemble members. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$quant_uc_fc2) {cat("-->")}
+```
+\
 
 ## Objective 11: Management Scenario\
 
 ***
 `r module_text["obj_11", ]`
+
 ***
 
-Plot of decision 1
+```{r results='asis', echo=FALSE}
+if (!plt_chk$dec1) {cat("<!---")}
+```
+![](`r plot_list$dec1`)  
+*Figure 20. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The dashed line represents temperatures below which Chinook salmon have higher survival rates. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$dec1) {cat("-->")}
+```
+
+
 Decision Made
 
-Plot of decision 2
+```{r results='asis', echo=FALSE}
+if (!plt_chk$dec2) {cat("<!---")}
+```
+![](`r plot_list$dec2`)  
+*Figure 21. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The dashed line represents temperatures below which Chinook salmon have higher survival rates. *
+```{r results='asis', echo=FALSE}
+if (!plt_chk$dec2) {cat("-->")}
+```
+
 Decision Made
 
 
@@ -467,4 +696,4 @@ Decision Made
 
 This module was developed by Moore, T.N., C.C. Carey, and R.Q. Thomas. 13 October 2021. Macrosystems EDDIE: Understanding Uncertainty in Ecological Forecasts. Macrosystems EDDIE Module 6, Version 1. http://module5.macrosystemseddie.org. Module development was supported by NSF grants DEB-1926050 and DBI-1933016.
 
-This document last modified: 04 November 2021 by TNM.
+This document last modified: 21 December 2021 by TNM.
