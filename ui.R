@@ -1008,8 +1008,8 @@ border-color: #FFF;
                                                         uiOutput("mlr_mod")
                                                       ),
                                                       DTOutput("mlr_dt"),
-                                                      br(),
-                                                      p("To change the models in the table, you can select a row in the table then click 'Fit model' to add the model to that row.")
+                                                      br()
+                                                      # p("To change the models in the table, you can select a row in the table then click 'Fit model' to add the model to that row.")
                                                )
                                              ),
                                              fluidRow(
@@ -1102,6 +1102,7 @@ border-color: #FFF;
                                                ),
                                              ),
                                              fluidRow(
+                                               #** Deterministic Forecast ----
                                                column(6,
                                                       h3("Deterministic Forecasts"),
                                                       p("Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),

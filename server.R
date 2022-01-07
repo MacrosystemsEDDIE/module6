@@ -526,12 +526,12 @@ shinyServer(function(input, output, session) {
                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
-  output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "m_se", "b_est", "b_se", "r2", "N")], selection = "single",
+  output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "m_se", "b_est", "b_se", "rmse", "N")], selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
                            ),
                            # colnames = c("m", "b", "R-squared", "N"),
-                           colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "R-squared", "N"),
+                           colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "RMSE", "N"),
                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
                            # container = sketch2,
                            server = FALSE, escape = FALSE)
@@ -677,7 +677,6 @@ shinyServer(function(input, output, session) {
       mlt <- do.call(rbind, mod)
       # mlt <- mlt[mlt$Date > "2020-01-01", ]
       mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
-      print(unique(mlt$rmse))
 
       for(freq in samp_freq) {
         sub <- mlt[mlt$Frequency == freq, ]
@@ -689,7 +688,6 @@ shinyServer(function(input, output, session) {
           }
         }
       }
-      print(lr_pars$dt)
 
       # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
       # mlt$Percentage <- factor(as.character(mlt$N))
@@ -1263,7 +1261,6 @@ shinyServer(function(input, output, session) {
     mod_selec_tab$dt$eqn[1] <- "$$wtemp_{t+1} = wtemp_{t}$$"
     mod_selec_tab$dt$r2[1] <- r2
     mod_selec_tab$dt$rmse[1] <- rmse
-    print(mod_selec_tab$dt)
     withMathJax(
       tags$p(paste0("$$RMSE = ", rmse, "\u00B0C$$"))
     )
@@ -1332,11 +1329,16 @@ shinyServer(function(input, output, session) {
   observeEvent(input$fit_mlr, {
     req(!is.null(input$mult_lin_reg_vars))
 
-
-    if(!is.null(input$mlr_dt_rows_selected)) {
-      inp_row <- input$mlr_dt_rows_selected
+    if(length(input$mult_lin_reg_vars) == 2) {
+      inp_row <- 2
+    } else if(input$mult_lin_reg_vars == "Water temperature (today)") {
+      inp_row <- 1
     } else {
-      inp_row <- which(is.na(mlr$dt$Equation))[1]
+      showModal(modalDialog(
+        title = "Uh oh!",
+        "You must select predictors according to the instructions to the left.", easyClose = TRUE
+      ))
+      req(input$mult_lin_reg_vars != "Air temperature (tomorrow)")
     }
 
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
@@ -1370,8 +1372,6 @@ shinyServer(function(input, output, session) {
       mlr_params$df$beta3[inp_row] <- out$coefficients[1, 1]
       mlr_params$df$beta3_se[inp_row] <- out$coefficients[1, 2]
     }
-
-    print(mlr_params$df)
 
     coeffs <- round(fit$coefficients, 2)
     if(coeffs[1] >= 0) {
@@ -1407,83 +1407,28 @@ shinyServer(function(input, output, session) {
 
     text <- do.call(sprintf, as.list(c(formula, coeffs[-1])))
 
+    # idx <- which(is.na(lr_pars$dt$m))[1]
+    mlr$dt$Equation[inp_row] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
+    mlr$dt$lag[inp_row] <- 1
+    # mlr$dt$mean_day[inp_row] <- input$mean_t
+    mlr$dt$mean_err[inp_row] <- rmse
+    mlr_pred$lst[[inp_row]] <- data.frame(Date = dat$Date,
+                                          Model = mod)
 
-    if(!is.null(input$mlr_dt_rows_selected)) {
-      mlr$dt$Equation[input$mlr_dt_rows_selected] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
-      mlr$dt$lag[input$mlr_dt_rows_selected] <- 1
-      # mlr$dt$mean_day[input$mlr_dt_rows_selected] <- input$mean_t
-      mlr$dt$mean_err[input$mlr_dt_rows_selected] <- rmse
-      mlr_pred$lst[[input$mlr_dt_rows_selected]] <- data.frame(Date = dat$Date,
-                                            Model = mod)
-      print(mlr$dt)
-
-      if(input$mlr_dt_rows_selected == 1) {
-        mod_selec_tab$dt$eqn[2] <- text
-        mod_selec_tab$dt$r2[2] <- r2
-        mod_selec_tab$dt$rmse[2] <- rmse
-        # mod_selec_tab$dt$mean[2] <- input$mean_t
-        mod_selec_tab$dt$lag[2] <- 1
-      }
-      if(input$mlr_dt_rows_selected == 2) {
-        mod_selec_tab$dt$eqn[4] <- text
-        mod_selec_tab$dt$r2[4] <- r2
-        mod_selec_tab$dt$rmse[4] <- rmse
-        # mod_selec_tab$dt$mean[4] <- input$mean_t
-        mod_selec_tab$dt$lag[4] <- 1
-      }
-
-    } else if(!is.na(inp_row)) {
-      # idx <- which(is.na(lr_pars$dt$m))[1]
-      mlr$dt$Equation[inp_row] <- text # paste0("$$ wtemp =  ", paste0(coeffs[-1], " \\times  ", lin_reg_vars$latex[idx], collapse = " + "), b, " $$")
-      mlr$dt$lag[inp_row] <- 1
-      # mlr$dt$mean_day[inp_row] <- input$mean_t
-      mlr$dt$mean_err[inp_row] <- rmse
-      mlr_pred$lst[[inp_row]] <- data.frame(Date = dat$Date,
-                                            Model = mod)
-
-      if(inp_row == 1) {
-        mod_selec_tab$dt$eqn[2] <- text
-        mod_selec_tab$dt$r2[2] <- r2
-        mod_selec_tab$dt$rmse[2] <- rmse
-        # mod_selec_tab$dt$mean[2] <- input$mean_t
-        mod_selec_tab$dt$lag[2] <- 1
-      }
-      if(inp_row == 2) {
-        mod_selec_tab$dt$eqn[4] <- text
-        mod_selec_tab$dt$r2[4] <- r2
-        mod_selec_tab$dt$rmse[4] <- rmse
-        # mod_selec_tab$dt$mean[4] <- input$mean_t
-        mod_selec_tab$dt$lag[4] <- 1
-      }
+    if(inp_row == 1) {
+      mod_selec_tab$dt$eqn[2] <- text
+      mod_selec_tab$dt$r2[2] <- r2
+      mod_selec_tab$dt$rmse[2] <- rmse
+      mod_selec_tab$dt$lag[2] <- 1
+    }
+    if(inp_row == 2) {
+      mod_selec_tab$dt$eqn[4] <- text
+      mod_selec_tab$dt$r2[4] <- r2
+      mod_selec_tab$dt$rmse[4] <- rmse
+      mod_selec_tab$dt$lag[4] <- 1
     }
 
     mlr$eqn <- text
-
-    if(!is.null(input$mlr_dt_rows_selected)) {
-      if(input$mlr_dt_rows_selected == 5) {
-        dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                          airt = airt_swt$df$airt,
-                          wtemp_yday = NA,
-                          airt_yday = NA)
-
-        dat$wtemp_yday[-c(1:mlr$dt$lag[5])] <- dat$wtemp[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
-        dat$airt_yday[-c(1:mlr$dt$lag[5])] <- dat$airt[-c((nrow(dat)+1-mlr$dt$lag[5]):nrow(dat))]
-
-        lag_date <- (as.Date(fc_date) + mlr$dt$lag[5])
-        mn_date <- (as.Date(fc_date) + 1)
-
-        dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-        dat$wtemp[dat$Date > fc_date] <- NA
-        dat$airt[dat$Date > fc_date] <- NA
-        dat[dat$Date > lag_date, c(4, 6)] <- NA
-        dat[dat$Date > mn_date, c(5, 7)] <- NA
-
-        df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1),
-                         forecast = NA)
-        df <- merge(dat, df, by = "Date", all.y = TRUE)
-        wtemp_fc_data$df <- df
-      }
-    }
   })
 
   mlr_out <- reactiveValues(txt = NULL, invis = NULL)
@@ -1545,7 +1490,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$mod_selec_tab1a_rows_selected != "",
-           message = "Select a model in the table.")
+           message = "")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab1a_rows_selected])
@@ -1559,7 +1504,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$mod_selec_tab2_rows_selected != "",
-           message = "Select a model in the table.")
+           message = "")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab2_rows_selected])
@@ -1574,7 +1519,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$mod_selec_tab3_rows_selected != "",
-           message = "Select a model in the table.")
+           message = "")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab3_rows_selected])
@@ -1590,7 +1535,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$mod_selec_tab4_rows_selected != "",
-           message = "Select a model in the table.")
+           message = "")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab4_rows_selected])
@@ -1605,7 +1550,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$mod_selec_tab5_rows_selected != "",
-           message = "Select a model in the table.")
+           message = "")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
@@ -1633,7 +1578,7 @@ shinyServer(function(input, output, session) {
                         eqn = NULL
                         )
 
-  output$mlr_dt <- renderDT(mlr$dt[, c(1, 3)], selection = "single",
+  output$mlr_dt <- renderDT(mlr$dt[, c(1, 3)], selection = "none",
                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                            columnDefs = list(list(width = '10%', targets = "_all")),
                                            scrollX = TRUE #,
@@ -1938,9 +1883,6 @@ shinyServer(function(input, output, session) {
       need(!is.null(input$mod_selec_tab2_rows_selected), "Select a model in the table.")
     )
     validate(
-      need(!is.na(wtemp_fc_data2$lst[[input$mod_selec_tab2_rows_selected]]), "Click 'Load driver data'")
-    )
-    validate(
       need(!is.na(wtemp_fc_out2$mlt[[input$mod_selec_tab2_rows_selected]]), "Click 'Run forecast'")
     )
     "Forecast complete!"
@@ -1974,9 +1916,6 @@ shinyServer(function(input, output, session) {
       need(!is.null(input$mod_selec_tab4_rows_selected), "Select a model in the table.")
     )
     validate(
-      need(!is.na(wtemp_fc_data4$lst[[input$mod_selec_tab4_rows_selected]]), "Click 'Load driver data'")
-    )
-    validate(
       need(!is.na(wtemp_fc_out4$mlt[[input$mod_selec_tab4_rows_selected]]), "Click 'Run forecast'")
     )
     "Forecast complete!"
@@ -1987,9 +1926,6 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(input$mod_selec_tab5_rows_selected), "Select a model in the table.")
     )
-    # validate(
-    #   need(!is.na(wtemp_fc_data5$lst[[input$mod_selec_tab5_rows_selected]]), "Click 'Load driver data'")
-    # )
     validate(
       need(!is.na(wtemp_fc_out5$mlt[[input$mod_selec_tab5_rows_selected]]), "Click 'Run forecast'")
     )
@@ -2468,7 +2404,7 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$mod_selec_tab3_rows_selected != "", "Please select a row in the model table.")
+      need(input$mod_selec_tab3_rows_selected != "", "Please select a model in the table.")
     )
     idx <- input$mod_selec_tab3_rows_selected
 
@@ -2965,19 +2901,6 @@ shinyServer(function(input, output, session) {
     lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
     mn_date <- (as.Date(fc_date) + 1)
 
-    wtemp_fc_data5$lst <- lapply(1:input$noaa_n_mems, function(x) {
-      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-      dat$wtemp[dat$Date > fc_date] <- NA
-      dat$forecast <- NA
-      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
-      dat$wtemp_yday[dat$Date > lag_date] <- NA
-      dat$airt_yday[dat$Date > mn_date] <- NA
-
-      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-      df <- merge(dat, df, by = "Date", all.y = TRUE)
-    })
-
     df <- wtemp_fc_data5$lst[[1]]
 
     mat <- matrix(NA, 8, input$noaa_n_mems)
@@ -3299,10 +3222,10 @@ shinyServer(function(input, output, session) {
   # Activity C - model
   output$modA_txt <- renderText({
     validate(
-      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+      need(input$mod_selec_tot_fc != "", "")
     )
     validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+      need(length(input$mod_selec_tot_fc) == 2, "")
     )
 
     if(input$mod_selec_tot_fc[1] == "Pers") {
@@ -3319,10 +3242,10 @@ shinyServer(function(input, output, session) {
 
   output$modB_txt <- renderText({
     validate(
-      need(input$mod_selec_tot_fc != "", "Please select which pair of models to explore forecast uncertainty with above.")
+      need(input$mod_selec_tot_fc != "", "")
     )
     validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+      need(length(input$mod_selec_tot_fc) == 2, "")
     )
 
     if(input$mod_selec_tot_fc[2] == "Pers") {
@@ -3435,11 +3358,23 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
     )
 
     idx <- which(mod_names == input$mod_selec_tot_fc[1])
     sel_col <- cols[idx]
+
+    if(idx != 1) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 7.")
+      )
+    }
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 9.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+    )
 
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
 
@@ -3687,19 +3622,27 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(tot_fc_dataB$dist), "Click 'Run forecast'")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select a model above.")
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
     )
 
     idx <- which(mod_names == input$mod_selec_tot_fc[2])
     sel_col <- cols[idx]
 
+    if(idx != 1) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 7.")
+      )
+    }
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 9.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+    )
+
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
 
     p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
       geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
@@ -4113,6 +4056,39 @@ shinyServer(function(input, output, session) {
     noaa_df$upar <- noaa_df$swr
     noaa_df$upar$L1 <- "underwater_photosynthetically_active_radiation"
     noaa_df$upar$value <- met_pars$swr_m[idx] * noaa_df$upar$value + met_pars$swr_b[idx]
+
+    mlt <- noaa_df$airt
+    mlt$Date <- as.Date(mlt$time)
+    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+
+    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+    wid <- as.data.frame(wid)
+
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
+                      airt = airt_swt$df$airt,
+                      wtemp_yday = NA,
+                      airt_yday = NA)
+
+    dat$wtemp_yday[-c(1:1)] <- dat$wtemp[-c((nrow(dat)+1-1):nrow(dat))]
+    dat$airt_yday[-c(1:1)] <- dat$airt[-c((nrow(dat)+1-1):nrow(dat))]
+
+    lag_date <- (as.Date(fc_date) + 1)
+    mn_date <- (as.Date(fc_date) + 1)
+
+    wtemp_fc_data5$lst <- lapply(1:input$noaa_n_mems, function(x) {
+      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+      dat$wtemp[dat$Date > fc_date] <- NA
+      dat$forecast <- NA
+      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
+      dat$wtemp_yday[dat$Date > lag_date] <- NA
+      dat$airt_yday[dat$Date > mn_date] <- NA
+
+      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+      df <- merge(dat, df, by = "Date", all.y = TRUE)
+    })
+
   })
 
   output$noaa_at_loaded <- renderText({
@@ -5476,7 +5452,6 @@ shinyServer(function(input, output, session) {
         })
         mlt <- do.call(rbind, mod)
         mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
-        print(unique(mlt$rmse))
 
         for(freq in samp_freq) {
           sub <- mlt[mlt$Frequency == freq, ]
@@ -6276,7 +6251,6 @@ shinyServer(function(input, output, session) {
   observe({
     if(input$row_num != "") {
       dt_proxy <- dataTableProxy("table01")
-      print(input$row_num)
       selectRows(dt_proxy, input$row_num)
     }
   })
