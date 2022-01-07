@@ -541,7 +541,7 @@ border-color: #FFF;
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
                                            h2("Activity A - Build A Model With Uncertainty"),
-                                           p(module_text["obj_03", ])
+                                           p(module_text["act_A", ])
                                  )
                           ),
                         ),
@@ -1053,7 +1053,7 @@ border-color: #FFF;
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
                                            h2("Activity B - Explore Forecast Uncertainty"),
-                                           p(module_text["obj_04", ])
+                                           p(module_text["act_B", ])
                                  )
                           ),
                         ),
@@ -1576,7 +1576,7 @@ border-color: #FFF;
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
                                            h2("Activity C - Managing Uncertainty"),
-                                           p(module_text["obj_04", ])
+                                           p(module_text["act_C", ])
                                            )
                                  ),
                           ),
@@ -1594,12 +1594,12 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Quantifying Uncertainty"),
-                                                      p("Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
+                                                      p(id = "txt_j", module_text["uc_quant1", 1]),
                                                       p("So far we have explored where uncertainty comes from, now we will quantify the uncertainty at each forecast horizon."),
                                                       p("We will generate forecasts with two of the models including all of the sources of uncertainty. In reality, when you generate an ecological forecast you will want to include and account for all sources of uncertainty."),
                                                       br(),
                                                       h3("Think, Pair, Share!"),
-                                                      p("With your partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss with your partner to answer QXX-YY."),
+                                                      p(id = "txt_j", module_text["tps1", 1]),
                                                       selectizeInput("mod_selec_tot_fc", "Select two models for the next exercise:",
                                                                      choices = mod_names,
                                                                      options = list(
@@ -1754,12 +1754,14 @@ border-color: #FFF;
                                                       ),
                                                column(4,
                                                       h3("Management Scenario"),
-                                                      p("For this activity you are a Water Resource Manager for the local hydroelectric dam which provides water to agricultural users downstream and energy to the local town."),
-                                                      p("During the summer, water temperatures at the surface increase, while temperatures at the bottom increase much slower creating a difference in temperature between the surface and the bottom."),
-                                                      p("This reservoir can release water either from near to the surface of the dam or from the bottom of the dam."),
-                                                      p("Fish downstream of the dam are influenced by stream water temperature."),
-                                                      p("Some fish species, such as Chinook salmon ", tags$em("(Oncorhynchus tshawytscha),"), "have eggs which have higher rates of survival at colder temperatures."),
-                                                      p("You will make decisions about where the water should be withdrawn for the next 7-days to optimize survival rates for Chinook salmon based on water temperature forecasts for surface and bottom temperatures within the reservoir.")
+                                                      p(id = "txt_j", module_text["mgmt_scen1", ]),
+                                                      p(id = "txt_j", module_text["mgmt_scen2", ]),
+                                                      p(id = "txt_j", module_text["mgmt_scen3", ]),
+                                                      p(id = "txt_j", module_text["mgmt_scen4", ]),
+                                                      p(id = "txt_j", "Some fish species, such as Chinook salmon ", tags$em("(Oncorhynchus tshawytscha),"), "have eggs which have higher rates of survival at colder temperatures."),
+                                                      p(id = "txt_j", module_text["mgmt_scen5", ]),
+
+                                                      p("")
                                                       ),
                                                column(8, align = "center",
                                                       img(src = "salmon_underwater_dam.jpg", height = "60%",
@@ -1775,7 +1777,7 @@ border-color: #FFF;
                                                column(4,
                                                       h3("Decision #1"),
                                                       p("Use the forecast of surface and bottom temperature (across) to make a decision."),
-                                                      p("This forecast was generated only including parameter uncertainty"),
+                                                      p("This forecast was generated only including parameter uncertainty."),
                                                       radioButtons("dec_scen1", "Which level should be used to release water from the dam?", choices = dam_lev,
                                                                    selected = character(0)),
                                                       actionButton("scen1_dec", "Decide")

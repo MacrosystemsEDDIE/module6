@@ -5391,6 +5391,10 @@ shinyServer(function(input, output, session) {
                        tab_models = NA)
 
 
+    # Create directories for storing plots & tables
+    dir.create("data/out_tables", showWarnings = TRUE)
+    dir.create("www/out_plots", showWarnings = TRUE)
+
     table_list$tab_lr <- tryCatch({
       write.csv(lr_eqn$dt, "data/out_tables/tab_lr.csv", row.names = FALSE)
       "data/out_tables/tab_lr.csv"
@@ -6140,9 +6144,11 @@ shinyServer(function(input, output, session) {
                    plot_list = plot_list,
                    pheno_file = pheno_file$img,
                    mod_selec1 = input$mod_selec_tot_fc[1],
-                   mod_selec2 = input$mod_selec_tot_fc[2]
+                   mod_selec2 = input$mod_selec_tot_fc[2],
+                   dec1 = input$dec_scen1,
+                   dec2 = input$dec_scen2
     )
-    print(params$plot_list)
+    # print(params$plot_list)
 
 
     tmp_file <- paste0(tempfile(), ".docx") #Creating the temp where the .pdf is going to be stored
