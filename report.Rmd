@@ -16,6 +16,8 @@ params:
   pheno_file: NULL
   mod_selec1: NULL
   mod_selec2: NULL
+  dec1: NULL
+  dec2: NULL
 ---
 
 ```{r setup, include=FALSE}
@@ -24,6 +26,9 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r}
 time <- Sys.time()
 
+# Add last update time
+app_time <- format(file.info("ui.R")$mtime, "%Y-%m-%d")
+app_update_txt <- paste0("This app was last updated on: ", app_time)
 
 # Read in assessment questions
 # Load and format questions
@@ -106,12 +111,19 @@ pheno_chk <- !is.null(params$pheno_file)
 if(!is.null(params$mod_selec1)) {
   idx <- which(row.names(tab_models) == params$mod_selec1)
   mod_eqn1 <- tab_models[idx, 1]
+} else{
+    mod_eqn1 <- ""
 }
 
 if(!is.null(params$mod_selec2)) {
   idx <- which(row.names(tab_models) == params$mod_selec2)
   mod_eqn2 <- tab_models[idx, 1]
+} else {
+  mod_eqn2 <- ""
 }
+
+dec1 <- params$dec1
+dec2 <- params$dec2
 
 
 ```
@@ -151,19 +163,19 @@ knitr::include_graphics("www/Schematic_Draft_v3.png")
 
 **Forecasting** is a tool that can be used for understanding and predicting macrosystems dynamics. To anticipate and prepare for increased variability in populations, communities, and ecosystems, there is a pressing need to know the future state of ecological systems across space and time (Dietze et al. 2018). Ecological forecasting is an emerging approach which provides an estimate of the future state of an ecological system with uncertainty, allowing society to prepare for changes in important ecosystem services. Ecological forecasts are a powerful test of the scientific method because ecologists make a hypothesis of how an ecological system works; embed their hypothesis in a model; use the model to make a forecast of future conditions; and then when observations become available, assess the accuracy of their forecast, which indicates if their hypothesis is supported or needs to be updated. Forecasts that are effectively communicated to the public and managers will be most useful for aiding decision-making. Consequently, macrosystems ecologists are increasingly using ecological forecasts to predict how ecosystems are changing over space and time (Dietze and Lynch 2019).  
 \
-In this module, students will apply the iterative forecasting cycle to develop an ecological forecast for a National Ecological Observation Network (NEON) site of their choice. This module will introduce students to the basic components of an ecological forecast; how a forecasting model is constructed; how changes to model inputs affect forecast uncertainty; and how productivity forecasts vary across ecoclimatic domains.  \
+In this module, students will generate an ecological forecast for a NEON site and quantify the different sources of uncertainty within their forecast. This module will introduce students to the conceptof uncertainty within an ecological forecast; where uncertainty in a forecast comes from; how uncertainty can be quantified within a forecast; and how uncertainty can be managed.  \
 
 ## Module overview:
 
 - Introduction to Ecological Forecasting: pre-readings and PowerPoint in class
-- Activity A: Build a model to predict water temperature with uncertainty
-- Activity B: Explore the different sources of uncertainty
-- Activity C: Managing uncertainty
+- Activity A: Build different models to simulate water temperature for their chosen NEON site.
+- Activity B: Generate multiple forecasts of water temperature with different sources of uncertainty and examine how uncertainty propagation differs.
+- Activity C: Quantify and partition the uncertainty for their forecasts with different models and make management decisions using an ecological forecast.
 \
 
 ## Today's focal question: _Where does forecast uncertainty come from and how can it be quantified and reduced?_
 
-To address this question, we will introduce ecological forecasts and the iterative forecasting cycle. We will build a model that forecasts water temperature with uncertainty. We will then explore the different sources of uncertainty associated with our forecast predictions. In this module, we will use our model to examine where forecast uncertainty comes from and how it propagates through time due to driver data, model parameters, and initial conditions. We will then compare water temperature forecasts for ecosystems in different ecoclimatic regions to understand how forecasts can vary both over time and space.
+To address this question, we will introduce ecological forecasts and the iterative forecasting cycle. We will build a model that forecasts water temperature with uncertainty. We will then explore the different sources of uncertainty associated with our forecast predictions. In this module, we will use our model to examine where forecast uncertainty comes from and how it propagates through time due to driver data, model parameters, and initial conditions. We will then quantify the sources of uncertainty in forecasts and compare between models and then make a management decision using information from a forecast.
 
 We will be using ecological data collected by the National Ecological Observation Network (NEON) to tackle this question. NEON is a continental-scale observatory designed to collect publicly-available, long-term ecological data to monitor changing ecosystems across the U.S. Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies.
 
@@ -224,8 +236,10 @@ if (!pheno_chk) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!pheno_chk) {cat("-->")}
 ```
+\
 
 3. `r quest[qid[3], 1]`  
+\
 
 *Table 1. Site Characteristics*
 
@@ -257,6 +271,8 @@ if (!pheno_chk) {cat("-->")}
 
 # Activity A - Build a Model with Uncertainty
 
+`r module_text["act_A", ]`
+
 ## Objective 3: Build a water temperature model\
 
 ***
@@ -264,7 +280,7 @@ if (!pheno_chk) {cat("-->")}
 
 ***
 
-6. `r quest[qid[12], 1]`
+6. `r quest[qid[12], 1]`  
 \
 **Answer:** `r answers[qid[12], 1]`  
 \
@@ -298,7 +314,7 @@ if (!plt_chk$lr_mod_ts) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$lr_mod_ts) {cat("-->")}
 ```
-
+\
 9. `r quest[qid[15], 1]`  
 \
 **Answer:** `r answers[qid[15], 1]`  
@@ -340,7 +356,7 @@ if (!plt_chk$param_dist_lr) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_dist_lr) {cat("-->")}
 ```
-
+\
 ## Objective 5: Improve Model for Forecasting\
 
 ***
@@ -375,7 +391,7 @@ if (!plt_chk$mlr_mod_ts) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$mlr_mod_ts) {cat("-->")}
 ```
-
+\
 Table 2. Models fit to the data that are more suitable for forecasting.
 
 | **Model** | **Equation** | **RMSE** |
@@ -401,6 +417,8 @@ Table 2. Models fit to the data that are more suitable for forecasting.
 
 # Activity B: Explore Forecast Uncertainty\
 
+`r answers["act_B", 1]`  
+
 ## Overview\
 
 ***
@@ -409,7 +427,7 @@ Table 2. Models fit to the data that are more suitable for forecasting.
 
 ### Deterministic forecasting\
 
-TEXT
+A **deterministic** forecast is one which predicts a specific value (e.g. temperature) at a specific time e.g. it does not include uncertainty. Whereas a **probabilistic** forecast tries to quanitify the probability or likelihood of an event occurring e.g. it includes uncertainty.
 
 Table 3. Models that are used to explore forecast uncertainty.
 
@@ -435,7 +453,7 @@ if (!plt_chk$deter_fc) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$deter_fc) {cat("-->")}
 ```
-
+\
 
 16. `r quest[qid[22], 1]`  
 \
@@ -458,6 +476,7 @@ if (!plt_chk$proc_uc_fc) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$proc_uc_fc) {cat("-->")}
 ```
+\
 
 17. `r quest[qid[23], 1]`  
 \
@@ -490,6 +509,7 @@ if (!plt_chk$param_uc_fc) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_uc_fc) {cat("-->")}
 ```
+\
 
 18. `r quest[qid[24], 1]`  
 \
@@ -524,6 +544,7 @@ if (!plt_chk$ic_uc_fc) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$ic_uc_fc) {cat("-->")}
 ```
+\
 
 20. `r quest[qid[26], 1]`  
 \
@@ -562,6 +583,7 @@ if (!plt_chk$driver_uc_fc) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$driver_uc_fc) {cat("-->")}
 ```
+\
 
 23. `r quest[qid[29], 1]`  
 \
@@ -608,6 +630,11 @@ _Use the figures above to answer the questions._
 `r module_text["obj_10", ]`
 
 ***
+\
+`r module_text["uc_quant1", 1]`
+
+## Think, Pair, Share!\
+`r module_text["tps1", 1]`\
 
 ### Model 1\
 
@@ -632,6 +659,11 @@ if (!plt_chk$quant_uc_fc1) {cat("<!---")}
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$quant_uc_fc1) {cat("-->")}
 ```
+\
+
+25. `r quest[qid[31], 1]`  
+\
+**Answer:** `r answers[qid[31], 1]`  
 \
 
 ### Model 2\
@@ -659,12 +691,36 @@ if (!plt_chk$quant_uc_fc2) {cat("-->")}
 ```
 \
 
+26. `r quest[qid[32], 1]`  
+\
+**Answer:** `r answers[qid[32], 1]`  
+\
+
+27. `r quest[qid[33], 1]`  
+\
+**Answer:** `r answers[qid[33], 1]`  
+\
+
 ## Objective 11: Management Scenario\
 
 ***
 `r module_text["obj_11", ]`
 
 ***
+
+`r module_text["mgmt_scen1", ]`
+`r module_text["mgmt_scen2", ]`
+`r module_text["mgmt_scen3", ]`
+`r module_text["mgmt_scen4", ]`
+Some fish species, such as Chinook salmon (*Oncorhynchus tshawytscha*), have eggs which have higher rates of survival at colder temperatures.
+`r module_text["mgmt_scen5", ]`\
+
+
+### Decision #1\
+
+Use the forecast of surface and bottom temperature (across) to make a decision.
+
+This forecast was generated only including parameter uncertainty.
 
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$dec1) {cat("<!---")}
@@ -675,8 +731,19 @@ if (!plt_chk$dec1) {cat("<!---")}
 if (!plt_chk$dec1) {cat("-->")}
 ```
 
+Which level should be used to release water from the dam?\
+\
+Decision: `r dec1`
+\
 
-Decision Made
+***
+
+### Decision #2\
+
+Use the forecast of surface and bottom temperature (across) to make a decision.
+
+This forecast was generated and includes process, parameter, initial conditions and driver uncertainty.
+
 
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$dec2) {cat("<!---")}
@@ -687,13 +754,12 @@ if (!plt_chk$dec2) {cat("<!---")}
 if (!plt_chk$dec2) {cat("-->")}
 ```
 
-Decision Made
+Which level should be used to release water from the dam?\
+\
+Decision: `r dec2`
+\
 
 
-## Activity C: Summary\
 
-
-
-This module was developed by Moore, T.N., C.C. Carey, and R.Q. Thomas. 13 October 2021. Macrosystems EDDIE: Understanding Uncertainty in Ecological Forecasts. Macrosystems EDDIE Module 6, Version 1. http://module5.macrosystemseddie.org. Module development was supported by NSF grants DEB-1926050 and DBI-1933016.
-
-This document last modified: 21 December 2021 by TNM.
+`r module_text["acknowledgement", ]`
+`r app_update_txt`
