@@ -1846,12 +1846,11 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Completed Activity C!"),
-                                                      p("This is the end of Activity C. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report. Otherwise you could lose your answers.")
+                                                      p("This is the end of Activity C. Now you can generate your final report which will input all your answers and figures into a Microsoft Word document which you can download and submit to your instructor.")
                                                       ),
                                                column(4,
                                                       h3("Generate Report"),
-                                                      p("NEEDS TO BE CONENCTED on the SERVER END!"),
-                                                      p("This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting. Return here when you have completed the module."),
+                                                      p("This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting."),
                                                       actionButton("generate2", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
                                                                    # id = "dl_btn", # This is the only button that shows up when the app is loaded
                                                                    # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
@@ -1867,7 +1866,7 @@ border-color: #FFF;
                                                       h3(tags$b("Questions to be completed:")),
                                                       wellPanel(
                                                         htmlOutput("check_list2")
-                                                      )
+                                                        )
                                                       )
                                                )
                                              )
