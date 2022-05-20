@@ -277,7 +277,7 @@ ui <- function(req) {
                         fluidRow(
                           column(4, offset = 1,
                                  h3("Saving your progress"),
-                                 p(id = "txt_j", "If you run out of time to finish all the activities you can save your progress and return to it at a later date. Click the 'Save Progress' button at the bottom of the page and a file 'module5_answers_ID_number.eddie' will download. Store this file in a safe place locally on your computer."),
+                                 p(id = "txt_j", "If you run out of time to finish all the activities you can save your progress and return to it at a later date. Click the 'Save Progress' button at the bottom of the page and a file 'module6_answers_ID_number.eddie' will download. Store this file in a safe place locally on your computer."),
                                  img(src = "save_button.png", height = "100%", id = "bla_border",
                                      width = "100%", tags$style("border: solid 2px black;")),
                                  br(),
