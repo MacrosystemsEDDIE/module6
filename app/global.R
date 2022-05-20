@@ -7,6 +7,7 @@ suppressPackageStartupMessages(library(leaflet, quietly = TRUE))
 suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 suppressPackageStartupMessages(library(kableExtra, quietly = TRUE))
+suppressPackageStartupMessages(library(shinyalert, quietly = TRUE))
 
 # Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
@@ -28,6 +29,9 @@ p_siz <- 1.6
 source("R/download_phenocam.R")
 source("R/get_html.R")
 source("R/textAreaInput2.R")
+
+# Help documentation
+help_text <- read.csv("data/help_text.csv", row.names = 1)
 
 # Load and format questions
 quest <- read.csv("data/student_questions.csv", row.names = 1)

@@ -3946,6 +3946,19 @@ shinyServer(function(input, output, session) {
   })
 
   observe({
+
+    if(is.null(input$dec_scen1)) {
+      disable("scen1_dec")
+    } else {
+      enable("scen1_dec")
+    }
+
+    if(is.null(input$dec_scen2)) {
+      disable("scen2_dec")
+    } else {
+      enable("scen2_dec")
+    }
+
     if(input$scen1_dec < 1) {
       shinyjs::disable("dec_scen2")
       shinyjs::disable("scen2_dec")
@@ -7061,6 +7074,14 @@ shinyServer(function(input, output, session) {
   # Checklist for user inputs
   output$check_list <- renderUI({
     chk_list()
+  })
+
+  # Help button
+  observeEvent(input$help, {
+    introjs(session, events = list(onbeforechange = readCallback("switchTabs")))
+  })
+  observeEvent(input$help2, {
+    shinyalert(title = "Resume Progress", text = "Use this field to upload your '.eddie' file to resume your progress.", type = "info")
   })
 
   output$check_list2 <- renderUI({

@@ -68,7 +68,7 @@ actB_q3,Q. Do you think that different lake sites would have the same or differe
 scen_p1,You are a Water Resource Manager for the local hydroelectric dam which provides energy and drinking water to your local town.
 scne_p2,Within 
 phenocam,A 'phenocam' is a digital camera capturing time-lapse images of foliage and lake sites. It can be used to generate quantitative measures of plant phenology.
-rmse,(RMSE) is a metric used to assess how well a regression model fits a dataset. It tells us the average distance between the predicted values from the model and the actual values in the dataset.
+rmse,(RMSE) is a metric used to assess how well a model fits a dataset. It tells us the average distance between the predicted values from the model and the actual values in the dataset.
 uc_quant1,Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known.
 tps1,"With your partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss with your partner to answer Q. 27."
 mgmt_scen1,For this activity you are a Water Resource Manager for the local hydroelectric dam which provides water to agricultural users downstream and energy to the local town.
