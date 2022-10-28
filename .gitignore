@@ -41,3 +41,6 @@ vignettes/*.pdf
 
 www/NEON*
 data/site.html
+
+# Mac files
+.DS_Store
