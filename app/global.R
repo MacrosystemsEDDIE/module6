@@ -9,6 +9,9 @@ suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 suppressPackageStartupMessages(library(kableExtra, quietly = TRUE))
 suppressPackageStartupMessages(library(shinyalert, quietly = TRUE))
 
+# Change maximum upload file size
+options(shiny.maxRequestSize=30*1024^2)
+
 # Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
 scale_fill_discrete <- ggthemes::scale_fill_colorblind

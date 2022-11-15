@@ -422,8 +422,9 @@ shinyServer(function(input, output, session) {
   })
 
   # Stats 101 ----
-  # Load airt & SWT
+  # Load and plot airt & SWT
   airt_swt <- reactiveValues(df = NULL, sub = NULL, sel = NULL)
+
   observeEvent(input$plot_airt_swt2, { # view_var
 
     req(!is.null(airt_swt$df))
@@ -448,7 +449,27 @@ shinyServer(function(input, output, session) {
   })
 
   # Plot air temperature vs. surface water temperature
-  output$airt_swt_plot <- renderPlot({
+  plot.airt_swt <- reactiveValues(main=NULL)
+  
+  observeEvent(input$plot_airt_swt,{
+    
+    df <- airt_swt$df
+    df$airt[is.na(df$wtemp)] <- NA
+    df$wtemp[is.na(df$airt)] <- NA
+    
+    plot.airt_swt$main <- ggplot() +
+      geom_line(data = df, aes(Date, airt, color = "Air temperature")) +
+      geom_line(data = df, aes(Date, wtemp, color = "Water temperature")) +
+      scale_color_manual(values = cols[5:6]) +
+      # geom_point(data = airt_swt$df, aes(airt, wtemp), color = "black") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
+      theme_bw(base_size = 18)
+  })
+  
+  output$airt_swt_plot <- renderPlot({ 
+    
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -458,23 +479,12 @@ shinyServer(function(input, output, session) {
            message = "Click 'Plot'")
     )
     validate(
-      need(input$plot_airt_swt > 0,
+      need(input$plot_airt_swt > 0 | exists("up_answers"),
            message = "Click 'Plot'")
     )
-    df <- airt_swt$df
-    df$airt[is.na(df$wtemp)] <- NA
-    df$wtemp[is.na(df$airt)] <- NA
-    p <- ggplot() +
-      geom_line(data = df, aes(Date, airt, color = "Air temperature")) +
-      geom_line(data = df, aes(Date, wtemp, color = "Water temperature")) +
-      scale_color_manual(values = cols[5:6]) +
-    # geom_point(data = airt_swt$df, aes(airt, wtemp), color = "black") +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Time") +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
-      theme_bw(base_size = 18)
-    return(p)
-  })
+    
+    plot.airt_swt$main })
+  
 
   output$date_slider1 <- renderUI({
     req(!is.null(airt_swt$df))
@@ -580,7 +590,10 @@ shinyServer(function(input, output, session) {
   # })
 
   # Plot with regression lines
-  output$airt_swt_plot_lines <- renderPlotly({
+  airt_swt_plot_lines <- reactiveValues(main = NULL)
+  
+  observeEvent(input$plot_airt_swt2 | input$add_lm,{
+    
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -594,12 +607,12 @@ shinyServer(function(input, output, session) {
       need(nrow(df) > 0,
            message = "No points in selected dates. Please adjust the dates.")
     )
-
+    
     mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
     mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
-
+    
     sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
-
+    
     p <- ggplot() +
       # geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
       geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
@@ -607,9 +620,9 @@ shinyServer(function(input, output, session) {
       xlab("Air temperature (\u00B0C)") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 12)
-
+    
     pars <- na.exclude(lr_pars$dt)
-
+    
     if(length(lm_fit$df_lst) > 0) {
       # mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "wtemp", "airt", "Percentage"))
       # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
@@ -621,7 +634,7 @@ shinyServer(function(input, output, session) {
       mlt <- do.call(rbind, lm_fit$df_lst)
       mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
       # levels(mlt$Frequency) <- samp_freq
-
+      
       p <- p +
         geom_point(data = mlt, aes(airt, wtemp, color = Frequency)) +
         geom_smooth(data = mlt, aes(airt, wtemp, color = Frequency), method = "lm", formula = "y ~ x",
@@ -629,17 +642,21 @@ shinyServer(function(input, output, session) {
         scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
         labs(color = "Frequency")
     }
-
+    
     if(lm_fit$plt_orig) {
       p <- p +
         geom_point(data = df, aes(airt, wtemp), color = "black")
     }
-
-    gp <- ggplotly(p, dynamicTicks = TRUE) %>%
+    
+    airt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) %>%
       layout(xaxis = list(range = c(0, 10)),
              yaxis = list(range = c(10, 15)))
-
-    return(gp)
+    
+    
+  })
+  
+  output$airt_swt_plot_lines <- renderPlotly({
+    airt_swt_plot_lines$main
   })
 
   # Plot water temp ts with model
@@ -7000,12 +7017,14 @@ shinyServer(function(input, output, session) {
       name = input$name,
       id_number = input$id_number,
       answers = answers,
+      site_row = input$table01_rows_selected,
+      pheno_file = pheno_file$img,
+      plot.airt_swt = plot.airt_swt$main,
       lr_eqn_dt = lr_eqn$dt,
       lr_pars_dt = lr_pars$dt,
       linr_stats_dt = linr_stats$dt,
       mlr_dt = mlr$dt,
       mod_selec_tab_dt = mod_selec_tab$dt,
-      site_row = input$table01_rows_selected,
       mlr_params_df = mlr_params$df
     )
   })
@@ -7028,12 +7047,16 @@ shinyServer(function(input, output, session) {
   )
 
   #** Upload .eddie file ----
+  upload <- reactiveValues(answers = FALSE)
+  
   observeEvent(input$upload_answers, {
 
     up_answers <<- readRDS(input$upload_answers$datapath)
     updateTextAreaInput(session, "name", value = up_answers$name)
     updateTextAreaInput(session, "id_number", value = up_answers$id_number)
 
+    pheno_file$img <- up_answers$pheno_file
+    plot.airt_swt$main <- up_answers$plot.airt_swt
     lr_eqn$dt <- up_answers$lr_eqn_dt
     lr_pars$dt <- up_answers$lr_pars_dt
     linr_stats$dt <- up_answers$linr_stats_dt
@@ -7053,8 +7076,9 @@ shinyServer(function(input, output, session) {
     showModal(
       modalDialog(
         title = "Upload complete!",
-        "All your answers have been uploaded and your models. You will need to regenerate the plots within the Shiny app before generating your final report.")
+        "All your answers have been uploaded and your models. Please navigate to the Site Selection, Objective 1 tab for your plots to render.")
     )
+    
 
   })
 
@@ -7064,6 +7088,7 @@ shinyServer(function(input, output, session) {
     req(!is.null(up_answers$site_row))
     tryCatch(updateSelectizeInput(session, "row_num", selected = up_answers$site_row), error = function(e) {NA})
   })
+  
   observe({
     if(input$row_num != "") {
       dt_proxy <- dataTableProxy("table01")
