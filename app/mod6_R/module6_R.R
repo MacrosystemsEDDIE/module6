@@ -12,11 +12,13 @@
 # install.packages("lubridate")
 # install.packages("RColorBrewer")
 # install.packages("reshape")
+# install.packages("ggthemes")
 library(tidyverse)
 library(ncdf4)
 library(lubridate)
 library(RColorBrewer)
 library(reshape)
+library(ggthemes)
 
 # REMEMBER TO SET YOUR WORKING DIRECTORY!!
 setwd("./app/mod6_R") #fill in your working directory here and make sure all data files and folders are in it
@@ -194,12 +196,19 @@ p2 <- ggplot() +
   scale_color_manual(values = c("Observed air temp." = cols[1], "Forecasted air temp." = "gray"),
                      name = "",
                      guide = guide_legend(override.aes = list(
-                       linetype = c("blank","solid"),
-                       shape = c(16,NA))))
+                       linetype = c("solid","blank"),
+                       shape = c(NA,16))))
 
 # Render plot - this should match the time series plot in Activity B, Objective 9 - Driver Uncertainty
 # IF you selected Lake Barco as your site
 p2
+
+# Data wrangling of NOAA air temperature ensemble forecast 
+# We are re-formatting the NOAA air temperature ensemble forecast to make it easier
+# to use in our forecasting exercises below
+wid <- tidyr::pivot_wider(noaa_fc, c(Forecast_date, Forecast_variable), names_from = Ensemble_member, values_from = value)
+wid <- as.data.frame(wid)
+driv_mat <- as.matrix(wid[,3:32])
 
 #4. Build multiple linear regression forecast model ----
 
@@ -219,6 +228,11 @@ fit.summ <- summary(fit)
 # View model coefficients and save them for our forecast later
 coeffs <- round(fit$coefficients, 2)
 coeffs
+
+# View standard errors of estimated model coefficients and save them for
+# our forecasts later
+params.se <- fit.summ$coefficients[,2]
+params.se
 
 # Calculate model predictions
 mod <- predict(fit, model_data)
@@ -244,8 +258,8 @@ p3 <- ggplot() +
     scale_color_manual(values = c( "Observed" = "black", "Modeled" = cols[6]),
                        name = "",
                        guide = guide_legend(override.aes = list(
-                         linetype = c("blank","solid"),
-                         shape = c(16,NA)))) +
+                         linetype = c("solid","blank"),
+                         shape = c(NA,16)))) +
     theme_bw(base_size = 12) 
 
 # Render plot - this should match the plot you see in the Shiny app Activity A, Objective 5 - 
@@ -283,22 +297,200 @@ p4 <- ggplot() +
   geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
   ylab("Temperature (\u00B0C)") +
   theme_bw(base_size = 12) +
-  scale_color_manual(values = c("Observed water temp." = cols[2], "Forecasted water temp." = cols[6]),
+  scale_color_manual(values = c("Forecasted water temp." = cols[4],"Observed water temp." = cols[2]),
                      name = "",
                      guide = guide_legend(override.aes = list(
-                       linetype = c("blank","solid"),
-                       shape = c(16,NA))))
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
 
 # Render plot - this should resemble the plot in the R Shiny app Activity B Overview, labeled
-# "Water Temperature Forecast"
+# "Water Temperature Forecast"; here, we are plotting the "Both" model, which uses both
+# yesterday's water temperature and today's forecasted air temperature to forecast water
+# temperature
 p4
 
-#6. Run forecast with driver uncertainty ----
+#6. Run forecast with process uncertainty ----
 
-# Data wrangling of NOAA air temperature ensemble forecast 
-wid <- tidyr::pivot_wider(noaa_fc, c(Forecast_date, Forecast_variable), names_from = Ensemble_member, values_from = value)
-wid <- as.data.frame(wid)
-driv_mat <- as.matrix(wid[,3:32])
+# Set value of noise that will be added to model
+proc_unc <- 0.2 # Process Uncertainty Noise Std Dev.
+
+# Setting up an empty matrix that we will fill with our water temperature predictions
+mat <- matrix(NA, 8, 30) #8 rows for today + 7 forecast days, 30 columns for 30 NOAA ensemble members
+mat[1, ] <- lake_df$wtemp[which(lake_df$Date == fc_date)]
+
+# Run forecast. Here, instead of looping through days into the future, we are looping through
+# ensemble members and indexing the previous row in the matrix when we need to grab the previous
+# water temperature. We are also adding process uncertainty to each ensemble member prediction.
+for(mem in 2:nrow(mat)) {
+  mat[mem, ] <- mem01$value[mem-1] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1] + rnorm(30, 0, proc_unc)
+}
+
+# Data wrangling to get our ensemble forecast ready for plotting
+fc_ens <- as.data.frame(mat)
+colnames(fc_ens) <- colnames(wid[,3:32])
+fc_ens$Forecast_date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+fc_df <- reshape::melt(fc_ens, id.vars = "Forecast_date")
+colnames(fc_df)[2] <- "Ensemble_member" 
+fc_df$Forecast_variable <- "water temperature"
+
+# Build plot
+p5 <- ggplot() +
+  geom_point(data = lake_obs, aes(Date, wtemp, color = "Observed water temp.")) +
+  geom_line(data = fc_df, aes(Forecast_date, value, color = "Forecasted water temp.", group = Ensemble_member), alpha = 0.6) +
+  geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+  ylab("Temperature (\u00B0C)") +
+  theme_bw(base_size = 12) +
+  scale_color_manual(values = c("Forecasted water temp." = cols[6],"Observed water temp." = cols[2]),
+                     name = "",
+                     guide = guide_legend(override.aes = list(
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
+
+# Render plot - this should resemble the water temperature forecast plot in the R Shiny app, 
+# Activity B Objective 6 ("Both" model)
+p5
+
+# Calculate standard deviation of forecast to quantify uncertainty later
+std.proc <- apply(mat, 1, sd)
+df.proc <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                  sd = std.proc, label = "Process")
+
+#7. Run forecast with parameter uncertainty ----
+
+# Generate parameter distributions based on parameter estimates for linear model
+param.df <- data.frame(beta1 = rnorm(30, coeffs[1], params.se[1]),
+                 beta2 = rnorm(30, coeffs[2], params.se[2]),
+                 beta3 = rnorm(30, coeffs[3], params.se[3]))
+
+# Plot parameter distributions
+# Reshape data
+plot.params <- reshape::melt(param.df)
+
+# Build plot
+p6 <- ggplot(plot.params) +
+  geom_density(aes(value), fill = l.cols[4], alpha = 0.5) +
+  facet_wrap(~variable, nrow = 1, scales = "free_x") +
+  # scale_fill_manual(values = l.cols[idx]) +
+  theme_bw(base_size = 16)
+
+# Render plot - this should resemble the parameter distribution plot in the R Shiny app, 
+# Activity B Objective 7 ("Both" model)
+p6
+
+# Setting up an empty matrix that we will fill with our water temperature predictions
+mat <- matrix(NA, 8, 30) #8 rows for today + 7 forecast days, 30 columns for 30 NOAA ensemble members
+mat[1, ] <- lake_df$wtemp[which(lake_df$Date == fc_date)]
+
+# Run forecast. Here, instead of looping through days into the future, we are looping through
+# ensemble members and indexing the previous row in the matrix when we need to grab the previous
+# water temperature. We are also drawing from our parameter distributions so each ensemble member
+# is using slightly different parameters.
+for(mem in 2:nrow(mat)) {
+  mat[mem, ] <- mem01$value[mem-1] * param.df$beta2 + mat[mem-1, ] * param.df$beta3 + param.df$beta1 
+}
+
+# Data wrangling to get our ensemble forecast ready for plotting
+fc_ens <- as.data.frame(mat)
+colnames(fc_ens) <- colnames(wid[,3:32])
+fc_ens$Forecast_date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+fc_df <- reshape::melt(fc_ens, id.vars = "Forecast_date")
+colnames(fc_df)[2] <- "Ensemble_member" 
+fc_df$Forecast_variable <- "water temperature"
+
+# Build plot
+p7 <- ggplot() +
+  geom_point(data = lake_obs, aes(Date, wtemp, color = "Observed water temp.")) +
+  geom_line(data = fc_df, aes(Forecast_date, value, color = "Forecasted water temp.", group = Ensemble_member), alpha = 0.6) +
+  geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+  ylab("Temperature (\u00B0C)") +
+  theme_bw(base_size = 12) +
+  scale_color_manual(values = c("Forecasted water temp." = cols[6],"Observed water temp." = cols[2]),
+                     name = "",
+                     guide = guide_legend(override.aes = list(
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
+
+# Render plot - this should resemble the water temperature forecast plot in the R Shiny app, 
+# Activity B Objective 7 ("Both" model)
+p7
+
+# Calculate standard deviation of forecast to quantify uncertainty later
+std.param <- apply(mat, 1, sd)
+df.param <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                      sd = std.param, label = "Parameter")
+
+#8. Run forecast with initial conditions uncertainty ----
+
+# Generate initial conditions distribution 
+curr_wt <- forecast_df[which(forecast_df$Date == fc_date),"wtemp"]
+ic_uc <- 0.1 
+ic_dist.df <- data.frame(value = rnorm(1000, curr_wt, ic_uc))
+
+# Plot initial conditions distribution
+# Set plot window limits
+xlims <- c(curr_wt -1.5, curr_wt + 1.5)
+ylims <- c(0,7)
+
+#Build plot
+p8 <- ggplot() +
+  # geom_vline(data = df, aes(xintercept = x, color = label)) +
+  geom_vline(xintercept = curr_wt) +
+  geom_density(data = ic_dist.df, aes(value), fill = l.cols[2], alpha = 0.3) +
+  xlab("Temperature (\u00B0C)") +
+  ylab("Density") +
+  coord_cartesian(xlim = xlims, ylim = ylims) +
+  theme_bw(base_size = 18)
+
+# Render plot - this should resemble the initial condition distribution plot in the R Shiny app, 
+# Activity B Objective 8 ("Both" model)
+p8
+
+# Randomly sample 30 values to use for our forecast
+ic_samp <- sample(ic_dist.df$value, 30, replace = TRUE)
+
+# Setting up an empty matrix that we will fill with our water temperature predictions
+mat <- matrix(NA, 8, 30) #8 rows for today + 7 forecast days, 30 columns for 30 NOAA ensemble members
+mat[1, ] <- ic_samp
+
+# Run forecast. Here, instead of looping through days into the future, we are looping through
+# ensemble members and indexing the previous row in the matrix when we need to grab the previous
+# water temperature. We are also drawing from our initial condition distribution so each ensemble member
+# is using a slightly different initial condition.
+for(mem in 2:nrow(mat)) {
+  mat[mem, ] <- mem01$value[mem-1] * coeffs[2] + mat[mem-1, ] * coeffs[3] + coeffs[1] 
+}
+
+# Data wrangling to get our ensemble forecast ready for plotting
+fc_ens <- as.data.frame(mat)
+colnames(fc_ens) <- colnames(wid[,3:32])
+fc_ens$Forecast_date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+fc_df <- reshape::melt(fc_ens, id.vars = "Forecast_date")
+colnames(fc_df)[2] <- "Ensemble_member" 
+fc_df$Forecast_variable <- "water temperature"
+
+# Build plot
+p9 <- ggplot() +
+  geom_point(data = lake_obs, aes(Date, wtemp, color = "Observed water temp.")) +
+  geom_line(data = fc_df, aes(Forecast_date, value, color = "Forecasted water temp.", group = Ensemble_member), alpha = 0.6) +
+  geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+  ylab("Temperature (\u00B0C)") +
+  theme_bw(base_size = 12) +
+  scale_color_manual(values = c("Forecasted water temp." = cols[6],"Observed water temp." = cols[2]),
+                     name = "",
+                     guide = guide_legend(override.aes = list(
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
+
+# Render plot - this should resemble the water temperature forecast plot in the R Shiny app, 
+# Activity B Objective 8 ("Both" model)
+p9
+
+# Calculate standard deviation of forecast to quantify uncertainty later
+std.ic <- apply(mat, 1, sd)
+df.ic <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                       sd = std.ic, label = "Initial Condition")
+
+#9. Run forecast with driver uncertainty ----
 
 # Setting up an empty matrix that we will fill with our water temperature predictions
 mat <- matrix(NA, 8, 30) #8 rows for today + 7 forecast days, 30 columns for 30 NOAA ensemble members
@@ -321,18 +513,88 @@ colnames(fc_df)[2] <- "Ensemble_member"
 fc_df$Forecast_variable <- "water temperature"
 
 # Build plot
-p5 <- ggplot() +
+p10 <- ggplot() +
   geom_point(data = lake_obs, aes(Date, wtemp, color = "Observed water temp.")) +
   geom_line(data = fc_df, aes(Forecast_date, value, color = "Forecasted water temp.", group = Ensemble_member), alpha = 0.6) +
   geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
   ylab("Temperature (\u00B0C)") +
   theme_bw(base_size = 12) +
-  scale_color_manual(values = c("Observed water temp." = cols[2], "Forecasted water temp." = cols[6]),
+  scale_color_manual(values = c("Forecasted water temp." = cols[6],"Observed water temp." = cols[2]),
                      name = "",
                      guide = guide_legend(override.aes = list(
-                       linetype = c("blank","solid"),
-                       shape = c(16,NA))))
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
 
 # Render plot - this should resemble the water temperature forecast plot in the R Shiny app, 
-# Activity B Objective 9
-p5
+# Activity B Objective 9 ("Both" model)
+p10
+
+# Calculate standard deviation of forecast to quantify uncertainty later
+std.driv <- apply(mat, 1, sd)
+df.driv <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                       sd = std.driv, label = "Driver")
+
+#10. Run forecast with all uncertainties -----------
+
+# Setting up an empty matrix that we will fill with our water temperature predictions
+mat <- matrix(NA, 8, 30) #8 rows for today + 7 forecast days, 30 columns for 30 NOAA ensemble members
+mat[1, ] <- ic_samp #Notice that we are drawing from our initial condition distribution
+
+# Run forecast. Here, we add process uncertainty, use different values of parameters and
+# initial conditions for each ensemble member, and use a different NOAA ensemble member to
+# drive each of our water temperature forecast ensemble members. So we are incorporating
+# four different possible sources of uncertainty.
+for(mem in 2:nrow(mat)) {
+  mat[mem, ] <- driv_mat[mem, ] * param.df$beta2 + mat[mem-1, ] * param.df$beta3 + param.df$beta1 + rnorm(30, 0, proc_unc)
+}
+
+# Data wrangling to get our ensemble forecast ready for plotting
+fc_ens <- as.data.frame(mat)
+colnames(fc_ens) <- colnames(wid[,3:32])
+fc_ens$Forecast_date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+fc_df <- reshape::melt(fc_ens, id.vars = "Forecast_date")
+colnames(fc_df)[2] <- "Ensemble_member" 
+fc_df$Forecast_variable <- "water temperature"
+
+# Build plot
+p11 <- ggplot() +
+  geom_point(data = lake_obs, aes(Date, wtemp, color = "Observed water temp.")) +
+  geom_line(data = fc_df, aes(Forecast_date, value, color = "Forecasted water temp.", group = Ensemble_member), alpha = 0.6) +
+  geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+  ylab("Temperature (\u00B0C)") +
+  theme_bw(base_size = 12) +
+  scale_color_manual(values = c("Forecasted water temp." = cols[4],"Observed water temp." = cols[2]),
+                     name = "",
+                     guide = guide_legend(override.aes = list(
+                       linetype = c("solid","blank"),
+                       shape = c(NA, 16))))
+
+# Render plot - this should resemble the water temperature forecast plot in the R Shiny app, 
+# Activity C Objective 10 ("Both" model)
+p11
+
+# Quantify uncertainty
+
+# Create a data frame that combines all our calculations of the contributions of
+# different sources of uncertainty (process, parameter, initial condition, driver)
+quantfc.df <- rbind(df.proc,df.param,df.ic,df.driv)
+
+# Set another custom plot color palette
+cols2 <- ggthemes::ggthemes_data$colorblind$value
+
+# Plot the contribution of each source of uncertainty to total forecast uncertainty
+# Build plot
+p12 <- ggplot() +
+  geom_bar(data = quantfc.df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+  ylab("Standard Deviation (\u00B0C)") +
+  scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Condition" = cols2[3],
+                               "Driver" = cols2[4], "Total" = cols2[5])) +
+  scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+  labs(fill = "Uncertainty") +
+  theme_bw(base_size = 12)
+
+# Render plot - this should resemble the uncertainty quantification plot in the R Shiny
+# app, Activity C, Objective 10 ("Both" model)
+p12
+
+# Congratulations! You have quantified all the uncertainty. Now, have a nap :-)
