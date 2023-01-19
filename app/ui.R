@@ -652,7 +652,7 @@ border-color: #FFF;
                                                                        p(id = "txt_j", tags$b("Root mean square error"), module_text["rmse", ]),
                                                                        p(id = "txt_j", "The lower the RMSE, the better a given model is able to “fit” a dataset."),
                                                                        div("$$RMSE = \\sqrt{\\sum_{n}^{i=1}\\frac{(P_{i} - O_{i})^2 }n}$$"),
-                                                                       p("where P is equal to the predicted value and O is equal to the observed value andn is equal to the total number of data points.")
+                                                                       p("where P is equal to the predicted value and O is equal to the observed value and n is equal to the total number of data points.")
                                                       ),
                                                       conditionalPanel("input.q7 == 'No'",
                                                                        p(tags$em("Are you sure?"))
