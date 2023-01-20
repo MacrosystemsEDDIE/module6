@@ -61,7 +61,7 @@ lake_df <- lake_df[(lake_df$month %in% 5:10), 1:3]
 # Rename columnns to sensible names after joining
 colnames(lake_df)[-1] <- c("airt", "wtemp")
 
-# Check to make sure NAs are formatted in a way that plays nicely with ggplot
+# Limit data to complete cases (rows with both air and water temperature available)
 lake_df$airt[is.na(lake_df$wtemp)] <- NA
 lake_df$wtemp[is.na(lake_df$airt)] <- NA
 
