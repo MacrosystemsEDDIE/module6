@@ -652,7 +652,7 @@ border-color: #FFF;
                                                                        p(id = "txt_j", tags$b("Root mean square error"), module_text["rmse", ]),
                                                                        p(id = "txt_j", "The lower the RMSE, the better a given model is able to “fit” a dataset."),
                                                                        div("$$RMSE = \\sqrt{\\sum_{n}^{i=1}\\frac{(P_{i} - O_{i})^2 }n}$$"),
-                                                                       p("where P is equal to the predicted value and O is equal to the observed value and n is equal to the total number of data points.")
+                                                                       p("where P is equal to the predicted value and O is equal to the observed value and ",tags$i("n")," is equal to the total number of data points.")
                                                       ),
                                                       conditionalPanel("input.q7 == 'No'",
                                                                        p(tags$em("Are you sure?"))
@@ -829,7 +829,7 @@ border-color: #FFF;
                                                         div("$$wtemp_{t+1} = wtemp_{t}$$"),
                                                         p("where t+1 = tomorrow and t = today.")
                                                       ),
-                                                      p(id = "txt_j", "Let's plot this model versus observations. Adjust the date slider below to choose which period to plot this model for. The RMSE value will be calculated for the plotted data."),
+                                                      p(id = "txt_j", "Let's plot this model versus observations. The RMSE value will be calculated for the plotted data."),
                                                       br(),
                                                       actionButton("plot_persist", "Plot"),
                                                       br(), br(),
@@ -987,7 +987,7 @@ border-color: #FFF;
                                                       h3("Deterministic Forecasts"),
                                                       p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
                                                       p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
-                                                      actionButton("load_mods", "Load models"),
+                                                      #actionButton("load_mods", "Load models"),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
@@ -1009,7 +1009,6 @@ border-color: #FFF;
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
                                                       wellPanel(
-                                                        uiOutput("sel_mod1a"),
                                                         textOutput("txt_fc_out1a")
                                                         )
                                                       )
