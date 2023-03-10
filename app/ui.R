@@ -340,7 +340,7 @@ ui <- function(req) {
                         fluidRow(
                           column(6,
                                  h3("Data sources"),
-                                 p(id = "txt_j", HTML(paste0('This module will introduce key concepts within Ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model, and then generating a short-term ecological forecast.")))
+                                 p(id = "txt_j", HTML(paste0('This module will introduce key concepts within ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model, and then generating a short-term ecological forecast.")))
                           ),
                           column(6, align = "center",
                                  a(
@@ -374,7 +374,7 @@ border-color: #FFF;
                         fluidRow(
                           column(12,
                                  h3("Site Selection: Select a NEON site and visualize the data"),
-                                 p(id = "txt_j", "Complete objectives 1-2 to familiarize yourself with the data from your selected site and learn about the data you will be using.")
+                                 p(id = "txt_j", "Complete Objectives 1-2 to familiarize yourself with the data from your selected site.")
                           )
                         ),
 
@@ -399,7 +399,7 @@ border-color: #FFF;
                                                #** NEON Intro ----
                                                column(4,
                                                       h2("Site Description"),
-                                                      p(id = "txt_j", "Select a site in the table to highlight on the map"),
+                                                      p(id = "txt_j", "Select a site in the table to highlight it on the map."),
                                                       conditionalPanel("input.row_num > 25",
                                                                        selectizeInput("row_num", "Select row",
                                                                                       choices = 1:nrow(neon_sites_df),
@@ -503,7 +503,7 @@ border-color: #FFF;
                                                #** Plot of data ----
                                                column(8,
                                                       h3("Data Plot"),
-                                                      p(id = "txt_j", "Most plots in this Shiny app are generated using Plotly. This allows you to hover your mouse over the plot to get information from each of the plots. You can inspect the data closely by clicking and zooming into particular areas. There is a tool box at the top of the plot which has the selection function required for Q6."),
+                                                      p(id = "txt_j", "Most plots in this Shiny app are generated using Plotly. This allows you to hover your mouse over the plot to get information from each of the plots. You can inspect the data closely by clicking and zooming into particular areas. There is a tool box at the top of the plot which has various interactive functions."),
                                                       selectizeInput("view_var", "Select variable",
                                                                      choices = unique(neon_vars$Short_name),
                                                                      options = list(
@@ -568,8 +568,9 @@ border-color: #FFF;
                                                column(4,
                                                       h3("Water Temperature"),
                                                       p(id = "txt_j", "Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
-                                                      p(id = "txt_j", "Freshwater ecosystems are currently experiencing a multitude of stressors such as landuse change and climate change."),
-                                                      p(id = "txt_j", "Being able to predict how such systems can change in the short-term (up to 7-days into the future) will provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
+                                                      p(id = "txt_j", "Water temperature can have important effects on water quality, as changes in water temperature can directly or indirectly affect water quality variables such as dissolved oxygen, nutrient and heavy metal concentrations, and algae concentrations."),
+                                                      p(id = "txt_j", "Freshwater ecosystems are currently experiencing a multitude of stressors such as land use change and climate change, which can affect water temperature."),
+                                                      p(id = "txt_j", "Being able to predict how water temperature may change in the short-term (up to 7-days into the future) can provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
                                                       ),
                                                column(8,
                                                      img(src = "lake_image2.jpg", height = "100%", id = "bla_border",
@@ -600,33 +601,29 @@ border-color: #FFF;
                                              hr(),
                                              fluidRow(
                                                column(5, offset = 1,
-                                                      p("What is an ecological model?"),
+                                                      p(tags$b("What is an ecological model?")),
                                                       tags$ul(
                                                         tags$li(module_text["model1", ])
                                                       ),
-                                                      p("What is a parameter"),
+                                                      p(tags$b("What is a parameter?")),
                                                       tags$ul(
                                                         tags$li(module_text["parameter", ])
                                                       ),
-                                                      p("What is a parameter distribution?"),
+                                                      p(tags$b("What is a parameter distribution?")),
                                                       tags$ul(
                                                         tags$li(module_text["distribution", ])
                                                       )
                                                ),
                                                column(5, offset = 1,
-                                                      p("What is a linear relationship?"),
+                                                      p(tags$b("What is a linear relationship?")),
                                                       tags$ul(
                                                         tags$li(module_text["linear_relationship", ])
                                                       ),
-                                                      p("In our example, water temperature is the dependent variable and air temperature is the independent variable."),
-                                                      p("What is model error"),
+                                                      p(tags$i("In our example, water temperature is the dependent variable and air temperature is the independent variable.")),
+                                                      p(tags$b("What is model error?")),
                                                       tags$ul(
                                                         tags$li(module_text["mod_error", ])
-                                                      ),
-                                                      p("What is a parameter distribution?"),
-                                                      tags$ul(
-                                                        tags$li(module_text["distribution", ])
-                                                        )
+                                                      )
                                                       )
                                                ),
                                              hr(),
@@ -768,9 +765,8 @@ border-color: #FFF;
                                                       # p("You must select rows in the data table before you can calculate the statistics."),
                                                       # actionButton("calc_stats", "Calculate!"),
                                                       # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
-                                                      p(id = "txt_j", "Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the lines you created by selecting a row in the table and clicking 'Generate plot'."),
-                                                      p(id = "txt_j", module_text["density_plots", ]),
-                                                      p(id = "txt_j", "Density plots are a variation of histograms and they are better at determining the distribution shape.")
+                                                      p(id = "txt_j", "Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the models you fit by selecting a row in the table and clicking 'Generate plot'."),
+                                                      p(id = "txt_j", tags$b("Density plots")," are used to observe the distribution of a variable in a dataset. Density plots are a variation of histograms and they are better at determining the distribution shape.")
                                                ),
                                                column(8,
                                                       fluidRow(
