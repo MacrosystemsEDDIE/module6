@@ -691,7 +691,8 @@ border-color: #FFF;
                                                       h3("Air temperature vs. water temperature"),
                                                       wellPanel(
                                                         plotlyOutput("airt_swt_plot_lines")#,
-                                                      )
+                                                      ),
+                                                      actionButton("clear_airt_swt_plot_lines","Clear plot")
                                                )
                                              ),
                                              hr(),

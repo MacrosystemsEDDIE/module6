@@ -652,6 +652,82 @@ shinyServer(function(input, output, session) {
       layout(xaxis = list(range = c(0, 10)),
              yaxis = list(range = c(10, 15)))
     
+    # Plot water temp ts with model
+    output$lm_ts_plot <- renderPlotly({
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Please select a site in Objective 1.")
+      )
+      validate(
+        need(!is.null(airt_swt$df),
+             message = "Click 'Plot'")
+      )
+      # validate(
+      #   need(input$plot_airt_swt > 0,
+      #        message = "Click 'Plot'")
+      # )
+      df <- airt_swt$df
+      df$airt[is.na(df$wtemp)] <- NA
+      df$wtemp[is.na(df$airt)] <- NA
+      df <- df[df$Date > "2020-01-01", ]
+      
+      pars <- na.exclude(lr_pars$dt)
+      freq_idx <- which(!is.na(lr_pars$dt[, 1]))
+      
+      if(nrow(pars) > 0) {
+        mod <- lapply(1:nrow(pars), function(x) {
+          df2 <- data.frame(Date = df$Date,
+                            Model = pars$m_est[x] * df$airt + pars$b_est[x],
+                            Frequency = samp_freq[freq_idx[x]])
+          df2$rmse <- round(sqrt(mean((df2$Model - df$wtemp)^2, na.rm = TRUE)), 2)
+          return(df2)
+        })
+        # names(mod) <- pars$label
+        # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
+        mlt <- do.call(rbind, mod)
+        # mlt <- mlt[mlt$Date > "2020-01-01", ]
+        mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
+        
+        for(freq in samp_freq) {
+          sub <- mlt[mlt$Frequency == freq, ]
+          fidx <- which(samp_freq == freq)
+          if(nrow(sub) > 0) {
+            lr_pars$dt$rmse[fidx] <- sub$rmse[1]
+            if(freq == "Daily") {
+              mod_selec_tab$dt$rmse[3] <- sub$rmse[1]
+            }
+          }
+        }
+        
+        # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
+        # mlt$Percentage <- factor(as.character(mlt$N))
+        # lvls <- levels(mlt$Percentage)
+        # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
+        # # Reorder levels in ascending order
+        # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
+      }
+      
+      p <- ggplot() +
+        # geom_hline(yintercept = 0) +
+        # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
+        geom_point(data = df, aes(Date, wtemp), color = "black") +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Time") +
+        guides(color = guide_legend(override.aes = list(size = 3))) +
+        theme_bw(base_size = 12)
+      
+      if(nrow(pars) > 0) {
+        p <- p +
+          # geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
+          geom_line(data = mlt, aes(Date, Model, color = Frequency)) +
+          scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
+          labs(color = "Frequency")
+      }
+      
+      # return(p)
+      return(ggplotly(p, dynamicTicks = TRUE))
+    })
+    
     
   })
   
@@ -659,81 +735,6 @@ shinyServer(function(input, output, session) {
     airt_swt_plot_lines$main
   })
 
-  # Plot water temp ts with model
-  output$lm_ts_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(airt_swt$df),
-           message = "Click 'Plot'")
-    )
-    # validate(
-    #   need(input$plot_airt_swt > 0,
-    #        message = "Click 'Plot'")
-    # )
-    df <- airt_swt$df
-    df$airt[is.na(df$wtemp)] <- NA
-    df$wtemp[is.na(df$airt)] <- NA
-    df <- df[df$Date > "2020-01-01", ]
-
-    pars <- na.exclude(lr_pars$dt)
-    freq_idx <- which(!is.na(lr_pars$dt[, 1]))
-
-    if(nrow(pars) > 0) {
-      mod <- lapply(1:nrow(pars), function(x) {
-        df2 <- data.frame(Date = df$Date,
-                   Model = pars$m_est[x] * df$airt + pars$b_est[x],
-                   Frequency = samp_freq[freq_idx[x]])
-        df2$rmse <- round(sqrt(mean((df2$Model - df$wtemp)^2, na.rm = TRUE)), 2)
-        return(df2)
-      })
-      # names(mod) <- pars$label
-      # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
-      mlt <- do.call(rbind, mod)
-      # mlt <- mlt[mlt$Date > "2020-01-01", ]
-      mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
-
-      for(freq in samp_freq) {
-        sub <- mlt[mlt$Frequency == freq, ]
-        fidx <- which(samp_freq == freq)
-        if(nrow(sub) > 0) {
-          lr_pars$dt$rmse[fidx] <- sub$rmse[1]
-          if(freq == "Daily") {
-            mod_selec_tab$dt$rmse[3] <- sub$rmse[1]
-          }
-        }
-      }
-
-      # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
-      # mlt$Percentage <- factor(as.character(mlt$N))
-      # lvls <- levels(mlt$Percentage)
-      # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
-      # # Reorder levels in ascending order
-      # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
-    }
-
-    p <- ggplot() +
-      # geom_hline(yintercept = 0) +
-      # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
-      geom_point(data = df, aes(Date, wtemp), color = "black") +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Time") +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
-      theme_bw(base_size = 12)
-
-    if(nrow(pars) > 0) {
-      p <- p +
-        # geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
-        geom_line(data = mlt, aes(Date, Model, color = Frequency)) +
-        scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
-        labs(color = "Frequency")
-    }
-
-    # return(p)
-    return(ggplotly(p, dynamicTicks = TRUE))
-  })
 
   # Add lm fit
   lm_fit <- reactiveValues(fit = NULL, df_lst = list(), plt_orig = TRUE, eqn = NULL)
@@ -828,6 +829,97 @@ shinyServer(function(input, output, session) {
     withMathJax(
       tags$p(lm_fit$eqn)
     )
+  })
+  
+  observeEvent(input$clear_airt_swt_plot_lines,{
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    df <- na.exclude(airt_swt$sub)
+    validate(
+      need(nrow(df) > 0,
+           message = "No points in selected dates. Please adjust the dates.")
+    )
+    
+    mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
+    mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
+    
+    sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
+    
+    p <- ggplot() +
+      # geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+      geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
+      theme_bw(base_size = 12)
+    airt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) %>%
+      layout(xaxis = list(range = c(0, 10)),
+             yaxis = list(range = c(10, 15)))
+    
+    lm_fit$df_lst <- NULL
+    
+    lr_eqn$dt$eqn <- NA
+    lr_eqn$dt$r2 <- NA
+    # lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
+    lr_eqn$dt$N <- NA
+    
+    output$lr_DT <- renderDT(lr_eqn$dt[, c(1, 3)], selection = "none",
+                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                            columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                             ), colnames = c("Model", "N"),
+                             rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                             # container = sketch2,
+                             server = FALSE, escape = FALSE)
+    
+    lr_pars$dt$rmse <- NA
+    
+    output$r2_tab <- renderDT(data.frame(lr_pars$dt$rmse), selection = "none",
+                              options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                             columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                              ), colnames = c("RMSE"),
+                              rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                              # container = sketch2,
+                              server = FALSE, escape = FALSE)
+    
+    lm_fit$eqn <- ""
+    
+    output$lm_mod <- renderUI({
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Please select a site in Objective 1.")
+      )
+      validate(
+        need(!is.null(airt_swt$sub),
+             message = "Click 'Plot'")
+      )
+      validate(
+        need(!is.null(lm_fit$eqn),
+             message = "Click 'Get model parameters'.")
+      )
+      withMathJax(
+        tags$p(lm_fit$eqn)
+      )
+    })
+    
+    output$lm_ts_plot <- renderPlotly({p <- ggplot() +
+      # geom_hline(yintercept = 0) +
+      # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
+      #geom_point(data = df, aes(Date, wtemp), color = "black") +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      guides(color = guide_legend(override.aes = list(size = 3))) +
+      theme_bw(base_size = 12)
+    
+    return(ggplotly(p, dynamicTicks = TRUE))
+    
+    
+    })
   })
 
 
