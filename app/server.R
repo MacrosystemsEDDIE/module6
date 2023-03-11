@@ -863,8 +863,8 @@ shinyServer(function(input, output, session) {
                      "m_sd" = lr_pars$dt$m_se[input$lr_DT2_rows_selected],
                      "b_mn" = lr_pars$dt$b_est[input$lr_DT2_rows_selected],
                      "b_sd" = lr_pars$dt$b_se[input$lr_DT2_rows_selected])
-    updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
-    updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
+    #updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
+    #updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
     linr_stats$dt <- signif(df, 3)
   })
 
@@ -880,10 +880,10 @@ shinyServer(function(input, output, session) {
   lr_dist_plot <- reactiveValues(lst = as.list(rep(NA, 5)))
   observeEvent(input$gen_lr_dist_plot, {
 
-    req(!is.nan(input$m_std))
+    req(!is.null(input$lr_DT2_rows_selected))
 
-    df <- data.frame(m = rnorm(500, mean = linr_stats$dt[1, 1], sd = input$m_std),
-                     b = rnorm(500, mean = linr_stats$dt[1, 3], sd = input$b_std))
+    df <- data.frame(m = rnorm(500, mean = linr_stats$dt[1, 1], sd = linr_stats$dt[1, 2]),
+                     b = rnorm(500, mean = linr_stats$dt[1, 3], sd = linr_stats$dt[1, 4]))
     if(!is.null(input$lr_DT2_rows_selected)) {
       if(input$lr_DT2_rows_selected != "") {
         df$Frequency <- samp_freq[input$lr_DT2_rows_selected]
@@ -893,8 +893,8 @@ shinyServer(function(input, output, session) {
       df$Frequency <- "User input"
       lr_dist_plot$lst[[5]] <- df
     }
-    linr_stats$dt$b_sd <- input$b_std
-    linr_stats$dt$m_sd <- input$m_std
+    #linr_stats$dt$b_sd <- input$b_std
+    #linr_stats$dt$m_sd <- input$m_std
   })
 
   # Reset samples
@@ -914,6 +914,9 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
     )
     validate(
       need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")

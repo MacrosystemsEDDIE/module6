@@ -775,14 +775,14 @@ border-color: #FFF;
                                                                  plotOutput("lr_param_dist_plot")
                                                                  )
                                                                ),
-                                                        column(6, align = "center",
-                                                                sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
+                                                        column(12, align = "center",
+                                                                #sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
                                                                 actionButton("gen_lr_dist_plot", "Generate distributions")
                                                                # p("Note: When generating the plots for Q14-15, make sure to deselect the row in the model table. This will add the distributions drawn as 'User input'")
                                                                 ),
-                                                        column(6, align = "center",
-                                                               sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.1)
-                                                               ),
+                                                        # column(6, align = "center",
+                                                        #        sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.1)
+                                                        #        ),
                                                         column(12,
                                                                br(), br(),
                                                                box(id = "box2", width = 12, status = "primary",
