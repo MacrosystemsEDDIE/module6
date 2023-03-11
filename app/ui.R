@@ -818,7 +818,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h3("Create a Forecast model"),
-                                                      p(id = "txt_j", "The model built in the Objective 3 uses the current air temperature to predict the current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
+                                                      p(id = "txt_j", "The model built in Objective 3 uses current air temperature to predict current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
                                                       p(id = "txt_j", "The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a ", tags$b("persistence model.")),
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),

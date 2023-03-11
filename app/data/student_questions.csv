@@ -17,8 +17,8 @@ q10,"When looking at the time series plot (across), which model performed best? 
 q11,Do you think you could use these models for a forecast of water temperature? Why/why not?,Activity A: Objective 3
 q12,"Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty around its parameters (m and b)? How can you tell?",Activity A: Objective 4
 q16,"Can you think of any limitations of using this model for forecasting? For example, forecasting more than one day into the future.",Activity A: Objective 5
-q17,Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table.How does the model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
-q18,Build a model that uses yesterday's water temperature and today's air temperature as predictors and fit the model parameters and add it to the second row in the table.How does this model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
+q17,Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table. How does the model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
+q18,Build a model that uses yesterday's water temperature and today's air temperature as predictors and fit the model parameters and add it to the second row in the table. How does this model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
 q19,Which model do you think will better predict water temperature? Why?,Activity A: Objective 5
 q20,Is there variation among your models? Why do you think that is?,Activity B: Overview
 q21,"Using the slider above, adjust the number of members and run the forecasts. How does forecast uncertainty change further into the future (e.g. with increasing forecast horizon)?.",Activity B: Objective 6
