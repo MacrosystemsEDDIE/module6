@@ -1915,12 +1915,12 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     
-    mod_selec_tab$dt[c(1,2,4), c(1, 5)]
+    mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names[c(1,2,4)],
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   # For forecast with Process Uncertainty
