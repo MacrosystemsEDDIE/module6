@@ -1006,6 +1006,7 @@ border-color: #FFF;
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
                                                       wellPanel(
+                                                        uiOutput("sel_mod1a"),
                                                         textOutput("txt_fc_out1a")
                                                         )
                                                       )

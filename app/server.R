@@ -1925,7 +1925,7 @@ shinyServer(function(input, output, session) {
 
   # For forecast with Process Uncertainty
   output$mod_selec_tab2 <- renderDT({
-    dt <- mod_selec_tab$dt[, c(1, 4)]
+    dt <- mod_selec_tab$dt[, c(1, 5)]
     idx <- which(!is.na(dt$eqn))
     eqn <- gsub("[$$]+", "", dt$eqn[idx])
     dt$eqn[idx] <- paste0("$$", eqn, " + W_{t}$$")
@@ -1935,17 +1935,17 @@ shinyServer(function(input, output, session) {
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "R-squared"), rownames = mod_names,
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   #  Parameter Uncertainty
   output$mod_selec_tab3 <- renderDT({
-    mod_selec_tab$dt[, c(1, 4)]
+    mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "R-squared"), rownames = mod_names,
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   # For IC Uncertainty
@@ -1954,12 +1954,12 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 4)]
+    mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "R-squared"), rownames = mod_names,
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   # For Driver Uncertainty
@@ -1968,12 +1968,12 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 4)]
+    mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "R-squared"), rownames = mod_names,
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   wtemp_fc_out1 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
@@ -2134,18 +2134,18 @@ shinyServer(function(input, output, session) {
     req(input$table01_rows_selected != "")
     req(input$mod_selec_tab1a_rows_selected != "")
     idx <- input$mod_selec_tab1a_rows_selected
-
+    
     dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
                       airt = airt_swt$df$airt,
                       wtemp_yday = NA,
                       airt_yday = NA)
-
+    
     dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
     dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-
+    
     lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
     mn_date <- (as.Date(fc_date) + 1)
-
+    
     dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
     dat$wtemp[dat$Date > fc_date] <- NA
     dat$forecast <- NA
@@ -2153,19 +2153,15 @@ shinyServer(function(input, output, session) {
     dat$airt[dat$Date > fc_date] <- airt1_fc$df$value[2:8]
     dat$wtemp_yday[dat$Date > lag_date] <- NA
     dat$airt_yday[dat$Date > mn_date] <- NA
-
+    
     df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
     df <- merge(dat, df, by = "Date", all.y = TRUE)
     wtemp_fc_data1a$lst[[idx]] <- df
-
+    
     # Run model
-
+    
     df <- wtemp_fc_data1a$lst[[input$mod_selec_tab1a_rows_selected]]
     fc_days <- which(df$Date >= fc_date)
-    # if(input$mod_selec_tab1a_rows_selected == 3) {
-    #   for(i in fc_days[-1]) {
-    #     df$forecast[i] <- df$airt[i] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
-    #   }
     if(input$mod_selec_tab1a_rows_selected == 3) {
       for(i in fc_days[-1]) {
         df$forecast[i] <- df$airt[i] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
@@ -2182,7 +2178,7 @@ shinyServer(function(input, output, session) {
     } else if(input$mod_selec_tab1a_rows_selected == 4) {
       coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[2] + df$forecast[i-1] * coeffs[1] + coeffs[3]
+        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
       }
     }
     wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]] <- df[, c("Date", "forecast")]
