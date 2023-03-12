@@ -1909,12 +1909,12 @@ shinyServer(function(input, output, session) {
                                    server = FALSE, escape = FALSE)
 
   # For forecast with weather forecast
+  # For forecast with weather forecast
   output$mod_selec_tab1a <- renderDT({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    
     mod_selec_tab$dt[, c(1, 5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
@@ -2166,7 +2166,11 @@ shinyServer(function(input, output, session) {
     #   for(i in fc_days[-1]) {
     #     df$forecast[i] <- df$airt[i] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
     #   }
-    if(input$mod_selec_tab1a_rows_selected == 1) {
+    if(input$mod_selec_tab1a_rows_selected == 3) {
+      for(i in fc_days[-1]) {
+        df$forecast[i] <- df$airt[i] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
+      }
+    } else if(input$mod_selec_tab1a_rows_selected == 1) {
       for(i in fc_days[-1]) {
         df$forecast[i] <- df$forecast[i-1]
       }
@@ -2175,10 +2179,10 @@ shinyServer(function(input, output, session) {
       for(i in fc_days[-1]) {
         df$forecast[i] <- df$forecast[i-1] * coeffs[1] + coeffs[2]
       }
-    } else if(input$mod_selec_tab1a_rows_selected == 3) {
+    } else if(input$mod_selec_tab1a_rows_selected == 4) {
       coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
+        df$forecast[i] <- df$airt[i] * coeffs[2] + df$forecast[i-1] * coeffs[1] + coeffs[3]
       }
     }
     wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]] <- df[, c("Date", "forecast")]
@@ -2229,20 +2233,19 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-
+    
     if(any(!is.na(wtemp_fc_out1a$lst))) {
       sub_lst <- wtemp_fc_out1a$lst[!is.null(wtemp_fc_out1a$lst)]
       mlt <- reshape::melt(sub_lst, id.vars = "Date")
       colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      correct_mod_names <- c("Pers","Wtemp","Both","Atemp")
       for(num in 1:4) {
         if(num %in% mlt$Label) {
-          mlt$Label[mlt$Label == num] <- correct_mod_names[num]
+          mlt$Label[mlt$Label == num] <- mod_names[num]
         }
       }
-      mlt$Label <- factor(mlt$Label, levels = correct_mod_names)
+      mlt$Label <- factor(mlt$Label, levels = mod_names)
     }
-
+    
     p <- ggplot() +
       # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
@@ -2250,17 +2253,17 @@ shinyServer(function(input, output, session) {
       ylab("Temperature (\u00B0C)") +
       # coord_cartesian(xlim = c(as.Date("2020-09-22"), as.Date("2020"))) +
       theme_bw(base_size = 12)
-
+    
     if(any(!is.na(wtemp_fc_out1a$lst))) {
       p <- p +
-        geom_line(data = subset(mlt, mlt$Label != "Atemp"), aes(Date, value, color = Label))
+        geom_line(data = mlt, aes(Date, value, color = Label))
     }
-
+    
     p <- p +
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Both" = cols[6]))
-
+                                    "Atemp" = cols[5], "Both" = cols[6]))
+    
     wtemp_fc1a$main <- ggplotly(p, dynamicTicks = TRUE)
   })
   
