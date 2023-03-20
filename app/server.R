@@ -3728,7 +3728,7 @@ shinyServer(function(input, output, session) {
         } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
           mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
         } else if (input$mod_selec_tot_fc[1] == "Both") {
-          mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
         }
       }
 
@@ -3983,7 +3983,7 @@ shinyServer(function(input, output, session) {
         } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
           mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
         } else if (input$mod_selec_tot_fc[2] == "Both") {
-          mat[mem, ] <- driv_mat[mem, ] * params$beta1 + mat[mem-1, ] * params$beta2 + params$beta3 + Wt
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
         }
       }
 
