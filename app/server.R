@@ -1468,7 +1468,7 @@ shinyServer(function(input, output, session) {
       mean_terms <- paste0("\\beta_{%s} \\times  ", lin_reg_vars$latex[idx2], collapse = "\\\\ \\ &+ ")
     }
 
-    formula <- paste0("$$\\begin{align} \\ wtemp_{t+1} &=  ", paste0(c(lag_terms, mean_terms), collapse = "\\\\ \\ &+ "), "+ \\beta_{%s} \\end{align}$$")
+    formula <- paste0("$$\\begin{align} \\ wtemp_{t+1} &=  ", paste0(c(mean_terms, lag_terms), collapse = "\\\\ \\ &+ "), "+ \\beta_{%s} \\end{align}$$")
 
     text <- do.call(sprintf, as.list(c(formula, 1:(length(input$mult_lin_reg_vars)+1))))
 
@@ -1564,7 +1564,7 @@ shinyServer(function(input, output, session) {
       mean_terms <- paste0("%s \\times  ", lin_reg_vars$latex[idx2], collapse = "+ ")
     }
 
-    formula <- paste0("$$wtemp_{t+1} =  ", paste0(c(lag_terms, mean_terms), collapse = "+ "), b, "$$")
+    formula <- paste0("$$wtemp_{t+1} =  ", paste0(c(mean_terms, lag_terms), collapse = "+ "), b, "$$")
 
     text <- do.call(sprintf, as.list(c(formula, coeffs[-1])))
 
@@ -2184,7 +2184,7 @@ shinyServer(function(input, output, session) {
     } else if(input$mod_selec_tab1a_rows_selected == 4) {
       coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
       for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
+        df$forecast[i] <- df$forecast[i-1] * coeffs[1] + df$airt[i] * coeffs[2] + coeffs[3]
       }
     }
     wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]] <- df[, c("Date", "forecast")]
