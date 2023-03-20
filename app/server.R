@@ -1084,6 +1084,12 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
+      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
+    )
+    validate(
+      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
+    )
+    validate(
       need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
     )
     lr_param_dist_plot$main
