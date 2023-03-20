@@ -2353,7 +2353,8 @@ shinyServer(function(input, output, session) {
         mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2] + rnorm(input$n_mem2, 0, Wt)
       } else if(idx == 4) {
         coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
-        mat[mem, ] <- df$airt[mem] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3] + rnorm(input$n_mem2, 0, Wt)
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + df$airt[mem] * coeffs[2] + coeffs[3] + rnorm(input$n_mem2, 0, Wt)
+        
       }
     }
 
@@ -2666,7 +2667,8 @@ shinyServer(function(input, output, session) {
       } else if(idx == 2) {
         mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
       } else if(idx == 4) {
-        mat[mem, ] <- df$airt[mem] * pars$beta1 + mat[mem-1, ] * pars$beta2 + pars$beta3
+        mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta3
+        
       }
     }
 
@@ -2883,7 +2885,7 @@ shinyServer(function(input, output, session) {
         mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2]
       } else if(idx == 4) {
         coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
-        mat[mem, ] <- df$airt[mem] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3]
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + df$airt[mem] * coeffs[2] + coeffs[3]
       }
     }
 
@@ -3124,7 +3126,7 @@ shinyServer(function(input, output, session) {
         mat[mem, ] <- driv_mat[mem, ] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
       } else if(idx == 4) {
         coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
-        mat[mem, ] <- driv_mat[mem, ] * coeffs[1] + mat[mem-1, ] * coeffs[2] + coeffs[3]
+        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + driv_mat[mem, ] * coeffs[2] + coeffs[3]
       }
     }
 
