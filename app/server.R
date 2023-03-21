@@ -2458,6 +2458,10 @@ shinyServer(function(input, output, session) {
       shinyjs::enable("run_wtemp_fc3a")
       }
     })
+  
+  output$param_notation <- renderUI({
+    HTML("<p> For our models, the linear regression parameters <em>m</em> and <em>b</em> can also be written using \u03B2 notation. As a result the following two models are really the same, just using different notation for the parameters:</p>")
+  })
 
   output$airt1_fc_plot <- renderPlotly({
     validate(
@@ -4669,6 +4673,9 @@ shinyServer(function(input, output, session) {
   #* Process Uncertainty ----
   mod0_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
                               none = NULL, low = NULL, med = NULL, high = NULL)
+  output$sigma <- renderUI({
+    HTML("<p> where process noise is equal to a random number drawn from a normal distribution with a mean of zero and a standard deviation (\u03C3). </p>")
+  })
   observeEvent(input$run_mod0, {
 
     req(input$table01_rows_selected != "")

@@ -200,7 +200,7 @@ ui <- function(req) {
                               width = "80%", align = "left")
                           )
                    ), data.step = 8, data.intro = help_text["start", 1]
-                 ),
+                 )
                ),
 
                # 2. Presentation recap ----
@@ -265,13 +265,13 @@ ui <- function(req) {
                                  p(id = "txt_j", "Within the Introduction, Exploration, and Activities A, B and C tabs, there are questions for students to complete as part of this module. These can be completed by writing your answers into the text boxes within the green boxes. If you do not complete the module in one continuous sitting, you can download a file with your responses saved, which you can then upload when you return. When you finish the module, you can generate a report which will embed your answers and saved plots into a Word (.docx) file which you can download and make further edits to before submitting to your instructor."),
                                  box(width = 12, status = "warning",
                                      solidHeader = TRUE,
-                                     p(id = "txt_j", tags$b("WARNING:"), " The Shiny app will disconnect from the server if it is left idle for 15 minutes. If this happens you will lose all your inputs into the app. It is recommended to download the user input at the end of the class, but you can also download throughout the class."),
+                                     p(id = "txt_j", tags$b("WARNING:"), " The Shiny app will disconnect from the server if it is left idle for 15 minutes. If this happens you will lose all your inputs into the app. It is recommended to download the user input at the end of the class, but you can also download throughout the class.")
                                  ),
                                  tags$style(type="text/css", "#stud_dl {background-color:#579277;color: white}"),
                                  conditionalPanel("output.handoutbuilt",
-                                                  downloadButton(outputId = "stud_dl", label = "Download Student Handout"),
+                                                  downloadButton(outputId = "stud_dl", label = "Download Student Handout")
                                  )
-                          ),
+                          )
                         ), hr(),
                         #* Generate report buttons ====
                         fluidRow(
@@ -331,9 +331,9 @@ ui <- function(req) {
                                                 data.step = 5, data.intro = help_text["questions", 1]
                                               )
                                        )
-                                     ),
+                                     )
 
-                                 ),
+                                 )
                           )
                         ),
                         hr(),
@@ -405,7 +405,7 @@ border-color: #FFF;
                                                                                       choices = 1:nrow(neon_sites_df),
                                                                                       options = list(
                                                                                         placeholder = 'Please select a row',
-                                                                                        onInitialize = I('function() { this.setValue(""); }')),
+                                                                                        onInitialize = I('function() { this.setValue(""); }'))
                                                                        )
                                                       ),
                                                       DTOutput("table01"),
@@ -439,7 +439,7 @@ border-color: #FFF;
                                                  uiOutput("site_html"),
                                                  textOutput("prompt2"),
                                                  htmlOutput("site_link")
-                                               ),
+                                               )
                                              ),
                                              fluidRow(
                                                column(10, align = "left",
@@ -508,7 +508,7 @@ border-color: #FFF;
                                                                      choices = unique(neon_vars$Short_name),
                                                                      options = list(
                                                                        placeholder = 'Please select a variable',
-                                                                       onInitialize = I('function() { this.setValue(""); }')),
+                                                                       onInitialize = I('function() { this.setValue(""); }'))
                                                       ),
                                                       plotlyOutput("var_plot"),
                                                       useShinyjs(),  # Set up shinyjs
@@ -539,7 +539,7 @@ border-color: #FFF;
                                                       p("We will build models that will allow us to predict water temperature."))
                                                )
                                              )
-                                    ),
+                                    )
                         ),
 
                # 5. Activity A ----
@@ -552,7 +552,7 @@ border-color: #FFF;
                                            h2("Activity A - Build A Model With Uncertainty"),
                                            p(module_text["act_A", ])
                                  )
-                          ),
+                          )
                         ),
                         tabsetPanel(id = "tabseries2",
                                     #* Objective 3 - Build a water temperature model ====
@@ -585,7 +585,7 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[12], label = quest[qid[12], ], width = "90%"),
+                                                                   textAreaInput2(inputId = qid[12], label = quest[qid[12], ], width = "90%")
                                                                    )
                                                             )
                                                           )
@@ -791,7 +791,7 @@ border-color: #FFF;
                                                                    fluidRow(
                                                                      column(10, offset = 1,
                                                                             h3("Questions"),
-                                                                            textAreaInput2(inputId = qid[17], label = quest[qid[17], ], width = "90%"),
+                                                                            textAreaInput2(inputId = qid[17], label = quest[qid[17], ], width = "90%")
                                                                             )
                                                                      )
                                                                    )
@@ -835,9 +835,9 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[18], label = quest[qid[18], ], width = "90%"),
+                                                                   textAreaInput2(inputId = qid[18], label = quest[qid[18], ], width = "90%")
                                                                    )
-                                                            ),
+                                                            )
                                                           )
                                                       ),
                                                column(6,
@@ -851,7 +851,7 @@ border-color: #FFF;
                                              hr(),
                                              fluidRow(
                                                column(12,
-                                                      h3("Build a ", tags$em("Better"), " model"),
+                                                      h3("Build a ", tags$em("Better"), " model")
                                                ),
                                                column(3,
                                                       # p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
@@ -932,7 +932,7 @@ border-color: #FFF;
                                            h2("Activity B - Explore Forecast Uncertainty"),
                                            p(module_text["act_B", ])
                                  )
-                          ),
+                          )
                         ),
                         tabsetPanel(id = "tabseries3",
                                     #* Activity B - Overview ====
@@ -976,7 +976,7 @@ border-color: #FFF;
                                                       wellPanel(
                                                         plotlyOutput("airt1_fc_plot")
                                                         )
-                                               ),
+                                               )
                                              ),
                                              fluidRow(
                                                #** Deterministic Forecast ----
@@ -995,9 +995,9 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[22], label = quest[qid[22], ], width = "90%"),
+                                                                   textAreaInput2(inputId = qid[22], label = quest[qid[22], ], width = "90%")
                                                             )
-                                                          ),
+                                                          )
                                                       )
                                                ),
                                                column(6,
@@ -1014,10 +1014,9 @@ border-color: #FFF;
                                              br(),
                                              fluidRow(
                                                column(6,
-                                                      h4("What is wrong with these forecasts?"),
-                                                      p(id = "txt_j", "Using a deterministic forecast (e.g. a forecast which is one single line) is guranteed to be wrong and ignores the uncertainty that is inherently associated with the future."),
-                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating the forecast."),
-                                                      p(id = "txt_j", "A forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
+                                                      h4("What is wrong with deterministic forecasts?"),
+                                                      p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (e.g. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
+                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
                                                       p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
                                                       )
                                                )
@@ -1040,11 +1039,13 @@ border-color: #FFF;
                                              ),
                                              fluidRow(
                                                column(4,
-                                                      p(module_text["proc_uc", ]),
-                                                      p(id = "txt_j", "Across is a description of our \"simple\" water temperature model (1). But we know that water temperature is variable and that our model has simplified these."),
-                                                      p(id = "txt_j", "To account for the uncertainty these simplifications introduce to our model we can add in process noise (", tags$em("W"), ") to our model at each time step (2)."),
-                                                      p(id = "txt_j", "Water temperature tomorrow is equal to water temperature today ", tags$b("plus"), " some noise ", tags$em("(W)"), "."),
-                                                      p(id = "txt_j", "where process noise is equal to a random number with a mean of zero and a standard deviation."),
+                                                      p(id = "txt_j", tags$b("Process uncertainty")," is uncertainty caused by our inability to model all processes as observed in the real world."),
+                                                      p(id = "txt_j", "Our 'simple' water temperature models use today's water temperature and tomorrow's forecasted air temperature to forecast tomorrow's water temperature. For example:"),
+                                                      div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + \\beta_3$$"),
+                                                      p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W),")),
+                                                      div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + \\beta_3 + W_t$$"),
+                                                      uiOutput("sigma"),
+                                                      div("$$W \\sim {\\mathrm Norm}(0, \\sigma)$$")
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1066,13 +1067,13 @@ border-color: #FFF;
                                                       br(),
                                                       p(id = "txt_j", "To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
                                                       p(id = "txt_j", "Using the slider below, adjust the number of members to see how process uncertainty changes with time into the future (e.g. forecast horizon)."),
-                                                      sliderInput("n_mem2", "No. of members", min = 5, max = 100, value = 5, step = 5),
+                                                      sliderInput("n_mem2", "No. of members", min = 5, max = 100, value = 50, step = 5),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[23], label = quest[qid[23], ], width = "90%"),
+                                                                   textAreaInput2(inputId = qid[23], label = quest[qid[23], ], width = "90%")
                                                                    )
                                                             )
                                                           )
@@ -1093,7 +1094,7 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                             hr(),
+                                             hr()
                                     ),
                                     #* Objective 7 - Parameter Uncertainty ====
                                     tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj8",
@@ -1109,10 +1110,11 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Parameter Uncertainty"),
-                                                      p(id = "txt_j", module_text["param_uncert", ]),
-                                                      p(id = "txt_j", "With traditional modelling efforts, people general find one set of the 'best fit' parameters and use them to predict with their model. This method does not account for the uncertainty around the estimation of these parameters."),
-                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similar metrics of model performance e.g. similar R-squared values."),
-                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of the potential predicted outcomes e.g. better quantification of the uncertainty.")
+                                                      p(id = "txt_j", tags$b("Parameter uncertainty")," refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used."),
+                                                      p(id = "txt_j", "With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model."),
+                                                      p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters."),
+                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similar metrics of model performance, e.g., similar RMSE values."),
+                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of the potential predicted outcomes, leading to better quantification of the uncertainty.")
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1124,9 +1126,15 @@ border-color: #FFF;
                                              hr(),
                                              fluidRow(
                                                column(4,
-                                                      h3("Forecasting with Parameter Uncertainty"),
-                                                      p(id = "txt_j", "We know, from Objective 4, that when we used different amounts of data (e.g. ", tags$em("N"), " data points) to build our model, we got slightly different estimations of our model parameters ", tags$em("m"), " and ", tags$em("b"), "."),
-                                                      p(id = "txt_j", "To account for this ", tags$b("uncertainty"), " we built distributions for the parameters, from which we then drew samples from.")
+                                                      h4("Uncertainty in Parameters"),
+                                                      p(id = "txt_j", "We know, from Objective 4, that when we used different amounts of data (e.g., monthly vs. daily data) to build our model, we got slightly different estimations of our model parameters ", tags$em("m"), " and ", tags$em("b.")),
+                                                      p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models, from which we will draw samples for forecasting."),
+                                                      wellPanel(
+                                                        h4("A Note on Parameters:"),
+                                                        uiOutput("param_notation"),
+                                                        div("$$wtemp_{t+1} = m*wtemp_{t} + b$$"),
+                                                        div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2$$")
+                                                      )
                                                       ),
                                                column(8,
                                                       plotOutput("param_fcast3b")
@@ -1135,8 +1143,8 @@ border-color: #FFF;
                                              fluidRow(
                                                column(6,
                                                       h4("Generate Parameter Distributions"),
-                                                      p(id = "txt_j", "We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different potential parameter sets."),
-                                                      p(id = "txt_j", "Select a model from the table below and then generate parameter distributions, then load the driver data and then run the forecast."),
+                                                      p(id = "txt_j", "We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
+                                                      p(id = "txt_j", "Select a model from the table below and then generate parameter distributions and run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab3"),
                                                       br(),
@@ -1202,8 +1210,8 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Initial Condition Uncertainty"),
-                                                      p(id = "txt_j", module_text["init_uncert", ]),
-                                                      p(id = "txt_j", "Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time.")
+                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem are not precisely known or because the calculations cannot be performed with the precise initial conditions."),
+                                                      p(id = "txt_j", "Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements.")
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1215,9 +1223,9 @@ border-color: #FFF;
                                              hr(),
                                              fluidRow(
                                                column(4,
-                                                      h4("Forecasting with Initial Conditions Uncertainty"),
+                                                      h4("Generate Initial Condition Distribution"),
                                                       p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
-                                                      p(id = "txt_j", "Use the slider below to adjust the standard deviation and then generate a normal distribution around the observation"),
+                                                      p(id = "txt_j", "Use the slider below to adjust the standard deviation and then generate a normal distribution around the initial condition."),
                                                       sliderInput("ic_uc", "Standard deviation", min = 0.05, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
@@ -1236,8 +1244,9 @@ border-color: #FFF;
                                              ),
                                              fluidRow(
                                                column(6,
+                                                      h4("Forecast with Initial Conditions Uncertainty"),
                                                       p(id = "txt_j", "Now we will generate forecasts with different initial conditions for each of our models."),
-                                                      p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab4"),
                                                       br(),
@@ -1291,14 +1300,9 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Driver Uncertainty"),
-                                                      p(id = "txt_j", module_text["driver_uncert", ]),
-                                                      p(id = "txt_j", "The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted driver data to drive the model."),
-                                                      br(),
-                                                      p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts"),
-                                                      h4("NOAA Forecast data"),
-                                                               p(id = "txt_j", "Here we will load in an air temperature forecast which has been generate from the ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA Global Ensemble Forecast System", target = "_blank"), " for the NEON site you chose in Activity A."),
-                                                               img(src = "noaa_logo.jpg", height = "20%",
-                                                                   width = "20%", align = "right")
+                                                      p(id = "txt_j", tags$b("Driver uncertainty")," comes from inaccuracies in the forecasted variables used to drive the model."),
+                                                      p(id = "txt_j", "The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted air temperature to drive the model."),
+                                                      p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
                                                       ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1309,11 +1313,28 @@ border-color: #FFF;
                                                ),
                                              fluidRow(
                                                column(6,
+                                                      h4("NOAA Forecast data"),
+                                                      p(id = "txt_j", "Here we will load in an air temperature forecast which has been generate from the ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA Global Ensemble Forecast System", target = "_blank"), " for the NEON site you chose in Activity A."),
+                                                      img(src = "noaa_logo.jpg", height = "20%",
+                                                          width = "20%", align = "right"),
                                                       p(id = "txt_j", "Load the NOAA ensemble forecast for air temperature below."),
                                                       actionButton("load_noaa_at", "Load forecast"),
-                                                      verbatimTextOutput("noaa_at_loaded"),
-                                                      p(id = "txt_j", "You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
-                                                      numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30),
+                                                      verbatimTextOutput("noaa_at_loaded")
+                                                      #p(id = "txt_j", "You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
+                                                      #numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30),
+                                                      ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("airt_fc5")
+                                                      )
+                                                      )
+                                               ),
+                                             
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Forecast with Driver Data Uncertainty"),
+                                                      p(id = "txt_j", "Now we will generate forecasts using the NOAA air temperature ensemble forecast to drive each of our models."),
+                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab5"),
                                                       br(),
@@ -1324,17 +1345,14 @@ border-color: #FFF;
                                                         textOutput("txt_fc_out5"),
                                                         radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
                                                                      inline = TRUE)
-                                                        )
-                                                      ),
-                                               column(6,
-                                                      wellPanel(
-                                                        plotlyOutput("airt_fc5")
-                                                      ),
-                                                      wellPanel(
-                                                        plotlyOutput("wtemp_fc5")
-                                                        )
                                                       )
                                                ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc5")
+                                                      )
+                                               )
+                                             ),
 
                                              fluidRow(
                                                column(10, offset = 1,
@@ -1367,7 +1385,7 @@ border-color: #FFF;
                                                                 p(id = "txt_j", module_text["act_B_summ", ]),
                                                                 p(id = "txt_j", "Remember, the Shiny app will disconnect if you leave it idle for 10 minutes, so make sure to download your '.eddie' file at the bottom of the page to checkpoint your progress.")
                                                                 )
-                                               ),
+                                               )
                                              ),
                                                fluidRow(
                                                  column(5, offset = 1,
@@ -1441,7 +1459,7 @@ border-color: #FFF;
                                            h2("Activity C - Managing Uncertainty"),
                                            p(id = "txt_j", module_text["act_C", ])
                                            )
-                                 ),
+                                 )
                           ),
                         tabsetPanel(id = "tabseries4",
                                     #* Objective 10 - Quantify Uncertainty ====
@@ -1548,7 +1566,7 @@ border-color: #FFF;
                                                       h3("Which source of uncertainty is contributing the most?"),
                                                       p(id = "txt_j", "This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts."),
                                                       # p("Here is a figure from a paper which partitioned out the different contributors of uncertainty to a forecast of water temperature."),
-                                                      br(),
+                                                      br()
                                                       # h4("Q. How do you think you would be able to partition out the uncertainty?")
                                                ),
                                                column(4, offset = 1,
@@ -1681,7 +1699,7 @@ border-color: #FFF;
                                              # Think, Pair, Share
                                              fluidRow(
                                                column(12,
-                                                      h3("Think, Pair, Share!"),
+                                                      h3("Think, Pair, Share!")
 
                                                ),
                                                column(4,
