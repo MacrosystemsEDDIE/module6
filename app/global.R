@@ -38,23 +38,18 @@ help_text <- read.csv("data/help_text.csv", row.names = 1)
 
 # Load and format questions
 quest <- read.csv("data/student_questions.csv", row.names = 1)
-
-idx <- which(grepl("Name of selected ", quest$Question))
-idx2 <- which(grepl("Elevation", quest$Question))
-# Number rows
-row.names(quest) <- NULL
-row.names(quest)[1:(idx-1)] <- paste0("q", 1:(idx-1))
-row.names(quest)[idx:(idx2)] <- paste0("q", (idx-1), letters[1:length(idx:idx2)])
-row.names(quest)[(idx2+1):nrow(quest)] <- paste0("q", ((idx2+1):nrow(quest) - 6))
 qid <- row.names(quest)
+
 # Number questions
 quest$Question[1:(idx-1)] <- paste0("Q.", 1:(idx-1), " ", quest$Question[1:(idx-1)])
 quest$Question[idx:(idx2)] <- paste0(letters[1:length(idx:idx2)], ". ", quest$Question[idx:idx2])
 quest$Question[(idx2+1):nrow(quest)] <- paste0("Q.", ((idx2+1):nrow(quest) - 6), " ", quest$Question[(idx2+1):nrow(quest)])
+
 # Number location
 quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1))
 # quest$location[idx:(idx2)] <- paste0(quest$location[idx:idx2],letters[1:length(idx:idx2)], ". ", )
 quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
+
 # Create dataframe for answers
 answers <- quest
 quest$location <- NULL

@@ -7332,11 +7332,11 @@ shinyServer(function(input, output, session) {
     )
 
     for(i in 1:nrow(answers)) {
-      if(qid[i] == "q7") {
-        if(is.null(input[[qid[i]]])) out_chk <- c(out_chk, answers[qid[i], 2])
-      } else if(grepl("q3", qid[i])) {
+      if( grepl("q3a",qid[i]) | grepl("q3b",qid[i]) | grepl("q3c",qid[i]) | grepl("q3d",qid[i]) | grepl("q3e",qid[i]) | grepl("q3f",qid[i])){
+      if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") {
         if(!("Site Selection: Objective 1 - Q.3" %in% out_chk)) {
-          if(is.na(answers["q3", 1])) out_chk <- c(out_chk, answers[qid[i], 2])
+          out_chk <- c(out_chk, answers[qid["q3"], 2])
+        }
         }
       } else {
         if(is.null(input[[qid[i]]])) {

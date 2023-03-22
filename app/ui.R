@@ -1383,12 +1383,12 @@ border-color: #FFF;
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Summary"),
                                                                 p(id = "txt_j", module_text["act_B_summ", ]),
-                                                                p(id = "txt_j", "Remember, the Shiny app will disconnect if you leave it idle for 10 minutes, so make sure to download your '.eddie' file at the bottom of the page to checkpoint your progress.")
+                                                                p(id = "txt_j", "Remember, the Shiny app will disconnect if you leave it idle for 10 minutes, so make sure to download your '.eddie' file at the bottom of the page to save your progress.")
                                                                 )
                                                )
                                              ),
                                                fluidRow(
-                                                 column(5, offset = 1,
+                                                 column(5, 
                                                       h4("Discussion Questions"),
                                                       p(id = "txt_j", tags$em("Use the figures below to answer the questions.")),
                                                       tags$line()
@@ -1397,20 +1397,17 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       tags$ul(
-                                                        tags$li(id = "txt_j", module_text["actB_q1", ]),
-                                                        textAreaInput2("disc_q1", "")
+                                                        textAreaInput2(inputId = qid[31], label = quest[qid[31], ], width = "90%")
                                                       )
                                                ),
                                                column(4,
                                                       tags$ul(
-                                                        tags$li(id = "txt_j", module_text["actB_q2", ]),
-                                                        textAreaInput2("disc_q2", "")
+                                                        textAreaInput2(inputId = qid[32], label = quest[qid[32], ], width = "90%")
                                                       )
                                                ),
                                                column(4,
                                                       tags$ul(
-                                                        tags$li(id = "txt_j", module_text["actB_q3", ]),
-                                                        textAreaInput2("disc_q3", "")
+                                                        textAreaInput2(inputId = qid[33], label = quest[qid[33], ], width = "90%")
                                                         )
                                                       )
                                                ),
@@ -1513,7 +1510,7 @@ border-color: #FFF;
                                                       h3("Quantify Forecast Uncertainty"),
                                                       p(id = "txt_j", "For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
-                                                      radioButtons(qid[31], quest[qid[31], ], choices = uc_sources[1:4], selected = character(0))
+                                                      radioButtons(qid[34], quest[qid[34], ], choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       h4("Water Temperature Forecast with Total Uncertainty"),
@@ -1551,7 +1548,7 @@ border-color: #FFF;
                                                       h3("Quantify Forecast Uncertainty"),
                                                       p(id = "txt_j", "Quantify uncertainty for the other model you have select and compare the two results below and answer questions."),
                                                       actionButton("quant_ucB", "Quantify uncertainty"),
-                                                      radioButtons(qid[32], quest[qid[32], ], choices = uc_sources[1:4], selected = character(0))
+                                                      radioButtons(qid[35], quest[qid[35], ], choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       wellPanel(
@@ -1575,7 +1572,7 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[33], label = quest[qid[33], ], width = "90%")
+                                                                   textAreaInput2(inputId = qid[36], label = quest[qid[36], ], width = "90%")
                                                             )
                                                           )
                                                       )
@@ -1715,8 +1712,8 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[34], label = quest[qid[34], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[35], label = quest[qid[35], ], width = "90%")
+                                                                   textAreaInput2(inputId = qid[37], label = quest[qid[37], ], width = "90%"),
+                                                                   textAreaInput2(inputId = qid[38], label = quest[qid[38], ], width = "90%")
                                                                    )
                                                             )
                                                           )
