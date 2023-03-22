@@ -39,6 +39,8 @@ help_text <- read.csv("data/help_text.csv", row.names = 1)
 # Load and format questions
 quest <- read.csv("data/student_questions.csv", row.names = 1)
 qid <- row.names(quest)
+idx <- which(grepl("Name of selected ", quest$Question))
+idx2 <- which(grepl("Elevation", quest$Question))
 
 # Number questions
 quest$Question[1:(idx-1)] <- paste0("Q.", 1:(idx-1), " ", quest$Question[1:(idx-1)])

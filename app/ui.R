@@ -1472,9 +1472,9 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Quantifying Uncertainty"),
-                                                      p(id = "txt_j", module_text["uc_quant1", 1]),
-                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from, now we will quantify the uncertainty at each forecast horizon."),
-                                                      p(id = "txt_j", "We will generate forecasts with two of the models including all of the sources of uncertainty. In reality, when you generate an ecological forecast you will want to include and account for all sources of uncertainty."),
+                                                      p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
+                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will quantify the uncertainty at each forecast horizon."),
+                                                      p(id = "txt_j", "We will generate forecasts with two of the models including all of the sources of uncertainty. In practice, when you generate an ecological forecast, you will want to include and account for all sources of uncertainty."),
                                                       br(),
                                                       h3("Think, Pair, Share!"),
                                                       p(id = "txt_j", module_text["tps1", 1]),
@@ -1492,9 +1492,10 @@ border-color: #FFF;
                                                )
                                              ),
                                              hr(),
-                                             #** Model A - UC partitioning ----
+                                             #** Model A - Run Forecast with total uncertainty ----
                                              fluidRow(
                                                column(4,
+                                                      h3("Run Forecast with Total Uncertainty: "),
                                                       h4("Model 1"),
                                                       textOutput("modA_txt"),
                                                       uiOutput("modA_eqn"),
@@ -1505,19 +1506,28 @@ border-color: #FFF;
                                                       actionButton("run_tot_fcA", "Run forecast"),
                                                       radioButtons("plot_type_totA", "Plot type", c("Line", "Distribution"),
                                                                    inline = TRUE),
-                                                      p(id = "txt_j", "For each forecast, you will need to quantify the different sources of uncertainty in the panel below."),
-                                                      br(),
-                                                      h3("Quantify Forecast Uncertainty"),
+                                                      p(id = "txt_j", "For each forecast, you will need to quantify the different sources of uncertainty in the panel below.")
+                                               ),
+                                               column(8,
+                                                      h4("Water Temperature Forecast with Total Uncertainty: Model 1"),
+                                                      wellPanel(
+                                                        plotlyOutput("tot_fc_uncertA")
+                                                        # checkboxInput("add_obs1", "Add observations")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             #Model A: Quantify uncertainty
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Quantify Forecast Uncertainty: "),
+                                                      h4("Model 1"),
                                                       p(id = "txt_j", "For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
                                                       radioButtons(qid[34], quest[qid[34], ], choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
-                                                      h4("Water Temperature Forecast with Total Uncertainty"),
-                                                      wellPanel(
-                                                        plotlyOutput("tot_fc_uncertA")
-                                                        # checkboxInput("add_obs1", "Add observations")
-                                                      ),
+                                                      h4("Contribution of Uncertainty Sources: Model 1"),
                                                       wellPanel(
                                                         plotlyOutput("fc_quantA")
                                                       )
@@ -1527,6 +1537,7 @@ border-color: #FFF;
                                              #** Model B - UC partitioning ----
                                              fluidRow(
                                                column(4,
+                                                      h3("Run Forecast with Total Uncertainty: "),
                                                       h4("Model 2"),
                                                       textOutput("modB_txt"),
                                                       uiOutput("modB_eqn"),
@@ -1536,6 +1547,7 @@ border-color: #FFF;
                                                       p("For each forecast, you will need to quantify the different sources of uncertainty in the panel below.")
                                                ),
                                                column(8,
+                                                      h4("Water Temperature Forecast with Total Uncertainty: Model 2"),
                                                       wellPanel(
                                                         plotlyOutput("tot_fc_uncertB")
                                                       )
@@ -1545,12 +1557,14 @@ border-color: #FFF;
                                              hr(),
                                              fluidRow(
                                                column(4,
-                                                      h3("Quantify Forecast Uncertainty"),
-                                                      p(id = "txt_j", "Quantify uncertainty for the other model you have select and compare the two results below and answer questions."),
+                                                      h3("Quantify Forecast Uncertainty: "),
+                                                      h4("Model 2"),
+                                                      p(id = "txt_j", "Quantify uncertainty for the other model you have selected, compare the two results, and answer the questions below."),
                                                       actionButton("quant_ucB", "Quantify uncertainty"),
                                                       radioButtons(qid[35], quest[qid[35], ], choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
+                                                      h4("Contribution of Uncertainty Sources: Model 2"),
                                                       wellPanel(
                                                         plotlyOutput("fc_quantB")
                                                         )
@@ -1604,7 +1618,7 @@ border-color: #FFF;
                                                                        h4("Driver Uncertainty"),
                                                                        tags$ul(
                                                                          tags$li(id = "txt_j", "Use better forecasted data"),
-                                                                         tags$li(id = "txt_j", "Increase number of driver ensembles")
+                                                                         tags$li(id = "txt_j", "Increase number of driver ensemble members")
                                                                        )
                                                       ),
                                                       conditionalPanel("input.uc_manage == 'Initial Conditions'",
@@ -1651,7 +1665,7 @@ border-color: #FFF;
                                                       h3("Decision #1"),
                                                       p(id = "txt_j", "Use the forecast of surface and bottom temperature (across) to make a decision."),
                                                       p(id = "txt_j", "This forecast was generated only including parameter uncertainty."),
-                                                      p(id = "txt_j", "The horizontal dashed line indicates is the threshold where Chinook salmon survival decreases above this temperature."),
+                                                      p(id = "txt_j", "The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases."),
                                                       radioButtons("dec_scen1", "Which level should be used to release water from the dam?", choices = dam_lev,
                                                                    selected = character(0)),
                                                       actionButton("scen1_dec", "Decide"),
@@ -1674,8 +1688,8 @@ border-color: #FFF;
                                                column(4,
                                                       h3("Decision #2"),
                                                       p(id = "txt_j", "Use the forecast of surface and bottom temperature (across) to make a decision."),
-                                                      p(id = "txt_j", "This forecast was generated and includes process, parameter, initial conditions and driver uncertainty."),
-                                                      p(id = "txt_j", "The horizontal dashed line indicates is the threshold where Chinook salmon survival decreases above this temperature."),
+                                                      p(id = "txt_j", "This forecast was generated including process, parameter, initial conditions and driver uncertainty."),
+                                                      p(id = "txt_j", "The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases."),
                                                       radioButtons("dec_scen2", "Which level should be used to release water from the dam?", choices = dam_lev,
                                                                    selected = character(0)),
                                                       actionButton("scen2_dec", "Decide"),
@@ -1736,7 +1750,7 @@ border-color: #FFF;
                                                       ),
                                                column(4,
                                                       h3("Generate Report"),
-                                                      p(id = "txt_j", "This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting."),
+                                                      p(id = "txt_j", "This will take the answers you have input into this app and generate a Microsoft Word document (.docx) with your answers which you can download and edit before submitting."),
                                                       actionButton("generate2", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
                                                                    # id = "dl_btn", # This is the only button that shows up when the app is loaded
                                                                    # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
