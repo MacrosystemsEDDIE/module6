@@ -7233,16 +7233,16 @@ shinyServer(function(input, output, session) {
       id_number = input$id_number,
       answers = answers,
       site_row = input$table01_rows_selected,
-      pheno_file = pheno_file$img,
-      plot.airt_swt = plot.airt_swt$main,
+      #pheno_file = pheno_file$img,
+      #plot.airt_swt = plot.airt_swt$main,
       lr_eqn_dt = lr_eqn$dt,
       lr_pars_dt = lr_pars$dt,
       lr_dist_plot_lst = lr_dist_plot$lst,
-      lr_param_dist_plot = lr_param_dist_plot$main,
-      persist_plot_layer = persist_plot$layer1,
-      mlr_ts_plot = mlr_ts_plot$main,
+      #lr_param_dist_plot = lr_param_dist_plot$main,
+      #persist_plot_layer = persist_plot$layer1,
+      #mlr_ts_plot = mlr_ts_plot$main,
       mlr_pred_lst = mlr_pred$lst,
-      wtemp_fc1a = wtemp_fc1a$main,
+      #wtemp_fc1a = wtemp_fc1a$main,
       wtemp_fc_out1a = wtemp_fc_out1a$lst,
       linr_stats_dt = linr_stats$dt,
       mlr_dt = mlr$dt,
@@ -7277,17 +7277,17 @@ shinyServer(function(input, output, session) {
     updateTextAreaInput(session, "name", value = up_answers$name)
     updateTextAreaInput(session, "id_number", value = up_answers$id_number)
 
-    pheno_file$img <- up_answers$pheno_file
-    plot.airt_swt$main <- up_answers$plot.airt_swt
+    #pheno_file$img <- up_answers$pheno_file
+    #plot.airt_swt$main <- up_answers$plot.airt_swt
     lr_eqn$dt <- up_answers$lr_eqn_dt
     lr_pars$dt <- up_answers$lr_pars_dt
     lr_dist_plot$lst <- up_answers$lr_dist_plot_lst
-    lr_param_dist_plot$main <- up_answers$lr_param_dist_plot
-    persist_plot$layer1 <- up_answers$persist_plot_layer
+    #lr_param_dist_plot$main <- up_answers$lr_param_dist_plot
+    #persist_plot$layer1 <- up_answers$persist_plot_layer
     mlr_pred$lst <- up_answers$mlr_pred_lst
-    wtemp_fc1a$main <- up_answers$wtemp_fc1a
+    #wtemp_fc1a$main <- up_answers$wtemp_fc1a
     wtemp_fc_out1a$lst <- up_answers$wtemp_fc_out1a
-    mlr_ts_plot$main <- up_answers$mlr_ts_plot
+    #mlr_ts_plot$main <- up_answers$mlr_ts_plot
     linr_stats$dt <- up_answers$linr_stats_dt
     mlr$dt <- up_answers$mlr_dt
     mod_selec_tab$dt <- up_answers$mod_selec_tab_dt
@@ -7305,7 +7305,7 @@ shinyServer(function(input, output, session) {
     showModal(
       modalDialog(
         title = "Upload complete!",
-        "All your answers have been uploaded and your models. Please navigate to the Site Selection, Objective 1 tab for your plots to render. NOTE that not all the plots will render, just the ones you will need for your final report.")
+        "All your answers and models have been uploaded. Please navigate to the Site Selection, Objective 1 tab for inputs to load. You will need to regenerate your plots.")
     )
     
 
