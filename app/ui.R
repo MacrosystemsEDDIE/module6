@@ -1319,9 +1319,9 @@ border-color: #FFF;
                                                           width = "20%", align = "right"),
                                                       p(id = "txt_j", "Load the NOAA ensemble forecast for air temperature below."),
                                                       actionButton("load_noaa_at", "Load forecast"),
-                                                      verbatimTextOutput("noaa_at_loaded")
-                                                      #p(id = "txt_j", "You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
-                                                      #numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30),
+                                                      verbatimTextOutput("noaa_at_loaded"),
+                                                      p(id = "txt_j", "You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
+                                                      numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30)
                                                       ),
                                                column(6,
                                                       wellPanel(

@@ -6737,7 +6737,7 @@ shinyServer(function(input, output, session) {
           ggplot(mlt) +
             geom_density(aes(value, fill = x), alpha = 0.5) +
             facet_wrap(~variable, nrow = 1, scales = "free_x") +
-            guides(fill = guide_legend(title = "Model:")) +
+            guides(fill = FALSE) +
             ggtitle(x) +
             {if(nrow(mlt) != 1)scale_x_continuous(n.breaks = 4)} +
             scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
