@@ -567,7 +567,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h3("Water Temperature"),
-                                                      p(id = "txt_j", "Water temperature exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
+                                                      p(id = "txt_j", tags$b("Water temperature")," exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies."),
                                                       p(id = "txt_j", "Water temperature can have important effects on water quality, as changes in water temperature can directly or indirectly affect water quality variables such as dissolved oxygen, nutrient and heavy metal concentrations, and algae concentrations."),
                                                       p(id = "txt_j", "Freshwater ecosystems are currently experiencing a multitude of stressors such as land use change and climate change, which can affect water temperature."),
                                                       p(id = "txt_j", "Being able to predict how water temperature may change in the short-term (up to 7-days into the future) can provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.")
@@ -1224,7 +1224,7 @@ border-color: #FFF;
                                              fluidRow(
                                                column(4,
                                                       h4("Generate Initial Condition Distribution"),
-                                                      p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions to account for this uncertainty."),
+                                                      p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions."),
                                                       p(id = "txt_j", "Use the slider below to adjust the standard deviation and then generate a normal distribution around the initial condition."),
                                                       sliderInput("ic_uc", "Standard deviation", min = 0.05, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
