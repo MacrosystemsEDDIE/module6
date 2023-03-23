@@ -659,7 +659,7 @@ border-color: #FFF;
                                                       h4("Time series of air temperature and water temperature"),
                                                       p(id = "txt_j", "Click on “Plot” to graph the time series of the air temperature and the surface water temperature. Compare the seasonal cycles of both the dependent variable (air temperature) and independent variable (water temperature)."),
                                                       wellPanel(
-                                                        plotOutput("airt_swt_plot")
+                                                        plotlyOutput("airt_swt_plot")
                                                       )
                                                )
                                              ),

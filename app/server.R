@@ -451,13 +451,23 @@ shinyServer(function(input, output, session) {
   # Plot air temperature vs. surface water temperature
   plot.airt_swt <- reactiveValues(main=NULL)
   
-  observeEvent(input$plot_airt_swt,{
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    
+    validate(
+      need(input$plot_airt_swt > 0,
+           message = "Click 'Plot'")
+    )
     
     df <- airt_swt$df
     df$airt[is.na(df$wtemp)] <- NA
     df$wtemp[is.na(df$airt)] <- NA
     
-    plot.airt_swt$main <- ggplot() +
+    p <- ggplot() +
       geom_line(data = df, aes(Date, airt, color = "Air temperature")) +
       geom_line(data = df, aes(Date, wtemp, color = "Water temperature")) +
       scale_color_manual(values = cols[5:6]) +
@@ -465,10 +475,15 @@ shinyServer(function(input, output, session) {
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
       guides(color = guide_legend(override.aes = list(size = 3))) +
-      theme_bw(base_size = 18)
+      labs(color = NULL)+
+      theme_bw(base_size = 12)
+    
+    plot.airt_swt$main <- ggplotly(p, dynamicTicks = TRUE)
   })
   
-  output$airt_swt_plot <- renderPlot({ 
+  observe({
+  
+  output$airt_swt_plot <- renderPlotly({ 
     
     validate(
       need(input$table01_rows_selected != "",
@@ -476,7 +491,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(!is.null(airt_swt$df),
-           message = "Click 'Plot'")
+           message = "Please select a site in Objective 1.")
     )
     validate(
       need(input$plot_airt_swt > 0 | exists("up_answers"),
@@ -484,6 +499,8 @@ shinyServer(function(input, output, session) {
     )
     
     plot.airt_swt$main })
+  
+  })
   
 
   output$date_slider1 <- renderUI({
