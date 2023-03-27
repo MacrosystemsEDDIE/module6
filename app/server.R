@@ -5617,7 +5617,7 @@ shinyServer(function(input, output, session) {
     dir.create("www/out_plots", showWarnings = TRUE)
 
     table_list$tab_lr <- tryCatch({
-      write.csv(lr_eqn$dt, "data/out_tables/tab_lr.csv", row.names = FALSE)
+      write.csv(lr_pars$dt, "data/out_tables/tab_lr.csv", row.names = FALSE)
       "data/out_tables/tab_lr.csv"
     }, error = function(e) {NULL})
 
