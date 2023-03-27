@@ -330,14 +330,14 @@ if (!plt_chk$lr_mod_ts) {cat("-->")}
 **Answer:** `r answers[qid[16], 1]`  
 \
 
-Table 1. Linear regression models fitted using data collected at different frequencies.
+Table 2. Linear regression models fitted using data collected at different frequencies.
 
-| **Frequency** | **Equation** | **RMSE** |
-| --- | --- | --- |
-| Monthly | `r tab_lr[1, 1]` | `r tab_lr[1, 2]` |
-| Fortnightly | `r tab_lr[2, 1]` | `r tab_lr[2, 2]` |
-| Weekly |`r tab_lr[3, 1]` | `r tab_lr[3, 2]` |
-| Daily | `r tab_lr[4, 1]` | `r tab_lr[4, 2]` |
+| **Frequency** | **Slope (m)** | **Intercept (b)** | **N** | **RMSE** |
+| --- | --- | --- | --- | --- |
+| Monthly | `r tab_lr[1, "m_est"]` | `r tab_lr[1, "b_est"]` | `r tab_lr[1, "N"]` | `r tab_lr[1, "rmse"]` |
+| Fortnightly | `r tab_lr[2, "m_est"]` | `r tab_lr[2, "b_est"]` | `r tab_lr[2, "N"]` | `r tab_lr[2, "rmse"]` |
+| Weekly |`r tab_lr[3, "m_est"]` | `r tab_lr[3, "b_est"]` | `r tab_lr[3, "N"]` | `r tab_lr[3, "rmse"]` |
+| Daily | `r tab_lr[4, "m_est"]` | `r tab_lr[4, "b_est"]` | `r tab_lr[4, "N"]` | `r tab_lr[4, "rmse"]` |
 \
 
 
@@ -415,7 +415,7 @@ if (!plt_chk$mlr_mod_ts) {cat("<!---")}
 if (!plt_chk$mlr_mod_ts) {cat("-->")}
 ```
 \
-Table 2. Models fit to the data that are more suitable for forecasting.
+Table 3. Models fit to the data that are more suitable for forecasting.
 
 | **Model** | **Equation** | **RMSE** |
 | --- | --- | --- |
@@ -453,7 +453,7 @@ Table 2. Models fit to the data that are more suitable for forecasting.
 
 A **deterministic** forecast is one which predicts a specific value (e.g. temperature) at a specific time. It does not include uncertainty. In contrast, a **probabilistic** forecast tries to quantify the probability or likelihood of an event occurring. Probabilistic forecasts includes uncertainty.
 
-Table 3. Models that are used to explore forecast uncertainty.
+Table 4. Models that are used to explore forecast uncertainty.
 
 | **Model** | **Equation** | **RMSE** |
 | --- | --- | --- |
@@ -823,14 +823,14 @@ Which level should be used to release water from the dam?\
 Decision: `r dec2`
 \
 
-31. `r quest[qid[35], 1]`  
+31. `r quest[qid[37], 1]`  
 \
-**Answer:** `r answers[qid[35], 1]`  
+**Answer:** `r answers[qid[37], 1]`  
 \
 
-32. `r quest[qid[36], 1]`  
+32. `r quest[qid[38], 1]`  
 \
-**Answer:** `r answers[qid[36], 1]`  
+**Answer:** `r answers[qid[38], 1]`  
 \
 
 `r module_text["acknowledgement", ]`
