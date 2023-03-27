@@ -232,7 +232,7 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 if (!pheno_chk) {cat("<!---")}
 ```
 ![](`r params$pheno_file`)  
-*Figure 1. Phenocam image downloaded for `r quest[qid[4], 1]`.*
+*Figure 1. Phenocam image downloaded for `r answers[qid[4], 1]`.*
 ```{r results='asis', echo=FALSE}
 if (!pheno_chk) {cat("-->")}
 ```
@@ -256,7 +256,7 @@ if (!pheno_chk) {cat("-->")}
 ## Objective 2: Explore data\
 
 ***
-`r module_text["obj_02", ]`
+If there are some variables which you are not familiar with, visit the [NEON Data Portal](https://data.neonscience.org/home) and click 'Explore Data Products' to learn more about how the data are collected.
 
 ***
 
@@ -279,6 +279,11 @@ if (!pheno_chk) {cat("-->")}
 `r module_text["obj_03", ]`
 
 ***
+
+### Water Temperature
+\
+**Water temperature** exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies. Water temperature can have important effects on water quality, as changes in water temperature can directly or indirectly affect water quality variables such as dissolved oxygen, nutrient and heavy metal concentrations, and algae concentrations. Freshwater ecosystems are currently experiencing a multitude of stressors such as land use change and climate change, which can affect water temperature. Being able to predict how water temperature may change in the short-term (up to 7-days into the future) can provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.
+\
 
 6. `r quest[qid[12], 1]`  
 \
@@ -310,11 +315,11 @@ if (!plt_chk$airt_wtemp_ts) {cat("-->")}
 if (!plt_chk$lr_mod_ts) {cat("<!---")}
 ```
 ![](`r plot_list$lr_mod_ts`)  
-*Figure 3. Timeseries of observed water temperature (points) with linear regression models fitted to different data collected at different frequencies. *
+*Figure 3. Timeseries of observed water temperature (points) with linear regression models fitted to data collected at different frequencies. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$lr_mod_ts) {cat("-->")}
 ```
-\
+
 9. `r quest[qid[15], 1]`  
 \
 **Answer:** `r answers[qid[15], 1]`  
@@ -343,6 +348,11 @@ Table 1. Linear regression models fitted using data collected at different frequ
 
 ***
 
+### Generate distributions for intercept & slope
+\
+When fitting the models to the data in the previous objective, a standard error of the estimated parameters is calculated. The standard error of the coefficient measures how precisely the model estimates the coefficient's unknown value. It is the standard deviation around the estimate of the parameter and can be visualized by drawing a normal distribution with the mean as the parameter estimate and the standard error as the standard deviation. Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the models you fit by selecting a row in the table and clicking 'Generate plot'. **Density plots** are used to observe the distribution of a variable in a dataset. Density plots are a variation of histograms and they are better at determining the distribution shape.
+\
+
 11. `r quest[qid[17], 1]`  
 \
 **Answer:** `r answers[qid[17], 1]`  
@@ -352,11 +362,11 @@ Table 1. Linear regression models fitted using data collected at different frequ
 if (!plt_chk$param_dist_lr) {cat("<!---")}
 ```
 ![](`r plot_list$param_dist_lr`)  
-*Figure 4. Distribution of parameters calculated from the uncertainty of the parameters from the linear regression fit using data collected at different frequencies. *
+*Figure 4. Distribution of parameter values calculated from linear regressions fit to data collected at different frequencies. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_dist_lr) {cat("-->")}
 ```
-\
+
 ## Objective 5: Improve Model for Forecasting\
 
 ***
@@ -364,19 +374,32 @@ if (!plt_chk$param_dist_lr) {cat("-->")}
 
 ***
 
+### Create a Forecast model
+\
+The model built in Objective 3 uses current air temperature to predict current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature. The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a **persistence model.**
+\
+
 ### Persistence model\
 
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$pers_mod) {cat("<!---")}
 ```
 ![](`r plot_list$pers_mod`)  
-*Figure 5. Timeseries of observations and with the persistence model is added. *
+*Figure 5. Timeseries of water temperature observations (points) and persistence model predictions (line). *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$pers_mod) {cat("-->")}
 ```
 
 
-### Build a better model\
+### Build a better model
+\
+We are now going to build two models that we will use to forecast water temperature.
+\
+\
+A. A linear regression using today's water temperature to predict tomorrow's water temperature
+\
+B. A multiple linear regression using today's water temperature and tomorrow's air temperature to predict tomorrow's water temperature
+\
 
 12. `r quest[qid[18], 1]`  
 \
@@ -387,7 +410,7 @@ if (!plt_chk$pers_mod) {cat("-->")}
 if (!plt_chk$mlr_mod_ts) {cat("<!---")}
 ```
 ![](`r plot_list$mlr_mod_ts`)  
-*Figure 6. Timeseries of observations with the improved models for forecasting added.*
+*Figure 6. Timeseries of water temperature observations (points) with linear regression and multiple linear regression predictions (lines).*
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$mlr_mod_ts) {cat("-->")}
 ```
@@ -417,17 +440,18 @@ Table 2. Models fit to the data that are more suitable for forecasting.
 
 # Activity B: Explore Forecast Uncertainty\
 
-`r answers["act_B", 1]`  
+`r module_text["act_B", ]`  
 
 ## Overview\
 
 ***
 `r module_text["act_B_overview", ]`
+
 ***
 
-### Deterministic forecasting\
+### Deterministic forecasts\
 
-A **deterministic** forecast is one which predicts a specific value (e.g. temperature) at a specific time e.g. it does not include uncertainty. Whereas a **probabilistic** forecast tries to quanitify the probability or likelihood of an event occurring e.g. it includes uncertainty.
+A **deterministic** forecast is one which predicts a specific value (e.g. temperature) at a specific time. It does not include uncertainty. In contrast, a **probabilistic** forecast tries to quantify the probability or likelihood of an event occurring. Probabilistic forecasts includes uncertainty.
 
 Table 3. Models that are used to explore forecast uncertainty.
 
@@ -449,7 +473,7 @@ Table 3. Models that are used to explore forecast uncertainty.
 if (!plt_chk$deter_fc) {cat("<!---")}
 ```
 ![](`r plot_list$deter_fc`)  
-*Figure 7. Deterministic forecasts generated for water temperature using the different models. *
+*Figure 7. Deterministic forecasts generated for water temperature using four different forecasting models. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$deter_fc) {cat("-->")}
 ```
@@ -468,11 +492,25 @@ if (!plt_chk$deter_fc) {cat("-->")}
 
 ***
 
+**Process uncertainty** is uncertainty caused by our inability to model all processes as observed in the real world.
+
+Our "simple" water temperature model uses today's water temperature and tomorrow's forecasted air temperature to forecast tomorrow's water temperature. 
+  
+$$WaterTemp_{t+1} = \beta_0 + \beta_1*AirTemp_{t+1} + \beta_2*WaterTemp_t$$
+
+But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing, to name a few) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce to our model, we can add in process noise (W) to our model at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise (W),
+
+$$WaterTemp_{t+1} = \beta_0 + \beta_1*AirTemp_{t+1} + \beta_2*WaterTemp_t + W$$
+where process noise is equal to a random number drawn from a normal distribution with a mean of zero and a standard deviation ($\sigma$).
+
+$$W \sim {\mathrm Norm}(0, \sigma)$$
+To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an **ensemble.** Each individual run is referred to as an **ensemble member.** Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts.  
+\
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$proc_uc_fc) {cat("<!---")}
 ```
 ![](`r plot_list$proc_uc_fc`)  
-*Figure 8. Forecasts generated for water temperature using the different models including **process uncertainty**. *
+*Figure 8. Forecasts generated for water temperature using the different models and including **process uncertainty**. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$proc_uc_fc) {cat("-->")}
 ```
@@ -492,11 +530,21 @@ if (!plt_chk$proc_uc_fc) {cat("-->")}
 
 ***
 
+**Parameter uncertainty** refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used.
+
+With traditional modelling efforts, people general find one set of the 'best fit' parameters and use them to predict with their model. 
+
+This method does not account for the uncertainty around the estimation of these parameters.  
+
+There is often the possibility that different parameter sets can yield similar metrics of model performance, e.g., similar RMSE values.
+
+Using parameter distributions allows for a better representation of the potential predicted outcomes, leading to better quantification of the uncertainty.
+\
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_dist_fc) {cat("<!---")}
 ```
 ![](`r plot_list$param_dist_fc`)  
-*Figure 9. Distribution of the parameters used for generating the forecasts for each of the different models. *
+*Figure 9. Distribution of the parameters used for generating forecasts for each of the different models. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_dist_fc) {cat("-->")}
 ```
@@ -505,7 +553,7 @@ if (!plt_chk$param_dist_fc) {cat("-->")}
 if (!plt_chk$param_uc_fc) {cat("<!---")}
 ```
 ![](`r plot_list$param_uc_fc`)  
-*Figure 10. Forecasts generated for water temperature using the different models including **parameter uncertainty**. *
+*Figure 10. Forecasts generated for water temperature using the different models and including **parameter uncertainty**. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$param_uc_fc) {cat("-->")}
 ```
@@ -527,11 +575,17 @@ if (!plt_chk$param_uc_fc) {cat("-->")}
 
 ***
 
+**Initial conditions uncertainty** refers to uncertainty arising because the initial conditions are not precisely known or because the calculations cannot be performed with the precise initial conditions.
+
+Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements.
+
+To account for initial condition uncertainty we can generate a distribution around the initial condition and then run our model with slightly different initial conditions.
+\
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$ic_ts_dist) {cat("<!---")}
 ```
 ![](`r plot_list$ic_ts_dist`)  
-*Figure 11. Distribution of the range of possible values for the initial value to start the forecast. *
+*Figure 11. Distribution of the range of possible values for the forecast initial condition. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$ic_ts_dist) {cat("-->")}
 ```
@@ -540,7 +594,7 @@ if (!plt_chk$ic_ts_dist) {cat("-->")}
 if (!plt_chk$ic_uc_fc) {cat("<!---")}
 ```
 ![](`r plot_list$ic_uc_fc`)  
-*Figure 12. Forecasts generated for water temperature using the different models including **initial conditions uncertainty**. *
+*Figure 12. Forecasts generated for water temperature using the different models and including **initial conditions uncertainty**. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$ic_uc_fc) {cat("-->")}
 ```
@@ -566,11 +620,13 @@ if (!plt_chk$ic_uc_fc) {cat("-->")}
 
 ***
 
+**Driver uncertainty** comes from inaccuracies in the forecasted variables used to drive the model. The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted air temperature to drive the model. Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.
+\
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$airt_fc) {cat("<!---")}
 ```
 ![](`r plot_list$airt_fc`)  
-*Figure 13. Forecast of air temperature from NOAA GEFS 31-member ensemble for the next seven days showing the individual ensemble members (A) and the median and 95% confidence interval (B). *
+*Figure 13. Forecast of air temperature from NOAA GEFS 30-member ensemble for the next seven days showing the individual ensemble members (A) and the median and 95% confidence interval (B). *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$airt_fc) {cat("-->")}
 ```
@@ -579,7 +635,7 @@ if (!plt_chk$airt_fc) {cat("-->")}
 if (!plt_chk$driver_uc_fc) {cat("<!---")}
 ```
 ![](`r plot_list$driver_uc_fc`)  
-*Figure 14. Forecasts generated for water temperature using the different models including **driver uncertainty**. *
+*Figure 14. Forecasts generated for water temperature using the different models and including **driver uncertainty**. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$driver_uc_fc) {cat("-->")}
 ```
@@ -604,7 +660,7 @@ if (!plt_chk$driver_uc_fc) {cat("-->")}
 if (!plt_chk$all_fc) {cat("<!---")}
 ```
 ![](`r plot_list$all_fc`)  
-*Figure 15. Summary plot showing all the forecasts generated accounting for the different sources of uncertaunty within each. *
+*Figure 15. Summary plot of forecasts generated using the different models and accounting for all the sources of uncertainty. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$all_fc) {cat("-->")}
 ```
@@ -614,13 +670,20 @@ if (!plt_chk$all_fc) {cat("-->")}
 _Use the figures above to answer the questions._
 
 
-`r module_text["actB_q1", ]`\
-\
-`r module_text["actB_q2", ]`\
-\
-`r module_text["actB_q3", ]`\
 \
 
+25. `r quest[qid[31], 1]`  
+\
+**Answer:** `r answers[qid[31], 1]`  
+\
+26. `r quest[qid[32], 1]`  
+\
+**Answer:** `r answers[qid[32], 1]`  
+\
+27. `r quest[qid[33], 1]`  
+\
+**Answer:** `r answers[qid[33], 1]`  
+\
 
 # Activity C: Managing Uncertainty\
 
@@ -631,7 +694,8 @@ _Use the figures above to answer the questions._
 
 ***
 \
-`r module_text["uc_quant1", 1]`
+**Uncertainty quantification** is the science of characterizing and reducing uncertainty in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known.
+\
 
 ## Think, Pair, Share!\
 `r module_text["tps1", 1]`\
@@ -646,7 +710,7 @@ Model selected:
 if (!plt_chk$tot_uc_fc1) {cat("<!---")}
 ```
 ![](`r plot_list$tot_uc_fc1`)  
-*Figure 16. Forecast of water temperature for the next seven days including each of the four different sources of uncertainty. *
+*Figure 16. Forecast of water temperature for the next seven days including all the four different sources of uncertainty. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$tot_uc_fc1) {cat("-->")}
 ```
@@ -661,9 +725,9 @@ if (!plt_chk$quant_uc_fc1) {cat("-->")}
 ```
 \
 
-25. `r quest[qid[31], 1]`  
+28. `r quest[qid[34], 1]`  
 \
-**Answer:** `r answers[qid[31], 1]`  
+**Answer:** `r answers[qid[34], 1]`  
 \
 
 ### Model 2\
@@ -676,7 +740,7 @@ Model selected:
 if (!plt_chk$tot_uc_fc2) {cat("<!---")}
 ```
 ![](`r plot_list$tot_uc_fc2`)  
-*Figure 18. Forecast of water temperature for the next seven days including each of the four different sources of uncertainty. *
+*Figure 18. Forecast of water temperature for the next seven days including all the four different sources of uncertainty. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$tot_uc_fc2) {cat("-->")}
 ```
@@ -691,14 +755,14 @@ if (!plt_chk$quant_uc_fc2) {cat("-->")}
 ```
 \
 
-26. `r quest[qid[32], 1]`  
+29. `r quest[qid[35], 1]`  
 \
-**Answer:** `r answers[qid[32], 1]`  
+**Answer:** `r answers[qid[35], 1]`  
 \
 
-27. `r quest[qid[33], 1]`  
+30. `r quest[qid[36], 1]`  
 \
-**Answer:** `r answers[qid[33], 1]`  
+**Answer:** `r answers[qid[36], 1]`  
 \
 
 ## Objective 11: Management Scenario\
@@ -726,7 +790,7 @@ This forecast was generated only including parameter uncertainty.
 if (!plt_chk$dec1) {cat("<!---")}
 ```
 ![](`r plot_list$dec1`)  
-*Figure 20. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The dashed line represents temperatures below which Chinook salmon have higher survival rates. *
+*Figure 20. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$dec1) {cat("-->")}
 ```
@@ -742,14 +806,14 @@ Decision: `r dec1`
 
 Use the forecast of surface and bottom temperature (across) to make a decision.
 
-This forecast was generated and includes process, parameter, initial conditions and driver uncertainty.
+This forecast was generated including process, parameter, initial conditions and driver uncertainty.
 
 
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$dec2) {cat("<!---")}
 ```
 ![](`r plot_list$dec2`)  
-*Figure 21. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The dashed line represents temperatures below which Chinook salmon have higher survival rates. *
+*Figure 21. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases. *
 ```{r results='asis', echo=FALSE}
 if (!plt_chk$dec2) {cat("-->")}
 ```
@@ -759,7 +823,15 @@ Which level should be used to release water from the dam?\
 Decision: `r dec2`
 \
 
+31. `r quest[qid[35], 1]`  
+\
+**Answer:** `r answers[qid[35], 1]`  
+\
 
+32. `r quest[qid[36], 1]`  
+\
+**Answer:** `r answers[qid[36], 1]`  
+\
 
 `r module_text["acknowledgement", ]`
 `r app_update_txt`

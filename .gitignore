@@ -44,3 +44,8 @@ data/site.html
 
 # Mac files
 .DS_Store
+
+# Rendered report files
+app/data/out_tables/*
+app/www/out_plots/*
+report.docx
