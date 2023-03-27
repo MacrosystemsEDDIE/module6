@@ -7345,16 +7345,18 @@ shinyServer(function(input, output, session) {
   chk_list <- reactive({
     out_chk <- c(
       if(input$name == "") "Introduction: Name",
-      if(input$id_number == "") "Introduction: ID number"
+      if(input$id_number == "") "Introduction: ID number",
+      if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") "Site Selection: Objective 1 - Q.3"
     )
 
-    for(i in 1:nrow(answers)) {
-      if( grepl("q3a",qid[i]) | grepl("q3b",qid[i]) | grepl("q3c",qid[i]) | grepl("q3d",qid[i]) | grepl("q3e",qid[i]) | grepl("q3f",qid[i])){
-      if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") {
-        if(!("Site Selection: Objective 1 - Q.3" %in% out_chk)) {
-          out_chk <- c(out_chk, answers[qid["q3"], 2])
-        }
-        }
+    for(i in 10:nrow(answers)) {
+      if(grepl("q3a",qid[i]) | grepl("q3b",qid[i]) | grepl("q3c",qid[i]) | grepl("q3d",qid[i]) | grepl("q3e",qid[i]) | grepl("q3f",qid[i])){
+      # if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") {
+      #   if(!("Site Selection: Objective 1 - Q.3" %in% out_chk)) {
+      #     out_chk <- c(out_chk, answers[qid["q3"], 2])
+      #   }
+      #   }
+        next
       } else {
         if(is.null(input[[qid[i]]])) {
           out_chk <- c(out_chk, answers[qid[i], 2])
