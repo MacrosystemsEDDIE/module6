@@ -13,7 +13,7 @@ When launching first it will take a while for the Shiny app to boot up. If you a
 
 ##  Running the Shiny App on your computer
 ### Pre-requisites
-1. Latest version of [R](https://cran.r-project.org/) installed (currently R 4.1.3 as of 2021-05-20).  
+1. Latest version of [R](https://cran.r-project.org/) installed.  
 2. [RStudio](https://rstudio.com/products/rstudio/download/) installed (preferably >1.3).  
 
 ### Step 1: Download this repository
@@ -32,7 +32,7 @@ There are two options:
 		
 ### Step 2: Install required R packages
 1. The list of required of packages is detailed in the `install.R` script in this repository. Open and run this script to install the necessary packages.  
-  Watch out for errors in package installation. Most can be avoided using the most up-to-date version of R (4.1.3 as of 2021-05-20).  
+  Watch out for errors in package installation. Most can be avoided using the most up-to-date version of R.  
   Updating of current R packages on your system is recommended.
 
 ### Step 3: Launch Shiny App
