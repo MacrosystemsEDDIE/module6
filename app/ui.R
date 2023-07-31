@@ -191,15 +191,15 @@ ui <- function(req) {
                           column(4,
                                  h3("Presentation"),
                                  p(id = "txt_j", "The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty and the importance and relevance of quantifying uncertainty within ecological forecasts."),
-                                 p(id = "txt_j", "What is ecological forecast uncertainty?"),
+                                 p(id = "txt_j", tags$b("What is ecological forecast uncertainty?")),
                                  tags$ul(
                                    tags$li(module_text["uncertainty", ])
                                  ),
-                                 p("Where does ecological forecast uncertainty come from?"),
+                                 p(tags$b("Where does ecological forecast uncertainty come from?")),
                                  tags$ul(
-                                   tags$li(module_text["uncert1", ])
+                                   tags$li("Uncertainty comes from natural variability in the environment and imperfect representation of an ecological system in a model. When generating a forecast, uncertainty can come from the ",tags$b("structure")," of the model used, the ",tags$b("initial conditions")," of the model, the ",tags$b("parameters")," of the model, and the ",tags$b("data")," used to drive the model, among other sources.")
                                  ),
-                                 p(id = "txt_j", "Why is uncertainty important to quantify for an ecological forecast?"),
+                                 p(id = "txt_j", tags$b("Why is uncertainty important to quantify for an ecological forecast?")),
                                  tags$ul(
                                    tags$li(module_text["why_important", ])
                                  ),
@@ -222,7 +222,7 @@ ui <- function(req) {
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
-                          column(4, offset = 1,
+                          column(10, 
                                  h3("Workflow for this module"),
                                  tags$ol(
                                    tags$li(id = "txt_j", module_text["workflow1", ]),
@@ -230,67 +230,25 @@ ui <- function(req) {
                                    tags$li(id = "txt_j", module_text["workflow3", ]),
                                    tags$li(id = "txt_j", module_text["workflow4", ])
                                  )
-                          ),
-                          column(6, align = "center", offset = 1,
-                                 br(), br(),
-                                 img(src = "activity_outline.png", height = "80%", id = "bla_border",
-                                     width = "80%", tags$style("border: solid 2px black;"))
-
                           )
                         ), hr(),
                         fluidRow(
-                          column(7, offset = 1,
-                                 h3("Student Activities"),
-                                 p(id = "txt_j", "Within the Introduction, Exploration, and Activities A, B and C tabs, there are questions for students to complete as part of this module. These can be completed by writing your answers into the text boxes within the green boxes. If you do not complete the module in one continuous sitting, you can download a file with your responses saved, which you can then upload when you return. When you finish the module, you can generate a report which will embed your answers and saved plots into a Word (.docx) file which you can download and make further edits to before submitting to your instructor."),
-                                 box(width = 12, status = "warning",
-                                     solidHeader = TRUE,
-                                     p(id = "txt_j", tags$b("WARNING:"), " The Shiny app will disconnect from the server if it is left idle for 15 minutes. If this happens you will lose all your inputs into the app. It is recommended to download the user input at the end of the class, but you can also download throughout the class.")
-                                 ),
+                          column(6, 
+                                 h3("Student Handout"),
+                                 p("Within the Introduction and Activities A, B and C tabs there are questions for students to complete as part of this module. These can be completed by writing your answers into the final report template, which can be downloaded as a Word document (.docx) below."),
                                  tags$style(type="text/css", "#stud_dl {background-color:#579277;color: white}"),
                                  conditionalPanel("output.handoutbuilt",
-                                                  downloadButton(outputId = "stud_dl", label = "Download Student Handout")
+                                                  downloadButton(outputId = "stud_dl", label = "Download Final Report Template")
                                  )
-                          )
-                        ), hr(),
-                        #* Generate report buttons ====
-                        fluidRow(
-                          column(4, offset = 1,
+                          ),
+                          column(6,
                                  h3("Saving your progress"),
-                                 p(id = "txt_j", "If you run out of time to finish all the activities you can save your progress and return to it at a later date. Click the 'Save Progress' button at the bottom of the page and a file 'module6_answers_ID_number.eddie' will download. Store this file in a safe place locally on your computer."),
-                                 img(src = "save_button.png", height = "100%", id = "bla_border",
-                                     width = "100%", tags$style("border: solid 2px black;")),
-                                 br(),
-                                 hr(),
-                                 h3("Resuming your progress"),
-                                 img(src = "resume_button.png", height = "100%", id = "bla_border",
-                                     width = "100%", tags$style("border: solid 2px black;")),
-                                 br(),
-                                 p(id = "txt_j", "To reload the app input you can upload the downloaded '.eddie' file at the top of this pae and it will populate your answers into the Shiny app."),
-                                 p(id = "txt_j", HTML(paste0(tags$b("Note:"), " You will need to navigate to tabs Objective 1, 2 and 3 in Activity A after uploading your file for the inputs to load there. You will also need to load the NOAA data in Objective 6."))),
-                                 p(id = "txt_j", "Currently the plots do not save to the file.  If you generated plots during your last session, you will need to reload the data and reproduce the plots before generating your report.  Additionally, the answers for Q.10 will need to be re-submitted.")
-                                 ),
-                          column(4, offset = 1,
-                                 introBox(
-                                   h3("Generate Report"),
-                                   p("This will take the answers you have input into this app and generate a Microsoft Word document (.docx) document with your answers which you can download and make further edits before submitting. Return here when you have completed the module."),
-                                   actionButton("generate", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
-                                                # id = "dl_btn", # This is the only button that shows up when the app is loaded
-                                                # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
-                                   ), br(), br(),
-                                   data.step = 6, data.intro = help_text["finish", 1]
-                                 ),
-                                 tags$style(type="text/css", "#download {background-color:#579277;color: white}"),
-                                 conditionalPanel(condition = "output.reportbuilt", # This button appears after the report has been generated and is ready for download.
-                                                  downloadButton("download", "Download Report", width = "60px", style = "width:190px;"
-                                                                 # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
-                                                  )), br(),
-                                 h5(tags$b("Questions still to be completed:")),
-                                 # verbatimTextOutput("check_list"),
-                                 wellPanel(
-                                   htmlOutput("check_list")
-                                 )
+                                 p(style="text-align: justify;", "As you go, fill out answers to questions in the final report Word document. Some of the plots you generate in the Shiny app will be needed for the final report. When prompted, be sure to download these plots so you can copy-paste them into the final report."),
+                                 p(style="text-align: justify;", "If you run out of time to finish all the activities you can save your progress and return to it at a later date. Click the 'Bookmark my progress' button at the top of the page and you will obtain a link, which you should save by copy-pasting it at the top of your final report. When you are ready to resume work, paste the link into your web browser, and it will load a Shiny app session that contains your progress."),
+                                 br()
                           )
                         ),
+                        hr(),
                         fluidRow(
                           hr(),
                           column(10, align = "left",
@@ -299,14 +257,11 @@ ui <- function(req) {
                                      fluidRow(
                                        column(8, offset = 1,
                                               h3("Before you start..."),
-                                              p(id = "txt_j", "Input your name and Student ID and this will be added to your final report."),
-                                              textInput("name", "Name:"),
-                                              textInput("id_number", "ID number:"),
+                                              p(id = "txt_j", "Download your final report (Word document) and input your name and Student ID. Then, answer the following questions in the final report."),
                                               introBox(
                                                 h3(tags$b("Think about it!")),
-                                                p(id = "txt_j", "Note: The size of these text boxes can be adjusted by clicking and dragging the bottom right of the text box."),
-                                                textAreaInput2(inputId = qid[1], label = quest[qid[1], 1]),
-                                                textAreaInput2(inputId = qid[2], label = quest[qid[2], 1]),
+                                                p(tags$b(quest["q1", 1])),
+                                                p(tags$b(quest["q2", 1])),
                                                 data.step = 5, data.intro = help_text["questions", 1]
                                               )
                                        )
@@ -319,7 +274,7 @@ ui <- function(req) {
                         fluidRow(
                           column(6,
                                  h3("Data sources"),
-                                 p(id = "txt_j", HTML(paste0('This module will introduce key concepts within ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observation Network) data", target = "_blank"), ", building a model, and then generating a short-term ecological forecast.")))
+                                 p(id = "txt_j", HTML(paste0('This module will introduce key concepts within ecological forecasting through exploration of ', a(href = "https://www.neonscience.org/", "NEON (National Ecological Observatory Network) data", target = "_blank"), ", building a model, and then generating a short-term ecological forecast.")))
                           ),
                           column(6, align = "center",
                                  a(

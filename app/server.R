@@ -7172,51 +7172,20 @@ shinyServer(function(input, output, session) {
   })
 
   # Hide download button until report is generated
-  output$reportbuilt <- reactive({
-    return(!is.null(report$filepath))
+  handout <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
+  output$handoutbuilt <- reactive({
+    return(file.exists("report.docx"))
   })
-  outputOptions(output, 'reportbuilt', suspendWhenHidden = FALSE)
-
-  # Hide download button until report is generated
-  output$reportbuilt2 <- reactive({
-    return(!is.null(report2$filepath))
-  })
-  outputOptions(output, 'reportbuilt2', suspendWhenHidden = FALSE)
-
-
-  #** Download Report ----
-
-  #Download report
-  output$download <- downloadHandler(
-
-    # This function returns a string which tells the client
-    # browser what name to use when saving the file.
+  outputOptions(output, 'handoutbuilt', suspendWhenHidden= FALSE)
+  
+  handout_file <- "Student_handout.docx"
+  
+  output$stud_dl <-  downloadHandler(
     filename = function() {
-      paste0("report_", input$id_number, ".docx") %>%
-        gsub(" ", "_", .)
+      handout_file
     },
-
-    # This function should write data to a file given to it by
-    # the argument 'file'.
     content = function(file) {
-      file.copy(report$filepath, file)
-    }
-  )
-
-  #Download report
-  output$download2 <- downloadHandler(
-
-    # This function returns a string which tells the client
-    # browser what name to use when saving the file.
-    filename = function() {
-      paste0("report_", input$id_number, ".docx") %>%
-        gsub(" ", "_", .)
-    },
-
-    # This function should write data to a file given to it by
-    # the argument 'file'.
-    content = function(file) {
-      file.copy(report2$filepath, file)
+      file.copy("report.docx", file)
     }
   )
 
