@@ -285,49 +285,35 @@ ui <- function(req) {
                           )
                         ),
 
-               # 4. Site Selection ----
-               tabPanel(title = tags$b("Site Selection"), value = "mtab4",
-                        tags$style(".nav-tabs {
-  background-color: #DDE4E1;
-  border-color: #FFF;
 
-}
-
-.nav-tabs-custom .nav-tabs li.active:hover a, .nav-tabs-custom .nav-tabs li.active a {
-background-color: #4D6A5C;
-border-color: #FFF;
-}
-
-.nav-tabs-custom .nav-tabs li.active {
-    border-top-color: #FFF;
-    background-color: #4D6A5C;
-}"),
-                        # tags$style(type="text/css", "body {padding-top: 65px;}"),
+               # 5. Activity A ----
+               tabPanel(title = tags$b("Activity A"), value = "mtab4",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
                           column(12,
-                                 h3("Site Selection: Select a NEON site and visualize the data"),
-                                 p(id = "txt_j", "Complete Objectives 1-2 to familiarize yourself with the data from your selected site.")
+                                 wellPanel(style = paste0("background: ", obj_bg),
+                                           h2("Activity A - Build A Model With Uncertainty"),
+                                           p(module_text["act_A", ])
+                                 )
                           )
                         ),
-
-                        #* Objective 1 - Select and view site ====
                         tabsetPanel(id = "tabseries1",
+                                    #* Objective 1 - Select and view site ====
                                     tabPanel(title = "Objective 1 - Select and view a NEON site",
                                              value = "obj1", id = "wh_link",
                                              tags$style("outline: 5px dotted green;"),
                                              #* Objective 1 ====
                                              # introBox(
-                                               fluidRow(
-                                                 column(12,
-                                                        wellPanel(style = paste0("background: ", obj_bg),
-                                                                  h3("Objective 1 - Select a Site"),
-                                                                  p(module_text["obj_01", ])
-                                                        )
-                                                 )
-                                               ),
-                                               # data.step = 4, data.intro = help_text["objectives", 1], data.position = "top"),
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 1 - Select a Site"),
+                                                                p(module_text["obj_01", ])
+                                                      )
+                                               )
+                                             ),
+                                             # data.step = 4, data.intro = help_text["objectives", 1], data.position = "top"),
                                              #** NEON Map ====
                                              fluidRow(
                                                #** NEON Intro ----
@@ -353,7 +339,7 @@ border-color: #FFF;
                                                         leafletOutput("neonmap")
                                                       )
                                                )
-
+                                               
                                                ,
                                                #** Site photo ----
                                                column(4,
@@ -365,8 +351,8 @@ border-color: #FFF;
                                                       )
                                                )
                                              ), br(),
-                                        #      span(textOutput("site_name1"), style = "font-size: 22px;
-                                        # font-style: bold;"),
+                                             #      span(textOutput("site_name1"), style = "font-size: 22px;
+                                             # font-style: bold;"),
                                              fluidRow(
                                                wellPanel(
                                                  h4(tags$b("About Site")),
@@ -382,20 +368,20 @@ border-color: #FFF;
                                                           fluidRow(
                                                             column(7, offset = 1,
                                                                    h3("Questions"),
-                                                                   h4(quest[qid[3], 1]),
+                                                                   h4(quest["q3", 1]),
                                                                    p(id = "txt_j", "If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
                                                             )
                                                           ),
                                                           fluidRow(
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = qid[4], label = quest[qid[4], 1] , width = "90%"),
-                                                                   textInput(inputId = qid[5], label = quest[qid[5], 1], width = "90%"),
-                                                                   textInput(inputId = qid[6], label = quest[qid[6], 1], width = "90%")
+                                                                   p(tags$b(quest["q3a", 1] , width = "90%")),
+                                                                   p(tags$b(quest["q3b", 1], width = "90%")),
+                                                                   p(tags$b(quest["q3c", 1], width = "90%"))
                                                             ),
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   textInput(inputId = qid[7], label = quest[qid[7], 1] , width = "90%"),
-                                                                   textInput(inputId = qid[8], label = quest[qid[8], 1], width = "90%"),
-                                                                   textInput(inputId = qid[9], label = quest[qid[9], 1], width = "90%")
+                                                                   p(tags$b(quest["q3d", 1] , width = "90%")),
+                                                                   p(tags$b(quest["q3e", 1], width = "90%")),
+                                                                   p(tags$b(quest["q3f", 1], width = "90%"))
                                                             )
                                                           )
                                                       )
@@ -420,12 +406,6 @@ border-color: #FFF;
                                                       )
                                                )
                                              ),
-                                             fluidRow(
-                                               column(8, offset = 2,
-                                                      h3("Variable descriptions"),
-                                                      DT::DTOutput("var_desc")
-                                               )
-                                             ),
                                              hr(),
                                              fluidRow(
                                                #** Data Table ----
@@ -442,7 +422,7 @@ border-color: #FFF;
                                                                      choices = unique(neon_vars$Short_name),
                                                                      options = list(
                                                                        placeholder = 'Please select a variable',
-                                                                       onInitialize = I('function() { this.setValue(""); }'))
+                                                                       onInitialize = I('function() { this.setValue("Air temperature"); }'))
                                                       ),
                                                       plotlyOutput("var_plot"),
                                                       useShinyjs(),  # Set up shinyjs
@@ -461,34 +441,18 @@ border-color: #FFF;
                                                                    h3("Questions"),
                                                                    textAreaInput2(inputId = qid[10], label = quest[qid[10], ], width = "90%"),
                                                                    textAreaInput2(inputId = qid[11], label = quest[qid[11], ], width = "90%")
-                                                                   )
                                                             )
                                                           )
                                                       )
-                                               ),
+                                               )
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
                                                       p("We will build models that will allow us to predict water temperature."))
-                                               )
                                              )
-                                    )
-                        ),
-
-               # 5. Activity A ----
-               tabPanel(title = tags$b("Activity A"), value = "mtab5",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
-                        fluidRow(
-                          column(12,
-                                 wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity A - Build A Model With Uncertainty"),
-                                           p(module_text["act_A", ])
-                                 )
-                          )
-                        ),
-                        tabsetPanel(id = "tabseries2",
+                                    ),
                                     #* Objective 3 - Build a water temperature model ====
                                     tabPanel(title = "Objective 3 - Build a water temperature model", value = "obj3",
                                              fluidRow(

@@ -356,13 +356,6 @@ shinyServer(function(input, output, session) {
     return(list(data = df, sel = sel))
   })
 
-  # NEON variable description table ----
-  output$var_desc <- renderDT({
-    var_desc <- neon_vars[!duplicated(neon_vars$Short_name), c("Short_name", "description")]
-    colnames(var_desc) <- c("Name", "Description")
-    datatable(var_desc, rownames = FALSE, options = list(pageLength = 4))
-  })
-
   # Site data datatable ----
   output$neon_datatable <- DT::renderDT({
     validate(
