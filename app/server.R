@@ -5429,7 +5429,9 @@ shinyServer(function(input, output, session) {
       new_nam <- tab_names$name[idx2 + 1]
     }
     if(curr_tab1 == "mtab7" & rv4a$nxt > 14) {
-      updateActionButton(session, inputId = "nextBtn1", label = paste("Next >"))
+      updateActionButton(session, inputId = "nextBtn1", label = paste("End of module"))
+    } else if(curr_tab1 == "mtab1") {
+      updateActionButton(session, inputId = "prevBtn1", label = paste("Module begins"))
     } else {
       updateActionButton(session, inputId = "nextBtn1", label = paste(new_nam, ">"))
     }

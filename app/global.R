@@ -8,6 +8,32 @@ suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 suppressPackageStartupMessages(library(kableExtra, quietly = TRUE))
 suppressPackageStartupMessages(library(shinyalert, quietly = TRUE))
+suppressPackageStartupMessages(library(shinyBS, quietly = TRUE))
+suppressPackageStartupMessages(library(shinydashboard, quietly = TRUE))
+suppressPackageStartupMessages(library(rintrojs, quietly = TRUE))
+suppressPackageStartupMessages(library(slickR, quietly = TRUE))
+suppressPackageStartupMessages(library(sortable, quietly = TRUE))
+suppressPackageStartupMessages(library(ncdf4, quietly = TRUE))
+suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
+suppressPackageStartupMessages(library(stringr, quietly = TRUE))
+suppressPackageStartupMessages(library(hover, quietly = TRUE))
+
+
+
+
+# Help documentation
+help_text <- read.csv("data/help_text.csv", row.names = 1)
+
+# Load text input
+module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
+
+# colors for theme
+obj_bg <- "#D4ECE1"
+ques_bg <- "#B8E0CD"
+nav_bg <- "#DDE4E1"
+nav_butt <- "#31ED92"
+nav_txt <- "#000000" # white = #fff; black = #000000
+slider_col <- "#2CB572"
 
 # Change maximum upload file size
 options(shiny.maxRequestSize=30*1024^2)

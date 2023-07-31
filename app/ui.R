@@ -1,30 +1,3 @@
-# Load required libraries
-suppressPackageStartupMessages(library(shinyjs, quietly = TRUE))
-suppressPackageStartupMessages(library(shinyBS, quietly = TRUE))
-suppressPackageStartupMessages(library(shinydashboard, quietly = TRUE))
-suppressPackageStartupMessages(library(rintrojs, quietly = TRUE))
-suppressPackageStartupMessages(library(slickR, quietly = TRUE))
-suppressPackageStartupMessages(library(sortable, quietly = TRUE))
-suppressPackageStartupMessages(library(ncdf4, quietly = TRUE))
-suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
-suppressPackageStartupMessages(library(stringr, quietly = TRUE))
-suppressPackageStartupMessages(library(hover, quietly = TRUE))
-# suppressPackageStartupMessages(library(ggforce, quietly = TRUE)) # Only for geom_ellipse (doesn't work in plotly!)
-
-# Help documentation
-help_text <- read.csv("data/help_text.csv", row.names = 1)
-
-# Load text input
-module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
-
-# colors for theme
-obj_bg <- "#D4ECE1"
-ques_bg <- "#B8E0CD"
-nav_bg <- "#DDE4E1"
-nav_butt <- "#31ED92"
-nav_txt <- "#000000" # white = #fff; black = #000000
-slider_col <- "#2CB572"
-
 ui <- function(req) {
 
   tagList( # Added functionality for not losing your settings
@@ -49,29 +22,35 @@ ui <- function(req) {
 
 })();"),
     tags$style(type = "text/css", "text-align: justify"),
+    tags$html(lang = "en"), # Add language attribute
     tags$head(tags$link(rel = "shortcut icon", href = "macroeddi_ico_green.ico")), # Add icon for web bookmarks
     tags$head(includeHTML(("google-analytics.html"))),
     fluidPage(
-      column(1, offset = 11, align = "right",
-             introBox(
-               actionButton("help", label = "", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
-             )
+      column(10,
+             br(),
+             p(tags$b("Teaching materials associated with this module can be found at ",
+                      tags$a(href="http://module6.macrosystemseddie.org", 
+                             "http://module6.macrosystemseddie.org.", target="_blank")))
       )
     ),
-    navbarPage(title = "Module 6: Understanding Uncertainty in Ecological Forecasts",
+    navbarPage(title = tags$b("Module 6: Understanding Uncertainty in Ecological Forecasts"),
                position = "static-top", id = "maintab",
                tags$header(
                  fluidRow(
-                   column(2,
-                          fileInput("upload_answers", "Resume Progress", accept = c(".eddie", ".rds"))
+                   column(11,
+                          bookmarkButton(id = "bookmarkBtn", label = "Bookmark my progress"),
+                          br(), 
+                          p(tags$em("At any time, use this button to obtain a link that saves your progress."))
                    ),
-                   column(2,
-                          actionButton("help2", label = "", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
+                   column(1, align = "right",
+                          introBox(
+                            actionButton("help", label = "Help", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
+                          )
                    )
                  )
-               ),
+                ),
                # 1. Module Overview ----
-               tabPanel(introBox("Overview",
+               tabPanel(introBox(tags$b("Overview"),
                                  data.step = 2,
                                  data.intro = help_text["tab_nav1", 1]
                ),
@@ -204,7 +183,7 @@ ui <- function(req) {
                ),
 
                # 2. Presentation recap ----
-               tabPanel(title = "Presentation", value = "mtab2",
+               tabPanel(title = tags$b("Presentation"), value = "mtab2",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -238,7 +217,7 @@ ui <- function(req) {
                ),
 
                # 3. Introduction ----
-               tabPanel(title = "Introduction", value = "mtab3",
+               tabPanel(title = tags$b("Introduction"), value = "mtab3",
                         # tags$style(type="text/css", "body {padding-top: 65px;}"),
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
@@ -352,7 +331,7 @@ ui <- function(req) {
                         ),
 
                # 4. Site Selection ----
-               tabPanel(title = "Site Selection", value = "mtab4",
+               tabPanel(title = tags$b("Site Selection"), value = "mtab4",
                         tags$style(".nav-tabs {
   background-color: #DDE4E1;
   border-color: #FFF;
@@ -543,7 +522,7 @@ border-color: #FFF;
                         ),
 
                # 5. Activity A ----
-               tabPanel(title = "Activity A", value = "mtab5",
+               tabPanel(title = tags$b("Activity A"), value = "mtab5",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -923,7 +902,7 @@ border-color: #FFF;
                                     )
                         ),
                # 6. Activity B ----
-               tabPanel(title = "Activity B", value = "mtab6",
+               tabPanel(title = tags$b("Activity B"), value = "mtab6",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1447,7 +1426,7 @@ border-color: #FFF;
                                     )
                         ),
                # 6. Activity C ----
-               tabPanel(title = "Activity C", value = "mtab7",
+               tabPanel(title = tags$b("Activity C"), value = "mtab7",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1795,11 +1774,6 @@ border-color: #FFF;
             ),
             column(2, align = "center",
                    br(),
-                   tags$style(type="text/css", paste0("#download_answers {background-color:#579277;color: white; padding:15px; font-size:18px;}")),
-                   hover_download_button(outputId = "download_answers",
-                                         label = "Save Progress",
-                                         class = "butt1",
-                                         button_animation = "glow"),
                    br(), br()
             ),
             column(5, align = "center",
