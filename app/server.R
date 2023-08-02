@@ -453,7 +453,7 @@ shinyServer(function(input, output, session) {
     
     validate(
       need(input$plot_airt_swt > 0,
-           message = "Click 'Plot'")
+           message = "Click 'Plot water temperature'")
     )
     
     df <- airt_swt$df
@@ -461,14 +461,11 @@ shinyServer(function(input, output, session) {
     df$wtemp[is.na(df$airt)] <- NA
     
     p <- ggplot() +
-      geom_line(data = df, aes(Date, airt, color = "Air temperature")) +
-      geom_line(data = df, aes(Date, wtemp, color = "Water temperature")) +
-      scale_color_manual(values = cols[5:6]) +
-      # geom_point(data = airt_swt$df, aes(airt, wtemp), color = "black") +
+      geom_point(data = df, aes(Date, wtemp, color = "Water temperature")) +
+      scale_color_manual(values = c("Water temperature" = cols[5], "Air temperature" = cols[6])) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
-      labs(color = NULL)+
+      labs(color = NULL) +
       theme_bw(base_size = 12)
     
     plot.airt_swt$main <- ggplotly(p, dynamicTicks = TRUE)
@@ -488,14 +485,134 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$plot_airt_swt > 0 | exists("up_answers"),
-           message = "Click 'Plot'")
+           message = "Click 'Plot water temperature'")
     )
     
     plot.airt_swt$main })
   
   })
   
-
+  # Plot air temperature vs. surface water temperature
+  plot.airt_swt1 <- reactiveValues(main=NULL)
+  
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    
+    validate(
+      need(input$plot_airt_swt2 > 0,
+           message = "Click 'Plot air temperature'")
+    )
+    
+    df <- airt_swt$df
+    df$airt[is.na(df$wtemp)] <- NA
+    df$wtemp[is.na(df$airt)] <- NA
+    
+    p <- ggplot() +
+      geom_point(data = df, aes(Date, wtemp, color = "Water temperature")) +
+      geom_point(data = df, aes(Date, airt, color = "Air temperature")) +
+      scale_color_manual(values = c("Water temperature" = cols[5], "Air temperature" = cols[6])) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      labs(color = NULL) +
+      theme_bw(base_size = 12)
+    
+    plot.airt_swt1$main <- ggplotly(p, dynamicTicks = TRUE)
+  })
+  
+  observe({
+    
+    output$airt_swt_plot1 <- renderPlotly({ 
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Please select a site in Objective 1.")
+      )
+      validate(
+        need(!is.null(airt_swt$df),
+             message = "Please select a site in Objective 1.")
+      )
+      validate(
+        need(input$plot_airt_swt2 > 0 | exists("up_answers"),
+             message = "Click 'Plot air temperature'")
+      )
+      
+      plot.airt_swt1$main })
+    
+  })
+  
+  # Output stats ----
+  output$out_stats <- renderText({
+    
+    validate(
+      need(!is.null(airt_swt$df),
+           message = "Please select a site in Objective 1.")
+    )
+    
+    sum_stat <- summary(airt_swt$df$wtemp)
+    ridx <- grep(input$stat_calc, names(sum_stat))
+    out_stat <- paste(input$stat_calc,":",round(sum_stat[ridx],2), sep = " ")
+    
+    return(out_stat)
+  })
+  
+  output$out_stats1 <- renderText({
+    
+    validate(
+      need(!is.null(airt_swt$df),
+           message = "Please select a site in Objective 1.")
+    )
+    
+    sum_stat <- summary(airt_swt$df$airt)
+    ridx <- grep(input$stat_calc1, names(sum_stat))
+    out_stat <- paste(input$stat_calc1,":",round(sum_stat[ridx],2), sep = " ")
+    
+    return(out_stat)
+  })
+  
+  # )
+  
+  q6_ans <- reactiveValues(dt = q6_table) # %>% formatStyle(c(1:3), border = '1px solid #ddd'))
+  
+  output$q6_tab <- DT::renderDT(
+    q6_ans$dt, 
+    selection = "none", class = "cell-border stripe",
+    options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t"),
+    server = FALSE, escape = FALSE, rownames= c("Water temperature"), colnames=c("Mean", "Min.", "Max."), editable = FALSE
+  )
+  
+  q6_proxy <- dataTableProxy("q6_tab")
+  observeEvent(input$q6_tab_cell_edit, {
+    info = input$q6_tab_cell_edit
+    i = info$row
+    j = info$col
+    v = info$value
+    q6_ans$dt[i, j] <<- DT::coerceValue(v, q6_ans$dt[i, j])
+    # replaceData(q6_proxy, q6_ans$dt, resetPaging = FALSE)  # important
+  })
+  
+  q8_ans <- reactiveValues(dt = q8_table) # %>% formatStyle(c(1:3), border = '1px solid #ddd'))
+  
+  output$q8_tab <- DT::renderDT(
+    q8_ans$dt, 
+    selection = "none", class = "cell-border stripe",
+    options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t"),
+    server = FALSE, escape = FALSE, rownames= c("Air temperature"), colnames=c("Mean", "Min.", "Max."), editable = FALSE
+  )
+  
+  q8_proxy <- dataTableProxy("q8_tab")
+  observeEvent(input$q8_tab_cell_edit, {
+    info = input$q6_tab_cell_edit
+    i = info$row
+    j = info$col
+    v = info$value
+    q8_ans$dt[i, j] <<- DT::coerceValue(v, q8_ans$dt[i, j])
+    # replaceData(q6_proxy, q6_ans$dt, resetPaging = FALSE)  # important
+  })
+  
   output$date_slider1 <- renderUI({
     req(!is.null(airt_swt$df))
     df <- na.exclude(airt_swt$df)

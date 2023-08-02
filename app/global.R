@@ -115,6 +115,18 @@ neon_sites_df <- neon_sites_df[neon_sites_df$type == "Aquatic", ]
 neon_vars <- read.csv("data/neon_variables.csv")
 
 # Statistics
+stats0 <- list("Minimum" = "Min.", "Maximum" = "Max.", "Mean" = "Mean")
+q6_table <- data.frame(
+  Mean = rep(NA, 1),
+  Min = rep(NA, 1),
+  Max = rep(NA, 1), row.names = c("Water temperature")
+)
+q8_table <- data.frame(
+  Mean = rep(NA, 1),
+  Min = rep(NA, 1),
+  Max = rep(NA, 1), row.names = c("Air temperature")
+)
+
 stats <- list("Minimum" = "Min.", "1st Quartile" = "1st Qu.", "Median" = "Median", "Mean" = "Mean", "3rd Quartile" = "3rd Qu.", "Maximum" = "Max.", "Standard Deviation" = "sd")
 mod_choices <- c("Negative", "No change", "Positive")
 # Sorting variables

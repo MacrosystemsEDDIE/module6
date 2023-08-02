@@ -391,16 +391,16 @@ ui <- function(req) {
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will explore the data which has been measured at this site by NEON."))
+                                                      p("We will explore the water temperature data which has been measured at this site by NEON."))
                                              )
                                     ),
                                    
-                                    #* Objective 3 - Build a water temperature model ====
-                                    tabPanel(title = "Objective 3 - Build a water temperature model", value = "obj3",
+                                    #* Objective 2 - Explore water temperature ====
+                                    tabPanel(title = "Objective 2 - Explore water temperature", value = "obj3",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 3 - Build a water temperature model"),
+                                                                h3("Objective 2 - Explore water temperature"),
                                                                 p(id = "txt_j", module_text["obj_03", ])
                                                       ))
                                              ),
@@ -414,24 +414,104 @@ ui <- function(req) {
                                                       ),
                                                column(8,
                                                      img(src = "lake_image2.jpg", height = "100%", id = "bla_border",
-                                                         width = "100%", tags$style("border: solid 2px black;"))
+                                                         width = "100%", tags$style("border: solid 2px black;")),
+                                                     br(),
+                                                     br(),
+                                                     box(id = "box4", width = 12, status = "primary",
+                                                         solidHeader = TRUE,
+                                                         fluidRow(
+                                                           column(10, offset = 1,
+                                                                  h3("Question"),
+                                                                  p(tags$b(quest["q4", 1], width = "90%"))
+                                                           )
+                                                         )
+                                                     )
                                                      )
                                              ),
                                              hr(),
+                                             #* Time series plot ----
                                              fluidRow(
-                                               column(8, offset = 1,
-                                                      box(id = "box4", width = 12, status = "primary",
+                                               column(5,
+                                                      h3("Explore water temperature"),
+                                                      p(id = "txt_j", "Click 'Plot water temperature' to view a time series of the real water temperature data measured at the lake you chose."),
+                                                      fluidRow(
+                                                        column(10, offset = 1,
+                                                               actionButton("plot_airt_swt", "Plot water temperature")
+                                                               )
+                                                      ),
+                                                      br(),
+                                                      box(id = "box12", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
                                                             column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[12], label = quest[qid[12], ], width = "90%")
+                                                                   h4("Questions"),
+                                                                   p(tags$b(quest["q5", 1])),
+                                                                   p(tags$b(quest["q6", 1])),
+                                                                   selectInput("stat_calc", label = "Select calculation:", choices = stats0),
+                                                                   wellPanel(
+                                                                     textOutput("out_stats")
+                                                                   )
+                                                                   )
+                                                          ),
+                                                            fluidRow(
+                                                              column(10, offset = 1,
+                                                                     DTOutput("q6_tab")
+                                                                     )
+                                                            ),
+                                                                   br(),
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        br(),
+                                                      ),
+                                               ),
+                                               column(7,
+                                                      h4("Time series of water temperature"),
+                                                      wellPanel(
+                                                        plotlyOutput("airt_swt_plot")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5,
+                                                      h3("Investigate variable relationships"),
+                                                      p("Now, we will add air temperature data to the plot. Click 'Plot air temperature' to view the air temperature data at your site."),
+                                                      fluidRow(
+                                                        column(10, offset = 1,
+                                                               actionButton("plot_airt_swt2", "Plot air temperature")
+                                                        )
+                                                      ),
+                                                      br(),
+                                                      box(id = "box12", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h4("Questions"),
+                                                                   p(tags$b(quest["q7", 1])),
+                                                                   selectInput("stat_calc1", label = "Select calculation:", choices = stats0),
+                                                                   wellPanel(
+                                                                     textOutput("out_stats1")
                                                                    )
                                                             )
-                                                          )
+                                                          ),
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   DTOutput("q8_tab"),
+                                                                   br(),
+                                                                   p(tags$b(quest["q8", 1]))
+                                                            )
+                                                          ),
+                                                          br(),
                                                       )
-                                               ),
-                                             hr(),
+                                                      ),
+                                               column(7,
+                                                      h4("Time series of water temperature and air temperature"),
+                                                      wellPanel(
+                                                        plotlyOutput("airt_swt_plot1")
+                                                      )
+                                               )
+                                             ),
                                              fluidRow(
                                                column(5,
                                                       h3("Key terms & Definitions"),
@@ -463,43 +543,6 @@ ui <- function(req) {
                                                       p(tags$b("What is model error?")),
                                                       tags$ul(
                                                         tags$li(module_text["mod_error", ])
-                                                      )
-                                                      )
-                                               ),
-                                             hr(),
-                                             #* Linear regression ----
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Investigate variable relationships"),
-                                                      p(id = "txt_j", "We will explore the relationship between air temperature and surface water temperature for a lake site."),
-                                                      p(id = "txt_j", "First, we will look at a time series of the real air and water temperature data measured at the lake you chose in the “Site selection” tab."),
-                                                      actionButton("plot_airt_swt", "Plot"),
-                                                      radioButtons(qid[13], quest[qid[13], ], choices = c("Yes", "No"), selected = character(0), inline = TRUE),
-                                                      conditionalPanel("input.q7 == 'Yes'",
-                                                                       p(tags$b("Good job!")),
-                                                                       p(id = "txt_j", "When there is a linear relationship we can use ", tags$b("linear regression"), " to model the variable."),
-                                                                       br(),
-                                                                       h4("Linear Regression"),
-                                                                       div("The formula for a linear regression is: $$y = m \\times x + b$$"),
-                                                                       p(id = "txt_j", "In our case we will be using ", tags$b("air temperature"), " (atemp) to model ", tags$b("water temperature"), " (wtemp) using the following model:"),
-                                                                       div("$$wtemp = m \\times atemp + b$$"),
-                                                                       p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept)."),
-                                                                       # p(tags$b("R-squared"), module_text["r_squared", ]),
-                                                                       # div("$$R^2 = \\frac{Explained\\ Variation}{Total\\ Variation} $$")
-                                                                       p(id = "txt_j", tags$b("Root mean square error"), module_text["rmse", ]),
-                                                                       p(id = "txt_j", "The lower the RMSE, the better a given model is able to “fit” a dataset."),
-                                                                       div("$$RMSE = \\sqrt{\\sum_{n}^{i=1}\\frac{(P_{i} - O_{i})^2 }n}$$"),
-                                                                       p("where P is equal to the predicted value and O is equal to the observed value and ",tags$i("n")," is equal to the total number of data points.")
-                                                      ),
-                                                      conditionalPanel("input.q7 == 'No'",
-                                                                       p(tags$em("Are you sure?"))
-                                                      )
-                                               ),
-                                               column(6,
-                                                      h4("Time series of air temperature and water temperature"),
-                                                      p(id = "txt_j", "Click on “Plot” to graph the time series of the air temperature and the surface water temperature. Compare the seasonal cycles of both the dependent variable (air temperature) and independent variable (water temperature)."),
-                                                      wellPanel(
-                                                        plotlyOutput("airt_swt_plot")
                                                       )
                                                )
                                              ),
@@ -580,7 +623,7 @@ ui <- function(req) {
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p(id = "txt_j", "We will explore the parameters of each of these models and examine how including more data in our model affects parameter estimation."))
+                                                      p(id = "txt_j", "We will build models that will allow us to predict water temperature."))
                                                )
                                              ),
                                     #* Objective 4 - Explore Parameter ====

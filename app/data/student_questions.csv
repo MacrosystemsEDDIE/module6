@@ -8,32 +8,34 @@ q3c,Latitude:,
 q3d,Longitude:,
 q3e,Lake area (km2):,
 q3f,Elevation (m):,
-q4,List variables that show a seasonal cycle.,Site Selection: Objective 2
-q5,Can you name a couple of reasons why they exhibit such patterns?,Site Selection: Objective 2
-q6,List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.,Activity A: Objective 3
-q7,Do you think there is a linear relationship between air temperature and water temperature at this lake?,Activity A: Objective 3
-q8,How does increasing the amount of data used affect the estimation of the linear regression?,Activity A: Objective 3
-q9,"When looking at the time series plot (across), which model performed best? Why do you think that is?",Activity A: Objective 3
-q10,Do you think you could use these models for a forecast of water temperature? Why/why not?,Activity A: Objective 3
-q11,"Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty around its parameters (m and b)? How can you tell?",Activity A: Objective 4
-q12,"Can you think of any limitations of using this model for forecasting? For example, forecasting more than one day into the future.",Activity A: Objective 5
-q13,Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table. How does the model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
-q14,Build a model that uses yesterday's water temperature and today's air temperature as predictors and fit the model parameters and add it to the second row in the table. How does this model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
-q15,Which model do you think will better predict water temperature? Why?,Activity A: Objective 5
-q16,Is there variation among your models? Why do you think that is?,Activity B: Overview
-q17,"Using the slider above, adjust the number of members and run the forecasts. How does forecast uncertainty change further into the future (e.g. with increasing forecast horizon)?",Activity B: Objective 6
-q18,Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Objective 7
-q19,Can you think of potential ways to reduce parameter uncertainty?,Activity B: Objective 7
-q20,Which model was most sensitive to initial conditions (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 8
-q21,What factors can lead to an increase in initial conditions uncertainty?,Activity B: Objective 8
-q22,What potential steps could be taken to reduce initial conditions uncertainty?,Activity B: Objective 8
-q23,Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 9
-q24,Can you think of a way to reduce driver uncertainty in your forecast of water temperature?,Activity B: Objective 9
-q25,Which source of uncertainty do you think contributes the most to total forecast uncertainty for a forecast of water temperature?,Activity B: Summary
-q26,"You have been given $5,000 to improve your water temperature forecasts. What would you spend it on to reduce your forecast uncertainty?",Activity B: Summary
-q27,Do you think that different lake sites would have the same or different quantities of uncertainty? Why?,Activity B: Summary
-q28,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,Activity C: Objective 10
-q29,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,Activity C: Objective 10
-q30,"With your partner, compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",Activity C: Objective 10
-q31,Did the uncertainty visualization affect your decision? How?,Activity C: Objective 11
-q32,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,Activity C: Objective 11
+q4,List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.,Activity A: Objective 2
+q5,Describe any patterns you see in the surface water temperature data for your lake.,Activity A: Objective 2
+q6,Fill out the table in your Word document with the summary statistics of water temperature:,Activity A: Objective 2
+q7,Fill out the table in your Word document with the summary statistics of air temperature:,
+q8,Do you think there is a relationship between air temperature and water temperature at this lake?,
+q9,Do you think there is a linear relationship between air temperature and water temperature at this lake?,Activity A: Objective 3
+q10,How does increasing the amount of data used affect the estimation of the linear regression?,Activity A: Objective 3
+q11,"When looking at the time series plot (across), which model performed best? Why do you think that is?",Activity A: Objective 3
+q12,Do you think you could use these models for a forecast of water temperature? Why/why not?,Activity A: Objective 3
+q13,"Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty around its parameters (m and b)? How can you tell?",Activity A: Objective 4
+q14,"Can you think of any limitations of using this model for forecasting? For example, forecasting more than one day into the future.",Activity A: Objective 5
+q15,Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table. How does the model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
+q16,Build a model that uses yesterday's water temperature and today's air temperature as predictors and fit the model parameters and add it to the second row in the table. How does this model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5
+q17,Which model do you think will better predict water temperature? Why?,Activity A: Objective 5
+q18,Is there variation among your models? Why do you think that is?,Activity B: Overview
+q19,"Using the slider above, adjust the number of members and run the forecasts. How does forecast uncertainty change further into the future (e.g. with increasing forecast horizon)?",Activity B: Objective 6
+q20,Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Objective 7
+q21,Can you think of potential ways to reduce parameter uncertainty?,Activity B: Objective 7
+q22,Which model was most sensitive to initial conditions (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 8
+q23,What factors can lead to an increase in initial conditions uncertainty?,Activity B: Objective 8
+q24,What potential steps could be taken to reduce initial conditions uncertainty?,Activity B: Objective 8
+q25,Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 9
+q26,Can you think of a way to reduce driver uncertainty in your forecast of water temperature?,Activity B: Objective 9
+q27,Which source of uncertainty do you think contributes the most to total forecast uncertainty for a forecast of water temperature?,Activity B: Summary
+q28,"You have been given $5,000 to improve your water temperature forecasts. What would you spend it on to reduce your forecast uncertainty?",Activity B: Summary
+q29,Do you think that different lake sites would have the same or different quantities of uncertainty? Why?,Activity B: Summary
+q30,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,Activity C: Objective 10
+q31,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,Activity C: Objective 10
+q32,"With your partner, compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",Activity C: Objective 10
+q33,Did the uncertainty visualization affect your decision? How?,Activity C: Objective 11
+q34,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,Activity C: Objective 11
