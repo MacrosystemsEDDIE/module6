@@ -394,65 +394,7 @@ ui <- function(req) {
                                                       p("We will explore the data which has been measured at this site by NEON."))
                                              )
                                     ),
-                                    #* Objective 2 - Explore data
-                                    tabPanel(title = "Objective 2 - Explore data",  value = "obj2",
-                                             #* Objective 2 - Explore the Data ====
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 2 - Explore the Data"),
-                                                                # p(id = "txt_j", module_text["obj_02", ]),
-                                                                p(id = "txt_j", "If there are some variables which you are not familiar with, visit the ", a(href = "https://data.neonscience.org/home", "NEON Data Portal", target = "_blank"), "and click 'Explore Data Products' to learn more about how the data are collected.")
-                                                      )
-                                               )
-                                             ),
-                                             hr(),
-                                             fluidRow(
-                                               #** Data Table ----
-                                               column(4,
-                                                      h3("Data Table"),
-                                                      p(id = "txt_j", "This is a Shiny data table. It is interactive and allows you to navigate through the data table by searching or clicking through the different pages."),
-                                                      DT::DTOutput("neon_datatable")
-                                               ),
-                                               #** Plot of data ----
-                                               column(8,
-                                                      h3("Data Plot"),
-                                                      p(id = "txt_j", "Most plots in this Shiny app are generated using Plotly. This allows you to hover your mouse over the plot to get information from each of the plots. You can inspect the data closely by clicking and zooming into particular areas. There is a tool box at the top of the plot which has various interactive functions."),
-                                                      selectizeInput("view_var", "Select variable",
-                                                                     choices = unique(neon_vars$Short_name),
-                                                                     options = list(
-                                                                       placeholder = 'Please select a variable',
-                                                                       onInitialize = I('function() { this.setValue("Air temperature"); }'))
-                                                      ),
-                                                      plotlyOutput("var_plot"),
-                                                      useShinyjs(),  # Set up shinyjs
-                                                      wellPanel(
-                                                        h4("Variable Description"),
-                                                        textOutput("txt_out")
-                                                      )
-                                               )
-                                             ), hr(),
-                                             fluidRow(
-                                               column(10, offset = 1,
-                                                      box(id = "box4", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[10], label = quest[qid[10], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[11], label = quest[qid[11], ], width = "90%")
-                                                            )
-                                                          )
-                                                      )
-                                               )
-                                             ),
-                                             hr(),
-                                             fluidRow(
-                                               column(5, offset = 1,
-                                                      h3("Next step"),
-                                                      p("We will build models that will allow us to predict water temperature."))
-                                             )
-                                    ),
+                                   
                                     #* Objective 3 - Build a water temperature model ====
                                     tabPanel(title = "Objective 3 - Build a water temperature model", value = "obj3",
                                              fluidRow(
