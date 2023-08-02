@@ -24,8 +24,8 @@ workflow2,"There are questions in green text boxes embedded throughout the Shiny
 workflow3,"Once students have completed all three activities, the final report may be submitted to the instructor for assessment."
 workflow4,"We encourage you to save your progress regularly by clicking ""Bookmark my progress"" and copying the (quite long!) link to a secure location. When pasted into your web browser, this link will load a Shiny app session that contains your progress."
 obj_01,"Select a NEON site from the table, then click on the 'View latest photo' button to load the latest image from that site. Follow the link at the bottom of the 'About Site' section to find out more about the site."
-obj_02,Explore the data measured at the selected site. This is data that has been downloaded from the NEON Data Portal. The variables shown have been selected for this module but there are a wide range of variables collected at each NEON site.
-obj_03,Use observed water temperature and air temperature data to build a linear regression model to predict water temperature.
+obj_02,Explore the water and air temperature data measured at the selected site. This is data that has been downloaded from the NEON Data Portal. The variables shown have been selected for this module but there are a wide range of variables collected at each NEON site.
+obj_03,Use observed water temperature and air temperature data to build linear regression models to predict water temperature.
 obj_04,Examine how data collection frequency affects the uncertainty of the parameters of your linear regression model.
 obj_05,There are limitations to using the linear regression model to predict future water temperature. You will build different models to predict water temperature.
 obj_06,Explore how process uncertainty affects the different models when forecasting water temperature.

@@ -401,7 +401,7 @@ ui <- function(req) {
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 2 - Explore water temperature"),
-                                                                p(id = "txt_j", module_text["obj_03", ])
+                                                                p(id = "txt_j", module_text["obj_02", ])
                                                       ))
                                              ),
                                              fluidRow(
@@ -512,6 +512,76 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p(id = "txt_j", "We will build models that will allow us to predict water temperature."))
+                                               )
+                                             ),
+                                    
+                                    #* Objective 3 - Build models ====
+                                    tabPanel(title = "Objective 3 - Build models", value = "obj3",
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(style = paste0("background: ", obj_bg),
+                                                                h3("Objective 3 - Build models"),
+                                                                p(id = "txt_j", module_text["obj_03", ])
+                                                      )
+                                               )
+                                             ),
+                                             #** Introduce models ----
+                                             fluidRow(
+                                               column(4,
+                                                      h3("Before we build models..."),
+                                                      p(tags$em("Use the slides and text below to understand the forecast models we will be using.")),
+                                                      p(tags$b("What is an ecological model?")),
+                                                      tags$ul(
+                                                        tags$li(module_text["model1", ])
+                                                      ),
+                                                      p(tags$b("What is a model parameter?")),
+                                                      tags$ul(
+                                                        tags$li(module_text["parameter", ])
+                                                      )
+                                               ),
+                                               column(8,
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("model_slides", width = "600px", height = "450px")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      h3("Understanding the forecast models we will use today"))
+                                             ),
+                                             fluidRow(
+                                               column(4,
+                                                      p(tags$b("What is a persistence model?")),
+                                                      tags$ul(
+                                                        tags$li("A persistence model predicts that tomorrow will be the same as today. So a persistence model of water temperature would be that tomorrow's water temperature will be the same as today's water temperature.")
+                                                      )
+                                                      ),
+                                               column(4,
+                                                      p(tags$b("What is a linear regression model?")),
+                                                      tags$ul(
+                                                        tags$li(p("A linear regression model uses the values of one variable (the ",tags$b("independent variable"),") to predict another variable (the ",tags$b("dependent variable"),"), using two parameters. When plotted, linear regression models are straight lines."),
+                                                                div("The formula for a linear regression is: $$y = m \\times x + b$$"),
+                                                                p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept).")
+                                                        )
+                                                      )
+                                                      ),
+                                               column(4,
+                                                      p(tags$b("What is a multiple linear regression model?")),
+                                                      tags$ul(
+                                                        tags$li(p(tags$b("Multiple linear regression models")," are an extension of linear regression models. Multiple linear regression models have more than one independent variable. In a multiple linear regression model, each independent variable is associated with a ",tags$b("coefficient parameter,")," often represented using (\\(\\beta_{n}\\))."),
+                                                                div("For example: $$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + \\beta _{n}$$")
+                                                        )
+                                                      )
+                                                      )
+                                             ),
+                                             hr(),
                                              fluidRow(
                                                column(5,
                                                       h3("Key terms & Definitions"),
@@ -567,9 +637,9 @@ ui <- function(req) {
                                                       br(),
                                                       wellPanel(
                                                         uiOutput("lm_mod")
-                                                        ),
-                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend.")
                                                       ),
+                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend.")
+                                               ),
                                                column(5,
                                                       h3("Air temperature vs. water temperature"),
                                                       wellPanel(
@@ -587,10 +657,10 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
                                                                    textAreaInput2(inputId = qid[14], label = quest[qid[14], ], width = "90%")
-                                                                   )
                                                             )
                                                           )
                                                       )
+                                               )
                                              ),
                                              fluidRow(
                                                column(8,
@@ -599,8 +669,8 @@ ui <- function(req) {
                                                       p(id = "txt_j", "Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
                                                       wellPanel(
                                                         plotlyOutput("lm_ts_plot")
-                                                        )
-                                                      ),
+                                                      )
+                                               ),
                                                column(4,
                                                       h3("Compare model performance"),
                                                       p(tags$b("Model performance measured with the RMSE value.")),
@@ -614,18 +684,19 @@ ui <- function(req) {
                                                                    h3("Questions"),
                                                                    textAreaInput2(inputId = qid[15], label = quest[qid[15], ], width = "90%"),
                                                                    textAreaInput2(inputId = qid[16], label = quest[qid[16], ], width = "90%")
-                                                                   )
                                                             )
                                                           )
                                                       )
-                                               ),
+                                               )
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p(id = "txt_j", "We will build models that will allow us to predict water temperature."))
-                                               )
-                                             ),
+                                                      p("We will build alternative models with different structures."))
+                                             )
+                                    ),
+                                    
                                     #* Objective 4 - Explore Parameter ====
                                     tabPanel(title = "Objective 4 - Explore Parameters", value = "obj4",
                                              fluidRow(

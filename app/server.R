@@ -45,9 +45,14 @@ sketch2 = htmltools::withTags(table(
 
 shinyServer(function(input, output, session) {
 
-  # Slickr model output
+  # Slickr summary output
   output$slides <- renderSlickR({
     slickR(recap_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+  })
+  
+  # Slickr model output
+  output$model_slides <- renderSlickR({
+    slickR(model_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
   })
 
   # Slickr Process UC slides

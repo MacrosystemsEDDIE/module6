@@ -86,6 +86,7 @@ answers[, 1] <- ""
 
 # Slides
 recap_slides <- list.files("www/shiny_slides", full.names = TRUE)
+model_slides <- list.files("www/model_slides", full.names = TRUE)
 proc_uc_slides <- list.files("www/proc_uc_slides", full.names = TRUE)
 param_uc_slides <- list.files("www/param_uc_slides", full.names = TRUE)
 ic_uc_slides <- list.files("www/ic_uc_slides", full.names = TRUE)
