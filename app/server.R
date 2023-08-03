@@ -526,7 +526,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(!is.null(airt_swt$sub),
-           message = "Click 'Plot'")
+           message = "Click 'Plot data'")
     )
     
     req(!is.null(airt_swt$sub))
@@ -622,10 +622,26 @@ shinyServer(function(input, output, session) {
   })
   
   output$swt_swt_plot_lines <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot data'")
+    )
     swt_swt_plot_lines$main
   })
   
   output$wt_reg_ts_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot data'")
+    )
     wt_reg_ts_plot$main
   })
 
@@ -808,10 +824,26 @@ shinyServer(function(input, output, session) {
   })
   
   output$airt_swt_plot_lines <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot data'")
+    )
     airt_swt_plot_lines$main
   })
   
   output$at_reg_ts_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot data'")
+    )
     at_reg_ts_plot$main
   })
   

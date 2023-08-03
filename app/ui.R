@@ -614,7 +614,7 @@ ui <- function(req) {
                                                           solidHeader = TRUE,
                                                           fluidRow(
                                                             column(10, offset = 1,
-                                                                   h3("Question"),
+                                                                   h3("Questions"),
                                                                    p(tags$b(quest["q11", 1])),
                                                                    p(tags$b(quest["q12", 1]))
                                                             )
@@ -629,76 +629,171 @@ ui <- function(req) {
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(5,
+                                               column(12,
                                                       h3("Create linear regression models"),
-                                                      p(id = "txt_j", "Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
-                                                      p(id = "txt_j", "Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
-                                                      actionButton("plot_airt_swt3", "Plot"),
-                                                      actionButton("add_lm", "Get model parameters")
-                                               ),
-                                               column(5,
-                                                      h3("Water temperature vs. air temperature"),
-                                                      wellPanel(
-                                                        plotlyOutput("swt_swt_plot_lines")#,
-                                                      ),
-                                                      p(id = "txt_j", "For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
-                                                      p(tags$b("N"), "represents the number of data points used to estimate the linear regression."),
-                                                      DTOutput("lr_DT", width = "100%"),
-                                                      br(),
-                                                      # p("You do not need to get the percentages exactly right, but close enough will work fine."),
-                                                      br(),
-                                                      wellPanel(
-                                                        uiOutput("lm_mod")
-                                                      ),
-                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
-                                                      wellPanel(
-                                                        plotlyOutput("wt_reg_ts_plot")
-                                                      )
+                                                      p(id = "txt_j", "We will create two",tags$b(" linear regression models:")),
+                                                      tags$ul(
+                                                        tags$li("A model that uses ",tags$b("yesterday's water temperature")," to predict ",tags$b("today's water temperature.")),
+                                                        tags$li("A model that uses ",tags$b("today's air temperature")," to predict ",tags$b("today's water temperature."))
+                                                      ),                                
+                                                      p("First, we will generate scatterplots and assess the relationships between the ",tags$b("independent variables")," (yesterday's water temperature, today's air temperature) and the ",tags$b("dependent variable")," (today's water temperature).")
                                                )
-                                             ),
+                                               ),
                                              hr(),
                                              fluidRow(
-                                               column(5,
-                                                      h3("Create linear regression models"),
-                                                      p(id = "txt_j", "Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
-                                                      p(id = "txt_j", "Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
-                                                      actionButton("plot_airt_swt4", "Plot"),
-                                                      actionButton("add_lm1", "Get model parameters")
+                                               column(12,
+                                                      h4("Scatterplots of dependent vs. independent variables"),
+                                                      p("A linear relationship is a statistical term used to describe a straight-line relationship between two variables. Linear relationships can either be positive or negative."),
+                                                      tags$ul(
+                                                        tags$li(tags$b("Positive linear relationship:")," as the independent variable increases or decreases, so does the dependent variable"),
+                                                        tags$li(tags$b("Negative linear relationship:")," as the indepdendent variable increases or decreases, the dependent variable does the opposite")
+                                                      )
+                                                      )
+                                             ),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Today's water temperature vs. yesterday's water temperature"),
+                                                      actionButton("plot_airt_swt3", "Plot data"),
+                                                      br(), br(),
+                                                      wellPanel(
+                                                        plotlyOutput("swt_swt_plot_lines")
+                                                      )
                                                ),
-                                               column(5,
-                                                      h3("Water temperature vs. air temperature"),
+                                               column(6,
+                                                      h4("Today's water temperature vs. today's air temperature"),
+                                                      actionButton("plot_airt_swt4", "Plot data"),
+                                                      br(), br(),
                                                       wellPanel(
                                                         plotlyOutput("airt_swt_plot_lines"),
-                                                      ),
-                                                      p(id = "txt_j", "For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
-                                                      p(tags$b("N"), "represents the number of data points used to estimate the linear regression."),
-                                                      DTOutput("lr_DT1", width = "100%"),
-                                                      br(),
-                                                      # p("You do not need to get the percentages exactly right, but close enough will work fine."),
-                                                      br(),
-                                                      wellPanel(
-                                                        uiOutput("lm_mod1")
-                                                      ),
-                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
-                                                      wellPanel(
-                                                        plotlyOutput("at_reg_ts_plot")
                                                       )
-                                               )
+                                                      )
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(10, offset = 1,
-                                                      box(id = "box2", width = 12, status = "primary",
+                                               column(12, align = "left",
+                                                      box(id = "box10", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
-                                                            column(10, offset = 1,
+                                                            column(6, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[14], label = quest[qid[14], ], width = "90%")
-                                                            )
+                                                                   p(tags$b(quest["q13", 1])),
+                                                                   radioButtons("lin_rel1", "", c("Positive", "Negative"),
+                                                                                inline = TRUE,
+                                                                                selected = character(0)),
+                                                                   conditionalPanel("input.lin_rel1 == 'Positive'",
+                                                                                    p("That's right!")
+                                                                                    ),
+                                                                   conditionalPanel("input.lin_rel1 == 'Negative'",
+                                                                                    p("Whoops! Try again.")
+                                                                   ),
+                                                                   p(tags$b(quest["q14", 1])),
+                                                                   radioButtons("lin_rel2", "", c("Positive", "Negative"),
+                                                                                inline = TRUE,
+                                                                                selected = character(0)),
+                                                                   conditionalPanel("input.lin_rel2 == 'Positive'",
+                                                                                    p("That's right!")
+                                                                   ),
+                                                                   conditionalPanel("input.lin_rel2 == 'Negative'",
+                                                                                    p("Whoops! Try again.")
+                                                                   ),
+                                                                   p(tags$b(quest["q15", 1]))
+                                                            ),
+                                                            column(4,
+                                                                   br(),br(),
+                                                                   h4("Example plot of a perfect linear relationship"),
+                                                                   img(src = "example_linear_relationship.png", height = "120%", id = "bla_border",
+                                                                       width = "120%", tags$style("border: solid 2px black;")),
+                                                                   br(),br()
+                                                                   )
                                                           )
                                                       )
                                                )
                                              ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      h4("Fit linear regression models"),
+                                                      p("Click the 'Fit model' buttons below to use ",tags$b("one year of lake data")," to fit your model parameters. You will also plot timeseries of model predictions and observations of water temperature."),
+                                                      p(tags$em("Note that once you fit the model, you will be able see the best-fit line for each model by scrolling back up to the scatterplots.")),
+                                                      tags$ul(
+                                                        tags$li("For the linear regression model, ", tags$b("m"), " and ", tags$b("b"), "are ", tags$b("parameters.")),
+                                                        tags$li(tags$b("N"), "represents the number of data points used to estimate the linear regression.")
+                                                      )
+                                               )
+                                             ),
+                                    fluidRow(
+                                      column(6,
+                                             br(),br(),
+                                             actionButton("add_lm", "Get model parameters"),
+                                             DTOutput("lr_DT", width = "100%"),
+                                             br(), br(),
+                                             wellPanel(
+                                               uiOutput("lm_mod")
+                                             ),
+                                             p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
+                                             wellPanel(
+                                               plotlyOutput("wt_reg_ts_plot")
+                                             )
+                                             ),
+                                      column(6,
+                                             br(),br(),
+                                             actionButton("add_lm1", "Get model parameters"),
+                                             DTOutput("lr_DT1", width = "100%"),
+                                             br(),br(),
+                                             wellPanel(
+                                               uiOutput("lm_mod1")
+                                             ),
+                                             p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
+                                             wellPanel(
+                                               plotlyOutput("at_reg_ts_plot")
+                                             )
+                                             )
+                                    ),
+                                             hr(),
+                                    fluidRow(
+                                      column(10, align = "left",
+                                             box(id = "box10", width = 12, status = "primary",
+                                                 solidHeader = TRUE,
+                                                 fluidRow(
+                                                   column(10, offset = 1,
+                                                          h3("Question"),
+                                                          p(tags$b(quest["q16", 1]))
+                                                          )
+                                                 )
+                                             )
+                                      )
+                                    ),
+                                    hr(),
+                                    fluidRow(
+                                      column(6,
+                                             h3("Create multiple linear regression model"),
+                                             p(id = "txt_j", "Finally, we will fit a ", tags$b("multiple linear regression model.")," This model will use two independent variables, yesterday's water temperature and today's air temperature, to predict today's water temperature."),
+                                             wellPanel(
+                                               h4("Multiple linear regression model:"),
+                                               div("$$wtemp_{t} = = \\beta _{0} + \\beta _{1}wtemp_{t-1} + \\beta _{2}atemp_{t}$$"),
+                                               p("where t = today and t-1 = yesterday.")
+                                             ),
+                                             p(id = "txt_j", "Let's plot this model versus observations."),
+                                             br(),
+                                             actionButton("plot_persist", "Plot"),
+                                             br(), br(),
+                                             box(id = "box2", width = 12, status = "primary",
+                                                 solidHeader = TRUE,
+                                                 fluidRow(
+                                                   column(10, offset = 1,
+                                                          h3("Questions"),
+                                                          p(tags$b(quest["q11", 1])),
+                                                          p(tags$b(quest["q12", 1]))
+                                                   )
+                                                 )
+                                             )
+                                      ),
+                                      column(6,
+                                             wellPanel(
+                                               plotlyOutput("persist_plot")
+                                             )
+                                      )
+                                    ),
                                              fluidRow(
                                                column(8,
                                                       h3("Water temperature time series"),
