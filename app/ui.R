@@ -560,7 +560,7 @@ ui <- function(req) {
                                                column(4,
                                                       p(tags$b("What is a persistence model?")),
                                                       tags$ul(
-                                                        tags$li("A persistence model predicts that tomorrow will be the same as today. Persistence models do not have any parameters.")
+                                                        tags$li("A persistence model predicts that tomorrow will be the same as today. Persistence models are often used as a type of 'null model', or baseline against which to compare other potential forecast models. Persistence models do not have any parameters.")
                                                       )
                                                       ),
                                                column(4,
