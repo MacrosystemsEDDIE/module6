@@ -13,10 +13,10 @@ q5,Describe any patterns you see in the surface water temperature data for your 
 q6,Fill out the table in your Word document with the summary statistics of water temperature:,Activity A: Objective 2
 q7,Fill out the table in your Word document with the summary statistics of air temperature:,
 q8,Do you think there is a relationship between air temperature and water temperature at this lake?,
-q9,Do you think there is a linear relationship between air temperature and water temperature at this lake?,Activity A: Objective 3
-q10,How does increasing the amount of data used affect the estimation of the linear regression?,Activity A: Objective 3
-q11,"When looking at the time series plot (across), which model performed best? Why do you think that is?",Activity A: Objective 3
-q12,Do you think you could use these models for a forecast of water temperature? Why/why not?,Activity A: Objective 3
+q9,"Describe, in your own words, the difference between a linear regression model and a multiple linear regression model.",Activity A: Objective 3
+q10,"Based on your exploration of water and air temperature data at your lake site in the previous objective, do you think it is reasonable to use air temperature as an independent variable in a model to predict water temperature? Why or why not?",Activity A: Objective 3
+q11,"Based on the plot of observations and model predictions, do you think the persistence model does a good job of predicting model temperature? Why or why not?",Activity A: Objective 3
+q12,Let's pretend a lake manager has asked you to provide a 30-day forecast of water temperature. Do you think a persistence model would be a good choice for generating such a forecast? Why or why not?,Activity A: Objective 3
 q13,"Which model (Monthly, Fortnightly, Weekly or Daily) has the least amount of uncertainty around its parameters (m and b)? How can you tell?",Activity A: Objective 4
 q14,"Can you think of any limitations of using this model for forecasting? For example, forecasting more than one day into the future.",Activity A: Objective 5
 q15,Build a model that uses yesterday's water temperature as a predictor and fit the model parameters and add it to the first row in the table. How does the model match the observations? Are there any times where it is further from the observed water temperature?,Activity A: Objective 5

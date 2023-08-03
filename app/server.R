@@ -1,48 +1,3 @@
-
-# Icons
-neonIcons <- iconList(
-  Aquatic = makeIcon("icons/water-icon.png", iconWidth = 28, iconHeight = 28),
-  Terrestrial = makeIcon("icons/mountain-icon.png", iconWidth =  28, iconHeight = 28)
-)
-
-# Slides for slickR
-model_slides <- list.files("www/model_slides", full.names = TRUE)
-
-# Reference for downloading variables
-neon_vars <- read.csv("data/neon_variables.csv")
-met_pars <- read.csv("data/met_params.csv", fileEncoding = "UTF-8-BOM")
-
-# a table container with complex header
-sketch1 = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(colspan = 2, 'Slope (m)'),
-      th(colspan = 2, 'Intercept (b)')
-    ),
-    tr(
-      lapply(rep(c('Mean', 'Std. Dev.'), 2), th)
-    )
-  )
-))
-
-sketch2 = htmltools::withTags(table(
-  class = 'display',
-  thead(
-    tr(
-      th(colspan = 2, 'Slope (m)'),
-      th(colspan = 2, 'Intercept (b)'),
-      th(colspan = 2, '')
-    ),
-    tr(
-      lapply(rep(c('Estimate', 'Std. Error'), 2), th),
-      th("R-squared"),
-      th("N")
-    )
-  )
-))
-
-
 shinyServer(function(input, output, session) {
 
   # Slickr summary output
@@ -88,9 +43,13 @@ shinyServer(function(input, output, session) {
   my_icon = makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'white')
 
 
+  # Objective 1 ----
+  
   # Select NEON DT rows ----
-  neon_chla <- reactiveValues(df = NULL)
+  
+  # air temperature forecast loads as soon as site is selected
   airt1_fc <- reactiveValues(df = NULL)
+  
   observeEvent(input$table01_rows_selected, {
     row_selected = neon_sites[input$table01_rows_selected, ]
     siteID$lab <- neon_sites$siteID[input$table01_rows_selected]
@@ -113,16 +72,6 @@ shinyServer(function(input, output, session) {
     }
     # set new value to reactiveVal
     prev_row(row_selected)
-
-    # Load Chl-a observations
-    read_var <- neon_vars$id[which(neon_vars$Short_name == "Chlorophyll-a")]
-    units <- neon_vars$units[which(neon_vars$Short_name == "Chlorophyll-a")]
-    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
-    if(file.exists(file)) {
-      chla <- read.csv(file)
-      chla[, 1] <- as.POSIXct(chla[, 1], tz = "UTC")
-    }
-    neon_chla$df <- chla
 
     # Load one airt fc
     fpath <- file.path("data", "NOAAGEFS_1hr", siteID$lab)
@@ -274,9 +223,13 @@ shinyServer(function(input, output, session) {
       tags$a(href = url, "Click here for more site info", target = "_blank")
     })
   })
-  #** Create prompt ----
+  
+  #** A df of air and water temperature data is also created when site is selected ----
   persist_df <- reactiveValues(df = NULL)
+  airt_swt <- reactiveValues(df = NULL, sub = NULL, sel = NULL)
+  
   observeEvent(input$table01_rows_selected, {
+    
     output$prompt2 <- renderText({
       "Click on the link below to find out more information about your site."
     })
@@ -333,120 +286,13 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # Read in site data ----
-  neon_DT <- reactive({ # view_var
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-
-    read_var <- neon_vars$id[which(neon_vars$Short_name == input$view_var)][1]
-    units <- neon_vars$units[which(neon_vars$Short_name == input$view_var)][1]
-    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
-    validate(
-      need(file.exists(file), message = "This variable is not available at this site. Please select a different variable or site.")
-    )
-    df <- read.csv(file)
-    df[, 1] <- as.POSIXct(df[, 1], tz = "UTC")
-    df[, -1] <- signif(df[, -1], 4)
-    names(df)[ncol(df)] <- read_var
-
-    if(input$view_var == "Surface water temperature") {
-      df <- df[df[, 2] == min(df[, 2], na.rm = TRUE), c(1, 3)] # subset to surface temperature
-    }
-
-    sel <- tryCatch(df[(selected$sel$pointNumber+1), , drop=FALSE] , error=function(e){NULL})
-
-
-    return(list(data = df, sel = sel))
-  })
-
-  # Site data datatable ----
-  output$neon_datatable <- DT::renderDT({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    read_var <- neon_vars$id[which(neon_vars$Short_name == input$view_var)][1]
-    df <- neon_DT()$data
-    df[, -1] <- signif(df[, -1], 4)
-    df[, 1] <- format(df[, 1], format = "%Y-%m-%d")
-    names(df)[ncol(df)] <- read_var
-    return(df)
-  })
-
-  # Variable description ----
-  output$txt_out <- renderText({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    out_txt <- neon_vars$description[which(neon_vars$Short_name == input$view_var)][1]
-    return(out_txt)
-  })
-
-  # Site data plot ----
-  output$var_plot <- renderPlotly({
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    read_var <- neon_vars$id[which(neon_vars$Short_name == input$view_var)][1]
-    units <- neon_vars$units[which(neon_vars$Short_name == input$view_var)][1]
-    file <- file.path("data", "neon", paste0(siteID$lab, "_", read_var, "_", units, ".csv"))
-    validate(
-      need(file.exists(file), message = "This variable is not available at this site. Please select a different variable or site.")
-    )
-    obj <- neon_DT()$sel
-
-    p <- ggplot() +
-      geom_point(data = neon_DT()$data, aes_string(names(neon_DT()$data)[1], names(neon_DT()$data)[2]), color = "black") +
-      ylab(paste0(input$view_var, " (", units, ")")) +
-      xlab("Time") +
-      theme_bw(base_size = 12)
-
-    if(!is.null(obj)) {
-      p <- p +
-        geom_point(data = obj, aes_string(names(obj)[1], names(obj)[2]), color = cols[2])
-
-    }
-    return(ggplotly(p, dynamicTicks = TRUE, source = "A"))
-  })
-
-  # Slickr model output
-  output$slck_model <- renderSlickR({
-    slickR(model_slides)
-  })
-
-  # Stats 101 ----
-  # Load and plot airt & SWT
-  airt_swt <- reactiveValues(df = NULL, sub = NULL, sel = NULL)
-
-  observeEvent(input$plot_airt_swt2, { # view_var
-
-    req(!is.null(airt_swt$df))
-    # Date slider
-    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
-
-    if(input$samp_freq == "Month") {
-      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 month")
-    } else if(input$samp_freq == "Week") {
-      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 week")
-    } else if(input$samp_freq == "Fortnight") {
-      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "2 week")
-    } else if(input$samp_freq == "Day") {
-      idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
-    }
-
-    airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
-  })
+  # Objective 2 ----
 
   observe({
     airt_swt$sel <- tryCatch(airt_swt$df[(selected$sel$pointNumber+1),,drop=FALSE] , error=function(e){NULL})
   })
 
-  # Plot air temperature vs. surface water temperature
+  # Plot surface water temperature
   plot.airt_swt <- reactiveValues(main=NULL)
   
   observe({
@@ -497,7 +343,7 @@ shinyServer(function(input, output, session) {
   
   })
   
-  # Plot air temperature vs. surface water temperature
+  # Plot air temperature and water temperature
   plot.airt_swt1 <- reactiveValues(main=NULL)
   
   observe({
@@ -618,55 +464,35 @@ shinyServer(function(input, output, session) {
     # replaceData(q6_proxy, q6_ans$dt, resetPaging = FALSE)  # important
   })
   
-  output$date_slider1 <- renderUI({
+  #Objective 3
+  
+  # Plot water temp vs air temp
+  
+  observeEvent(input$plot_airt_swt3, { # view_var
+    
     req(!is.null(airt_swt$df))
-    df <- na.exclude(airt_swt$df)
-    sliderInput("date1", "Date", min = min(df$Date), max = max(df$Date), step = 1, value = c(min(df$Date), min(df$Date) + 100))
+    # Date slider
+    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
+    
+    
+    idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
+    
+    airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
   })
 
-  # Reset plot when adjusting dates
-  # observeEvent(input$date1, {
-  #   airt_swt$sub <- NULL
-  #   lm_fit$fit <- NULL
-  #   lm_fit$plt_orig <- TRUE
-  #   lm_fit$eqn <- NULL
-  # })
-
-  # Reset plot when adjusting dates
-  observeEvent(input$samp_freq, {
-    airt_swt$sub <- NULL
-    lm_fit$fit <- NULL
-    lm_fit$plt_orig <- TRUE
-    lm_fit$eqn <- NULL
-  })
-
-  # Add dashed lines to build reg plot
-  reg_line <- reactiveValues(m = 1, b = 0)
-  sav_lines <- reactiveValues(m = 1, b = 0)
-  observeEvent(input$draw_line, {
-    reg_line$m <- input$m
-    reg_line$b <- input$b
-  })
-
-  # Data table to store 10 lines
-  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 4), m_se = rep(NA, 4),
-                                            b_est = rep(NA, 4), b_se = rep(NA, 4),
-                                            r2 = rep(NA, 4), N = rep(NA, 4), rmse = rep(NA, 4)))
-  # output$lr_DT <- renderDT(lr_pars$dt, selection = "single",
-  #                          options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-  #                                         columnDefs = list(list(width = '10%', targets = "_all"))
-  #                          ), colnames = c("m (Est.)", "m (SE)", "b (Est.)", "b (SE)", "R-squared", "%"),
-  #                          rownames = FALSE, # c("25%", "50%", "75%", "100%"),
-  #                          # container = sketch2,
-  #                          server = FALSE, escape = FALSE)
-  lr_eqn <- reactiveValues(dt = data.frame(m = rep(NA, 4), b = rep(NA, 4),
-                                            r2 = rep(NA, 4), N = rep(NA, 4)))
+  # Fitting linear regression
+  lr_pars <- reactiveValues(dt = data.frame(m_est = rep(NA, 1), m_se = rep(NA, 1),
+                                            b_est = rep(NA, 1), b_se = rep(NA, 1),
+                                            r2 = rep(NA, 1), N = rep(NA, 1), rmse = rep(NA, 1)))
+ 
+  lr_eqn <- reactiveValues(dt = data.frame(m = rep(NA, 1), b = rep(NA, 1),
+                                            r2 = rep(NA, 1), N = rep(NA, 1)))
+  
   output$lr_DT <- renderDT(lr_eqn$dt[, c(1,2, 4)], selection = "none",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
                            ), colnames = c("Slope (m)","Intercept (b)", "N"),
-                           rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
-                           # container = sketch2,
+                           rownames = c("Model parameters"),
                            server = FALSE, escape = FALSE)
   output$lr_DT2 <- renderDT(lr_pars$dt[, c("m_est", "m_se", "b_est", "b_se", "rmse", "N")], selection = "single",
                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
@@ -675,7 +501,6 @@ shinyServer(function(input, output, session) {
                            # colnames = c("m", "b", "R-squared", "N"),
                            colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "RMSE", "N"),
                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
-                           # container = sketch2,
                            server = FALSE, escape = FALSE)
 
   output$r2_tab <- renderDT(data.frame(lr_pars$dt$rmse), selection = "none",
@@ -683,48 +508,17 @@ shinyServer(function(input, output, session) {
                                               columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
                                ), colnames = c("RMSE"),
                                rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
-                               # container = sketch2,
                                server = FALSE, escape = FALSE)
 
-  # Add red saved lines to plot & DT
-  # observeEvent(input$save_line, {
-  #   req(!is.null(airt_swt$sub))
-  #   req(!is.na(input$m))
-  #   req(!is.na(input$b))
-  #   if(input$save_line == 1) {
-  #     sav_lines$m <- input$m
-  #     sav_lines$b <- input$b
-  #   } else {
-  #     sav_lines$m <- c(sav_lines$m, input$m)
-  #     sav_lines$b <- c(sav_lines$b, input$b)
-  #   }
-  #   mod <- (input$m * airt_swt$sub$airt) + input$b
-  #   df <- data.frame(obs = airt_swt$sub$wtemp, mod = mod)
-  #   df <- na.exclude(df)
-  #   # mean_err <- round(mean(mod - airt_swt$sub$wtemp, na.rm = TRUE), 2)
-  #   mean_err <- round(cor(df$obs, df$mod), 2)
-  #   if(!is.null(input$lr_DT_rows_selected)) {
-  #     lr_pars$dt$m[input$lr_DT_rows_selected] <- input$m
-  #     lr_pars$dt$b[input$lr_DT_rows_selected] <- input$b
-  #     lr_pars$dt$start[input$lr_DT_rows_selected] <- as.character(input$date1[1])
-  #     lr_pars$dt$stop[input$lr_DT_rows_selected] <- as.character(input$date1[2])
-  #     lr_pars$dt$mean_err[input$lr_DT_rows_selected] <- mean_err
-  #     lr_pars$dt$label[input$lr_DT_rows_selected] <- nrow(na.exclude(airt_swt$sub))
-  #   } else {
-  #     idx <- which(is.na(lr_pars$dt$m))[1]
-  #     lr_pars$dt$m[idx] <- input$m
-  #     lr_pars$dt$b[idx] <- input$b
-  #     lr_pars$dt$start[idx] <- as.character(input$date1[1])
-  #     lr_pars$dt$stop[idx] <- as.character(input$date1[2])
-  #     lr_pars$dt$mean_err[idx] <- mean_err
-  #     lr_pars$dt$label[idx] <- nrow(na.exclude(airt_swt$sub))
-  #   }
-  # })
 
   # Plot with regression lines
-  airt_swt_plot_lines <- reactiveValues(main = NULL)
+  swt_swt_plot_lines <- reactiveValues(main = NULL)
   
-  observeEvent(input$plot_airt_swt2 | input$add_lm,{
+  lm_fit <- reactiveValues(fit = NULL, df_lst = list(), eqn = NULL)
+  
+  wt_reg_ts_plot <- reactiveValues(main = NULL)
+  
+  observeEvent(input$plot_airt_swt3 | input$add_lm,{
     
     validate(
       need(input$table01_rows_selected != "",
@@ -734,220 +528,107 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot'")
     )
-    df <- na.exclude(airt_swt$sub)
-    validate(
-      need(nrow(df) > 0,
-           message = "No points in selected dates. Please adjust the dates.")
-    )
     
-    mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
-    mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
-    
-    sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
-    
-    p <- ggplot() +
-      # geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-      geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
-      ylab("Surface water temperature (\u00B0C)") +
-      xlab("Air temperature (\u00B0C)") +
-      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
-      theme_bw(base_size = 12)
-    
-    pars <- na.exclude(lr_pars$dt)
-    
-    if(length(lm_fit$df_lst) > 0) {
-      # mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "wtemp", "airt", "Percentage"))
-      # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
-      # lvls <- levels(mlt$Percentage)
-      # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
-      # # Reorder levels in ascending order
-      # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
-      # mlt <- reshape::melt(lm_fit$df_lst, id.vars = c("Date", "Frequency", "N"))
-      mlt <- do.call(rbind, lm_fit$df_lst)
-      mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
-      # levels(mlt$Frequency) <- samp_freq
-      
-      p <- p +
-        geom_point(data = mlt, aes(airt, wtemp, color = Frequency)) +
-        geom_smooth(data = mlt, aes(airt, wtemp, color = Frequency), method = "lm", formula = "y ~ x",
-                    se = FALSE) +
-        scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
-        labs(color = "Frequency")
-    }
-    
-    if(lm_fit$plt_orig | lm_fit$plt_reset) {
-      p <- p +
-        geom_point(data = df, aes(airt, wtemp), color = "black")
-    } 
-    
-    airt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) %>%
-      layout(xaxis = list(range = c(0, 10)),
-             yaxis = list(range = c(10, 15)))
-    
-    # Plot water temp ts with model
-    output$lm_ts_plot <- renderPlotly({
-      validate(
-        need(input$table01_rows_selected != "",
-             message = "Please select a site in Objective 1.")
-      )
-      validate(
-        need(!is.null(airt_swt$df),
-             message = "Click 'Plot'")
-      )
-      # validate(
-      #   need(input$plot_airt_swt > 0,
-      #        message = "Click 'Plot'")
-      # )
-      df <- airt_swt$df
-      df$airt[is.na(df$wtemp)] <- NA
-      df$wtemp[is.na(df$airt)] <- NA
-      df <- df[df$Date > "2020-01-01", ]
-      
-      if(lm_fit$plt_reset){pars <- NULL} else {pars <- na.exclude(lr_pars$dt)}
-      freq_idx <- which(!is.na(lr_pars$dt[, 1]))
-      
-      if(!is.null(pars)){
-      if(nrow(pars) > 0) {
-        mod <- lapply(1:nrow(pars), function(x) {
-          df2 <- data.frame(Date = df$Date,
-                            Model = pars$m_est[x] * df$airt + pars$b_est[x],
-                            Frequency = samp_freq[freq_idx[x]])
-          df2$rmse <- round(sqrt(mean((df2$Model - df$wtemp)^2, na.rm = TRUE)), 2)
-          return(df2)
-        })
-        # names(mod) <- pars$label
-        # mlt <- reshape::melt(mod, id.vars = c("Date", "Model", "Percentage"))
-        mlt <- do.call(rbind, mod)
-        # mlt <- mlt[mlt$Date > "2020-01-01", ]
-        mlt$Frequency <- factor(mlt$Frequency, levels = samp_freq)
-        
-        for(freq in samp_freq) {
-          sub <- mlt[mlt$Frequency == freq, ]
-          fidx <- which(samp_freq == freq)
-          if(nrow(sub) > 0) {
-            lr_pars$dt$rmse[fidx] <- sub$rmse[1]
-            if(freq == "Daily") {
-              mod_selec_tab$dt$rmse[3] <- sub$rmse[1]
-            }
-          }
-        }
-        
-        # mlt$Percentage <- factor(paste0(mlt$Percentage, "%"))
-        # mlt$Percentage <- factor(as.character(mlt$N))
-        # lvls <- levels(mlt$Percentage)
-        # ordr <- order(as.numeric(gsub("%", "", as.character(lvls))))
-        # # Reorder levels in ascending order
-        # mlt$Percentage <- factor(mlt$Percentage, levels = levels(mlt$Percentage)[ordr])
-      }}
-      
-      p <- ggplot() +
-        # geom_hline(yintercept = 0) +
-        # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
-        geom_point(data = df, aes(Date, wtemp), color = "black") +
-        ylab("Temperature (\u00B0C)") +
-        xlab("Time") +
-        guides(color = guide_legend(override.aes = list(size = 3))) +
-        theme_bw(base_size = 12)
-      
-      if(!is.null(pars)){
-      if(nrow(pars) > 0) {
-        p <- p +
-          # geom_line(data = mlt, aes(Date, Model, color = Percentage)) +
-          geom_line(data = mlt, aes(Date, Model, color = Frequency)) +
-          scale_color_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
-          labs(color = "Frequency")
-      }}
-      
-      # return(p)
-      return(ggplotly(p, dynamicTicks = TRUE))
-    })
-    
-    
-  })
-  
-  output$airt_swt_plot_lines <- renderPlotly({
-    airt_swt_plot_lines$main
-  })
-
-
-  # Add lm fit
-  lm_fit <- reactiveValues(fit = NULL, df_lst = list(), plt_orig = TRUE, eqn = NULL, plt_reset = FALSE)
-  observeEvent(input$add_lm, {
     req(!is.null(airt_swt$sub))
     tot_rows <- nrow(na.exclude(airt_swt$df))
     df <- airt_swt$sub
     df <- na.exclude(df)
     colnames(df)[2:3] <- c("airt", "wtemp")
-    fit <- lm(wtemp ~ airt, data = df)
+    df <- df %>%
+      mutate(wtemp_yday = dplyr::lag(wtemp)) %>%
+      filter(year(Date) == 2020)
+    fit <- lm(df$wtemp ~ df$wtemp_yday)
     out <- summary(fit)
+    
+    
+    idx <- 1
+    
+    lr_pars$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
+    lr_pars$dt$b_est[idx] <- round(out$coefficients[1, 1], 1)
+    lr_pars$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
+    lr_pars$dt$b_se[idx] <- round(out$coefficients[1, 2], 1)
+    lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
+    lr_pars$dt$N[idx] <- nrow(df)
+    lr_pars$dt$rmse[idx] <- 0
+    
+    # }
+    
+    df$N <- nrow(df)
 
-    # if(!is.null(input$lr_DT_rows_selected)) {
-    #   lr_pars$dt$m_est[input$lr_DT_rows_selected] <- round(out$coefficients[2, 1], 2)
-    #   lr_pars$dt$b_est[input$lr_DT_rows_selected] <- round(out$coefficients[1, 1], 2)
-    #   lr_pars$dt$m_se[input$lr_DT_rows_selected] <- round(out$coefficients[2, 2], 2)
-    #   lr_pars$dt$b_se[input$lr_DT_rows_selected] <- round(out$coefficients[1, 2], 2)
-    #   lr_pars$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
-    #   lr_pars$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
-    #
-    #   lr_eqn$dt$eqn[input$lr_DT_rows_selected] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times airt_{t} + ", round(out$coefficients[1, 1], 2), " $$")
-    #   lr_eqn$dt$r2[input$lr_DT_rows_selected] <- round(out$r.squared, 2)
-    #   lr_eqn$dt$Percentage[input$lr_DT_rows_selected] <- round((100 * nrow(df) / tot_rows))
-    # } else {
-    # Old version with ability to re-fit models
-      # idx <- which(is.na(lr_pars$dt$m_est))[1]
-      idx <- which(samp_freq2 %in% input$samp_freq)
-      lr_pars$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
-      lr_pars$dt$b_est[idx] <- round(out$coefficients[1, 1], 1)
-      lr_pars$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
-      lr_pars$dt$b_se[idx] <- round(out$coefficients[1, 2], 1)
-      lr_pars$dt$r2[idx] <- round(out$r.squared, 2)
-      # lr_pars$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
-      lr_pars$dt$N[idx] <- nrow(df)
-      lr_pars$dt$rmse[idx] <- 0
+    lm_fit$df_lst[[idx]] <- df
+    
+    lm_fit$fit <- fit
+    
 
+    # For model selection table
+    mod_selec_tab$dt$eqn[2] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
+    mod_selec_tab$dt$r2[2] <- round(out$r.squared, 2)
+    
+
+    mx <- max(df$wtemp_yday, df$wtemp, na.rm = TRUE) + 2
+    mn <- min(df$wtemp_yday, df$wtemp, na.rm = TRUE) - 2
+    
+    sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
+    
+    mlt <- do.call(rbind, lm_fit$df_lst)
+    
+    p <- ggplot() +
+      geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Yesterday's water temperature (\u00B0C)") +
+      geom_point(data = df, aes(wtemp_yday, wtemp, color = "Obs")) +
+      scale_color_manual(values = c("Mod" = cols[2], "Obs" = "black"), name = "") +
+      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
+      theme_bw(base_size = 12)
+    
+    pars <- na.exclude(lr_pars$dt)
+    
+    df1 <- df %>%
+      filter(Date > "2020-01-01")
+    
+    p1 <- ggplot() +
+      geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      scale_color_manual(values = c("Mod" = cols[2],
+                                    "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12)
+    
+    if(input$add_lm > 0) {
+     
+      p <- p + geom_smooth(data = df, aes(wtemp_yday, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
+                    se = FALSE) 
+      
+      lm_fit$eqn <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), "\\times wtemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
+      
       lr_eqn$dt$m[idx] <- round(out$coefficients[2, 1], 2)
       lr_eqn$dt$b[idx] <- round(out$coefficients[1, 1], 2)
       lr_eqn$dt$r2[idx] <- round(out$r.squared, 2)
-      # lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
       lr_eqn$dt$N[idx] <- nrow(df)
-      # }
+      
+      mod <- predict(fit, df)
+      pred <- data.frame(Date = df$Date,
+                     model = mod) 
 
-      df$N <- nrow(df)
-      df$Frequency <- samp_freq[idx]
-
-      lm_fit$df_lst[[idx]] <- df
-
-    # df$Percentage <- round((100 * nrow(df) / tot_rows))
-    # if(!is.null(input$lr_DT_rows_selected)) {
-    #   lm_fit$df_lst[[input$lr_DT_rows_selected]] <- df
-    # } else {
-    #   idx <- length(lm_fit$df_lst) + 1
-    #   lm_fit$df_lst[[idx]] <- df
-    # }
-
-    lm_fit$plt_orig <- FALSE
-    lm_fit$plt_reset <- FALSE
-
-    lm_fit$fit <- fit
-
-    lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
-
-    # For model selection table
-    if(input$samp_freq == "Day") {
-      mod_selec_tab$dt$eqn[3] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), " \\times atemp_{t+1} + ", round(out$coefficients[1, 1], 2), "$$")
-      mod_selec_tab$dt$r2[3] <- round(out$r.squared, 2)
+      p1 <- p1 + geom_line(data = pred, aes(Date, model, color = "Mod"))
+      
     }
-
-
+    
+    swt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) 
+    
+    wt_reg_ts_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
+    
+    
+  })
+  
+  output$swt_swt_plot_lines <- renderPlotly({
+    swt_swt_plot_lines$main
+  })
+  
+  output$wt_reg_ts_plot <- renderPlotly({
+    wt_reg_ts_plot$main
   })
 
-  # observe({
-  #   req(!is.null(airt_swt$sub))
-  #   fit <- lm(wtemp ~ airt, data = df)
-  #   out <- summary(fit)
-  #   mod_selec_tab$dt$eqn[1] <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "*atemp_{t} + ", round(out$coefficients[1, 1], 2), " $$")
-  #   mod_selec_tab$dt$r2 <- round(out$r.squared, 2)
-  # })
 
   output$lm_mod <- renderUI({
     input$add_lm
@@ -968,7 +649,63 @@ shinyServer(function(input, output, session) {
     )
   })
   
-  observeEvent(input$clear_airt_swt_plot_lines,{
+  
+  # Plot water temp vs air temp
+  
+  #####come back to this and modify the inputs/output and add to ui
+  
+  observeEvent(input$plot_airt_swt4, { # view_var
+    
+    req(!is.null(airt_swt$df))
+    # Date slider
+    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
+    
+    
+    idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
+    
+    airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
+  })
+  
+  # Fitting linear regression
+  lr_pars1 <- reactiveValues(dt = data.frame(m_est = rep(NA, 1), m_se = rep(NA, 1),
+                                            b_est = rep(NA, 1), b_se = rep(NA, 1),
+                                            r2 = rep(NA, 1), N = rep(NA, 1), rmse = rep(NA, 1)))
+  
+  lr_eqn1 <- reactiveValues(dt = data.frame(m = rep(NA, 1), b = rep(NA, 1),
+                                           r2 = rep(NA, 1), N = rep(NA, 1)))
+  
+  output$lr_DT1 <- renderDT(lr_eqn1$dt[, c(1,2, 4)], selection = "none",
+                           options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                          columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                           ), colnames = c("Slope (m)","Intercept (b)", "N"),
+                           rownames = c("Model parameters"),
+                           server = FALSE, escape = FALSE)
+  output$lr_DT2 <- renderDT(lr_pars1$dt[, c("m_est", "m_se", "b_est", "b_se", "rmse", "N")], selection = "single",
+                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                            ),
+                            # colnames = c("m", "b", "R-squared", "N"),
+                            colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "RMSE", "N"),
+                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                            server = FALSE, escape = FALSE)
+  
+  output$r2_tab1 <- renderDT(data.frame(lr_pars1$dt$rmse), selection = "none",
+                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                            ), colnames = c("RMSE"),
+                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                            server = FALSE, escape = FALSE)
+  
+  
+  # Plot with regression lines
+  airt_swt_plot_lines <- reactiveValues(main = NULL)
+  
+  lm_fit1 <- reactiveValues(fit = NULL, df_lst = list(), eqn = NULL)
+  
+  at_reg_ts_plot <- reactiveValues(main = NULL)
+  
+  observeEvent(input$plot_airt_swt4 | input$add_lm1,{
+    
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -977,105 +714,127 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot'")
     )
-    df <- na.exclude(airt_swt$sub)
-    validate(
-      need(nrow(df) > 0,
-           message = "No points in selected dates. Please adjust the dates.")
-    )
+    
+    req(!is.null(airt_swt$sub))
+    tot_rows <- nrow(na.exclude(airt_swt$df))
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    fit <- lm(wtemp ~ airt, data = df)
+    out <- summary(fit)
+    
+    
+    idx <- 1
+    
+    lr_pars1$dt$m_est[idx] <- round(out$coefficients[2, 1], 2)
+    lr_pars1$dt$b_est[idx] <- round(out$coefficients[1, 1], 1)
+    lr_pars1$dt$m_se[idx] <- round(out$coefficients[2, 2], 2)
+    lr_pars1$dt$b_se[idx] <- round(out$coefficients[1, 2], 1)
+    lr_pars1$dt$r2[idx] <- round(out$r.squared, 2)
+    lr_pars1$dt$N[idx] <- nrow(df)
+    lr_pars1$dt$rmse[idx] <- 0
+    
+    # }
+    
+    df$N <- nrow(df)
+    
+    lm_fit1$df_lst[[idx]] <- df
+    
+    lm_fit1$fit <- fit
+    
+    
+    # For model selection table
+    mod_selec_tab$dt$eqn[3] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), " \\times atemp_{t+1} + ", round(out$coefficients[1, 1], 2), "$$")
+    mod_selec_tab$dt$r2[3] <- round(out$r.squared, 2)
+    
     
     mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
     mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
     
     sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
     
+    mlt <- do.call(rbind, lm_fit$df_lst)
+    
     p <- ggplot() +
-      # geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
       geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Air temperature (\u00B0C)") +
+      geom_point(data = df, aes(airt, wtemp, color = "Obs")) +
+      scale_color_manual(values = c("Mod" = cols[3], "Obs" = "black"), name = "") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 12)
+    
+    pars <- na.exclude(lr_pars$dt)
+    
+    df1 <- df %>%
+      filter(Date > "2020-01-01")
+    
+    p1 <- ggplot() +
+      geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      scale_color_manual(values = c("Mod" = cols[3],
+                                    "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12)
+    
+    if(input$add_lm1 > 0) {
+      
+      p <- p + geom_smooth(data = df, aes(airt, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
+                           se = FALSE) 
+      
+      lm_fit1$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times atemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
+      
+      lr_eqn1$dt$m[idx] <- round(out$coefficients[2, 1], 2)
+      lr_eqn1$dt$b[idx] <- round(out$coefficients[1, 1], 2)
+      lr_eqn1$dt$r2[idx] <- round(out$r.squared, 2)
+      lr_eqn1$dt$N[idx] <- nrow(df)
+      
+      mod <- predict(fit, df)
+      pred <- data.frame(Date = df$Date,
+                         model = mod) %>%
+        filter(Date > "2020-01-01")
+      
+      p1 <- p1 + geom_line(data = pred, aes(Date, model, color = "Mod"))
+      
+    }
+    
     airt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) %>%
       layout(xaxis = list(range = c(0, 10)),
              yaxis = list(range = c(10, 15)))
     
-    lm_fit$df_lst <- NULL
-    
-    lr_eqn$dt$m <- NA
-    lr_eqn$dt$b <- NA
-    lr_eqn$dt$r2 <- NA
-    # lr_eqn$dt$Percentage[idx] <- round((100 * nrow(df) / tot_rows))
-    lr_eqn$dt$N <- NA
-    
-    output$lr_DT <- renderDT(lr_eqn$dt[, c(1,2, 4)], selection = "none",
-                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                                            columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
-                             ), colnames = c("Slope","Intercept", "N"),
-                             rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
-                             # container = sketch2,
-                             server = FALSE, escape = FALSE)
-    
-    lr_pars$dt$m_est <- NA
-    lr_pars$dt$b_est <- NA
-    lr_pars$dt$m_se <- NA
-    lr_pars$dt$b_se <- NA
-    lr_pars$dt$r2 <- NA
-    lr_pars$dt$N <- NA
-    lr_pars$dt$rmse <- NA
-    
-    output$r2_tab <- renderDT(data.frame(lr_pars$dt$rmse), selection = "none",
-                              options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
-                                             columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
-                              ), colnames = c("RMSE"),
-                              rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
-                              # container = sketch2,
-                              server = FALSE, escape = FALSE)
-    
-    lm_fit$eqn <- ""
-    
-    output$lm_mod <- renderUI({
-      validate(
-        need(input$table01_rows_selected != "",
-             message = "Please select a site in Objective 1.")
-      )
-      validate(
-        need(!is.null(airt_swt$sub),
-             message = "Click 'Plot'")
-      )
-      validate(
-        need(!is.null(lm_fit$eqn),
-             message = "Click 'Get model parameters'.")
-      )
-      withMathJax(
-        tags$p(lm_fit$eqn)
-      )
-      
-    })
-    
-    output$lm_ts_plot <- renderPlotly({p <- ggplot() +
-      # geom_hline(yintercept = 0) +
-      # geom_point(data = df, aes(Date, wtemp, color = "Observed")) +
-      #geom_point(data = df, aes(Date, wtemp), color = "black") +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Time") +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
-      theme_bw(base_size = 12)
-    
-    return(ggplotly(p, dynamicTicks = TRUE))
+    at_reg_ts_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
     
     
-    })
-    
-    lm_fit$plt_reset <- TRUE
   })
-
-
-  output$lm_out <- renderPrint({
+  
+  output$airt_swt_plot_lines <- renderPlotly({
+    airt_swt_plot_lines$main
+  })
+  
+  output$at_reg_ts_plot <- renderPlotly({
+    at_reg_ts_plot$main
+  })
+  
+  
+  output$lm_mod1 <- renderUI({
+    input$add_lm1
     validate(
-      need(!is.null(lm_fit$fit), "Click 'Get model parameters'")
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
     )
-    summary(lm_fit$fit)
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(!is.null(lm_fit1$eqn),
+           message = "Click 'Get model parameters'.")
+    )
+    withMathJax(
+      tags$p(lm_fit1$eqn)
+    )
   })
+  
 
   # Calculate statistics from the lines drawn
   linr_stats <- reactiveValues(dt = data.frame("m_mn" = 0,

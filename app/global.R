@@ -17,6 +17,10 @@ suppressPackageStartupMessages(library(ncdf4, quietly = TRUE))
 suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
 suppressPackageStartupMessages(library(stringr, quietly = TRUE))
 suppressPackageStartupMessages(library(hover, quietly = TRUE))
+suppressPackageStartupMessages(library(lubridate, quietly = TRUE))
+suppressPackageStartupMessages(library(tidyverse, quietly = TRUE))
+
+
 
 
 
@@ -230,5 +234,30 @@ scen_fc2$surf_lci[5] <- scen_fc2$surftemp[5] - max(ssd)
 
 scen_fc2$bot_uci <- scen_fc2$bottemp + bsd[order(bsd)]
 scen_fc2$bot_lci <- scen_fc2$bottemp - bsd[order(bsd)]
+
+# Icons
+neonIcons <- iconList(
+  Aquatic = makeIcon("icons/water-icon.png", iconWidth = 28, iconHeight = 28),
+  Terrestrial = makeIcon("icons/mountain-icon.png", iconWidth =  28, iconHeight = 28)
+)
+
+# Reference for downloading variables
+neon_vars <- read.csv("data/neon_variables.csv")
+met_pars <- read.csv("data/met_params.csv", fileEncoding = "UTF-8-BOM")
+
+# a table container with complex header
+sketch1 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(colspan = 2, 'Slope (m)'),
+      th(colspan = 2, 'Intercept (b)')
+    ),
+    tr(
+      lapply(rep(c('Mean', 'Std. Dev.'), 2), th)
+    )
+  )
+))
+
 
 # end

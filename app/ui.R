@@ -560,13 +560,13 @@ ui <- function(req) {
                                                column(4,
                                                       p(tags$b("What is a persistence model?")),
                                                       tags$ul(
-                                                        tags$li("A persistence model predicts that tomorrow will be the same as today. So a persistence model of water temperature would be that tomorrow's water temperature will be the same as today's water temperature.")
+                                                        tags$li("A persistence model predicts that tomorrow will be the same as today. Persistence models do not have any parameters.")
                                                       )
                                                       ),
                                                column(4,
                                                       p(tags$b("What is a linear regression model?")),
                                                       tags$ul(
-                                                        tags$li(p("A linear regression model uses the values of one variable (the ",tags$b("independent variable"),") to predict another variable (the ",tags$b("dependent variable"),"), using two parameters. When plotted, linear regression models are straight lines."),
+                                                        tags$li(p("A linear regression model uses the values of one variable (the ",tags$b("independent variable; x"),") to predict another variable (the ",tags$b("dependent variable; y"),"), using two parameters."),
                                                                 div("The formula for a linear regression is: $$y = m \\times x + b$$"),
                                                                 p("where the ", tags$b("parameters"), "of the model are ", tags$em("m"), "(the slope) and ", tags$em("b"), " (the intercept).")
                                                         )
@@ -575,60 +575,72 @@ ui <- function(req) {
                                                column(4,
                                                       p(tags$b("What is a multiple linear regression model?")),
                                                       tags$ul(
-                                                        tags$li(p(tags$b("Multiple linear regression models")," are an extension of linear regression models. Multiple linear regression models have more than one independent variable. In a multiple linear regression model, each independent variable is associated with a ",tags$b("coefficient parameter,")," often represented using (\\(\\beta_{n}\\))."),
-                                                                div("For example: $$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + \\beta _{n}$$")
+                                                        tags$li(p(tags$b("Multiple linear regression models")," are an extension of linear regression models. Multiple linear regression models have more than one independent variable. In a multiple linear regression model, each independent variable is associated with a ",tags$b("coefficient parameter,")," often represented using (\\(\\beta_{n}\\)). When this notation is used, the intercept parameter is represented as (\\(\\beta_{0}\\))."),
+                                                                div("For example: $$y = \\beta _{0} + \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + \\beta _{n}x_{n}$$")
                                                         )
                                                       )
                                                       )
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(5,
-                                                      h3("Key terms & Definitions"),
-                                                      p(id = "txt_j", "Before we begin generating an ecological forecast with uncertainty we will define some key terms, definitions and concepts relevant to ecology and ecological forecasting.")
+                                               column(10, align = "left",
+                                                      box(id = "box10", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   p(tags$b(quest["q9", 1])),
+                                                                   p(tags$b(quest["q10", 1]))
+                                                                   )
+                                                          )
+                                                      )
                                                )
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(5, offset = 1,
-                                                      p(tags$b("What is an ecological model?")),
-                                                      tags$ul(
-                                                        tags$li(module_text["model1", ])
+                                               column(6,
+                                                      h3("Create persistence model"),
+                                                      p(id = "txt_j", "The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a ", tags$b("persistence model.")),
+                                                      wellPanel(
+                                                        h4("Persistence model (Pers):"),
+                                                        div("$$wtemp_{t+1} = wtemp_{t}$$"),
+                                                        p("where t+1 = tomorrow and t = today.")
                                                       ),
-                                                      p(tags$b("What is a parameter?")),
-                                                      tags$ul(
-                                                        tags$li(module_text["parameter", ])
-                                                      ),
-                                                      p(tags$b("What is a parameter distribution?")),
-                                                      tags$ul(
-                                                        tags$li(module_text["distribution", ])
+                                                      p(id = "txt_j", "Let's plot this model versus observations."),
+                                                      br(),
+                                                      actionButton("plot_persist", "Plot"),
+                                                      br(), br(),
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Question"),
+                                                                   p(tags$b(quest["q11", 1])),
+                                                                   p(tags$b(quest["q12", 1]))
+                                                            )
+                                                          )
                                                       )
                                                ),
-                                               column(5, offset = 1,
-                                                      p(tags$b("What is a linear relationship?")),
-                                                      tags$ul(
-                                                        tags$li(module_text["linear_relationship", ])
-                                                      ),
-                                                      p(tags$i("In our example, water temperature is the dependent variable and air temperature is the independent variable.")),
-                                                      p(tags$b("What is model error?")),
-                                                      tags$ul(
-                                                        tags$li(module_text["mod_error", ])
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("persist_plot")
                                                       )
                                                )
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(3,
-                                                      h3("Investigate how collecting more data affects your model"),
-                                                      p(id = "txt_j", "When monitoring a lake site, deciding on the sampling frequency is an important decision. Here you will investigate how four different frequencies of data collection can affect model performance (assessed by RMSE) and parameter estimates (m and b)."),
+                                               column(5,
+                                                      h3("Create linear regression models"),
                                                       p(id = "txt_j", "Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
                                                       p(id = "txt_j", "Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
-                                                      p(tags$b("Data collection frequency")),
-                                                      radioButtons("samp_freq", "One observation per:", choices = samp_freq2),
-                                                      actionButton("plot_airt_swt2", "Plot"),
+                                                      actionButton("plot_airt_swt3", "Plot"),
                                                       actionButton("add_lm", "Get model parameters")
                                                ),
-                                               column(4,
+                                               column(5,
+                                                      h3("Water temperature vs. air temperature"),
+                                                      wellPanel(
+                                                        plotlyOutput("swt_swt_plot_lines")#,
+                                                      ),
                                                       p(id = "txt_j", "For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
                                                       p(tags$b("N"), "represents the number of data points used to estimate the linear regression."),
                                                       DTOutput("lr_DT", width = "100%"),
@@ -638,14 +650,39 @@ ui <- function(req) {
                                                       wellPanel(
                                                         uiOutput("lm_mod")
                                                       ),
-                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend.")
+                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
+                                                      wellPanel(
+                                                        plotlyOutput("wt_reg_ts_plot")
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5,
+                                                      h3("Create linear regression models"),
+                                                      p(id = "txt_j", "Fit a linear model with data which has been collected at different frequencies. Each model’s parameters will be added to the parameter table."),
+                                                      p(id = "txt_j", "Toggle the buttons below to select a frequency of data collection which you would use to build your linear regression model."),
+                                                      actionButton("plot_airt_swt4", "Plot"),
+                                                      actionButton("add_lm1", "Get model parameters")
                                                ),
                                                column(5,
-                                                      h3("Air temperature vs. water temperature"),
+                                                      h3("Water temperature vs. air temperature"),
                                                       wellPanel(
-                                                        plotlyOutput("airt_swt_plot_lines")#,
+                                                        plotlyOutput("airt_swt_plot_lines"),
                                                       ),
-                                                      actionButton("clear_airt_swt_plot_lines","Clear plot")
+                                                      p(id = "txt_j", "For the linear regression model, ", tags$em("m"), " and ", tags$em("b"), "are ", tags$b("parameters.")),
+                                                      p(tags$b("N"), "represents the number of data points used to estimate the linear regression."),
+                                                      DTOutput("lr_DT1", width = "100%"),
+                                                      br(),
+                                                      # p("You do not need to get the percentages exactly right, but close enough will work fine."),
+                                                      br(),
+                                                      wellPanel(
+                                                        uiOutput("lm_mod1")
+                                                      ),
+                                                      p(tags$b("Tip:"), " You can toggle what is shown on the plot by clicking on the options in the legend."),
+                                                      wellPanel(
+                                                        plotlyOutput("at_reg_ts_plot")
+                                                      )
                                                )
                                              ),
                                              hr(),
@@ -767,38 +804,6 @@ ui <- function(req) {
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 5 - Improve Model for Forecasting"),
                                                                 p(id = "txt_j", module_text["obj_05", ])
-                                                      )
-                                               )
-                                             ),
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Create a Forecast model"),
-                                                      p(id = "txt_j", "The model built in Objective 3 uses current air temperature to predict current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature."),
-                                                      p(id = "txt_j", "The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a ", tags$b("persistence model.")),
-                                                      wellPanel(
-                                                        h4("Persistence model (Pers):"),
-                                                        div("$$wtemp_{t+1} = wtemp_{t}$$"),
-                                                        p("where t+1 = tomorrow and t = today.")
-                                                      ),
-                                                      p(id = "txt_j", "Let's plot this model versus observations. The RMSE value will be calculated for the plotted data."),
-                                                      br(),
-                                                      actionButton("plot_persist", "Plot"),
-                                                      br(), br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[18], label = quest[qid[18], ], width = "90%")
-                                                                   )
-                                                            )
-                                                          )
-                                                      ),
-                                               column(6,
-                                                      wellPanel(
-                                                        plotlyOutput("persist_plot"),
-                                                        p(tags$b("Model performance:")),
-                                                        uiOutput("persist_r2")
                                                       )
                                                )
                                              ),
