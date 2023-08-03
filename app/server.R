@@ -599,7 +599,7 @@ shinyServer(function(input, output, session) {
       p <- p + geom_smooth(data = df, aes(wtemp_yday, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
                     se = FALSE) 
       
-      lm_fit$eqn <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), "\\times wtemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
+      lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times wtemp_{t-1} + ", round(out$coefficients[1, 1], 2), "$$")
       
       lr_eqn$dt$m[idx] <- round(out$coefficients[2, 1], 2)
       lr_eqn$dt$b[idx] <- round(out$coefficients[1, 1], 2)
@@ -667,8 +667,6 @@ shinyServer(function(input, output, session) {
   
   
   # Plot water temp vs air temp
-  
-  #####come back to this and modify the inputs/output and add to ui
   
   observeEvent(input$plot_airt_swt4, { # view_var
     
@@ -865,6 +863,254 @@ shinyServer(function(input, output, session) {
     withMathJax(
       tags$p(lm_fit1$eqn)
     )
+  })
+  
+  # multiple linear regression model
+  
+  observeEvent(input$plot_mlr, { # view_var
+    
+    req(!is.null(airt_swt$df))
+    # Date slider
+    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
+    
+    
+    idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
+    
+    airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
+  })
+  
+  # Fitting linear regression
+  mlr_pars <- reactiveValues(dt = data.frame(b0_est = rep(NA, 1), b0_se = rep(NA, 1),
+                                             b1_est = rep(NA, 1), b1_se = rep(NA, 1),
+                                             b2_est = rep(NA, 1), b2_se = rep(NA,1), N = rep(NA, 1), rmse = rep(NA, 1)))
+  
+  mlr_eqn <- reactiveValues(dt = data.frame(b0 = rep(NA, 1), b1 = rep(NA, 1),
+                                            b2 = rep(NA, 1), N = rep(NA, 1)))
+  
+  output$mlr_DT <- renderDT(mlr_eqn$dt[, c(1,2,3, 4)], selection = "none",
+                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                            ), colnames = c("β0","β1", "β2","N"),
+                            rownames = c("Model parameters"),
+                            server = FALSE, escape = FALSE)
+  output$mlr_DT2 <- renderDT(mlr_pars$dt[, c("b0_est", "b0_se", "b1_est", "b1_se","b2_est", "b2_se", "rmse", "N")], selection = "single",
+                            options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                           columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                            ),
+                            #colnames = c("m", "m (Std. Dev.)", "b", "b (Std. Dev.)", "RMSE", "N"),
+                            rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                            server = FALSE, escape = FALSE)
+  
+  output$r2_tab1 <- renderDT(data.frame(mlr_pars$dt$rmse), selection = "none",
+                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                            columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                             ), colnames = c("RMSE"),
+                             rownames = c("Monthly", "Fortnightly", "Weekly", "Daily"),
+                             server = FALSE, escape = FALSE)
+  
+  
+  mlr_fit1 <- reactiveValues(fit = NULL, df_lst = list(), eqn = NULL)
+  
+  mlr_ts_plot1 <- reactiveValues(main = NULL)
+  
+
+  observeEvent(input$plot_mlr,{
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    
+    req(!is.null(airt_swt$sub))
+    tot_rows <- nrow(na.exclude(airt_swt$df))
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    df <- df %>%
+      mutate(wtemp_yday = dplyr::lag(wtemp)) %>%
+      filter(year(Date) == 2020)
+    fit <- lm(wtemp ~ wtemp_yday + airt, data = df)
+    out <- summary(fit)
+    
+    
+    idx <- 1
+    
+    mlr_pars$dt$b0_est[idx] <- round(out$coefficients[1, 1], 2)
+    mlr_pars$dt$b1_est[idx] <- round(out$coefficients[2, 1], 2)
+    mlr_pars$dt$b2_est[idx] <- round(out$coefficients[3, 1], 2)
+    mlr_pars$dt$b0_se[idx] <- round(out$coefficients[1, 2], 2)
+    mlr_pars$dt$b1_se[idx] <- round(out$coefficients[2, 2], 2)
+    mlr_pars$dt$b1_se[idx] <- round(out$coefficients[3, 2], 2)
+    mlr_pars$dt$r2[idx] <- round(out$r.squared, 2)
+    mlr_pars$dt$N[idx] <- nrow(df)
+    mlr_pars$dt$rmse[idx] <- 0
+    
+    # }
+    
+    df$N <- nrow(df)
+    
+    mlr_fit1$df_lst[[idx]] <- df
+    
+    mlr_fit1$fit <- fit
+    
+    
+    # For model selection table
+    mod_selec_tab$dt$eqn[4] <- paste0("$$wtemp_{t} =  ",round(out$coefficients[1, 1], 2)," + ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t-1} + ", round(out$coefficients[3, 1], 2), "\\times atemp_{t}$$")
+    mod_selec_tab$dt$r2[4] <- round(out$r.squared, 2)
+    
+    df1 <- df %>%
+      filter(Date > "2020-01-01")
+    
+    mod <- predict(fit, df)
+    pred <- data.frame(Date = df$Date,
+                       model = mod) %>%
+      filter(Date > "2020-01-01")
+    
+    p1 <- ggplot() +
+      geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
+      geom_line(data = pred, aes(Date, model, color = "Mod")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      scale_color_manual(values = c("Mod" = cols[4],
+                                    "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12)
+    
+   
+      mlr_fit1$eqn <- paste0("$$wtemp_{t} =  ",round(out$coefficients[1, 1], 2)," + ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t-1} + ", round(out$coefficients[3, 1], 2), "\\times atemp_{t}$$")
+      
+      mlr_eqn$dt$b0[idx] <- round(out$coefficients[1, 1], 2)
+      mlr_eqn$dt$b1[idx] <- round(out$coefficients[2, 1], 2)
+      mlr_eqn$dt$b2[idx] <- round(out$coefficients[3, 1], 2)
+      mlr_eqn$dt$N[idx] <- nrow(df)
+    
+    mlr_ts_plot1$main <- ggplotly(p1, dynamicTicks = TRUE) 
+    
+    
+  })
+
+  output$mlr_ts_plot1 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    mlr_ts_plot1$main
+  })
+  
+  
+  output$mlr_mod1 <- renderUI({
+    input$plot_mlr
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(!is.null(mlr_fit1$eqn),
+           message = "Click 'Plot'.")
+    )
+    withMathJax(
+      tags$p(mlr_fit1$eqn)
+    )
+  })
+  
+  
+  # final plot with all four model fits
+  all_mods_plot <- reactiveValues(main = NULL)
+  
+  
+  observeEvent(input$plot_mlr,{
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(!is.null(lm_fit$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    validate(
+      need(!is.null(lm_fit1$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    validate(
+      need(!is.null(mlr_fit1$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    df1 <- df %>%
+      mutate(wtemp_yday = dplyr::lag(wtemp)) %>%
+      filter(year(Date) == 2020) 
+    
+    mod1 <- df1$wtemp_yday
+    mod2 <- predict(lm_fit$fit, df1)
+    mod3 <- predict(lm_fit1$fit, df1)
+    mod4 <- predict(mlr_fit1$fit, df1)
+    pred <- data.frame(Date = df1$Date,
+                       model1 = mod1,
+                       model2 = mod2,
+                       model3 = mod3,
+                       model4 = mod4) 
+    
+    p1 <- ggplot() +
+      geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
+      geom_line(data = pred, aes(Date, model1, color = "Pers")) +
+      geom_line(data = pred, aes(Date, model2, color = "Wtemp")) +
+      geom_line(data = pred, aes(Date, model3, color = "Atemp")) +
+      geom_line(data = pred, aes(Date, model4, color = "Both")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Time") +
+      scale_color_manual(values = c("Pers" = cols[1],
+                                    "Wtemp" = cols[2],
+                                    "Atemp" = cols[3],
+                                    "Both" = cols[4],
+                                    "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12)
+    
+    all_mods_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
+    
+    
+  })
+  
+  output$all_mods_plot <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    validate(
+      need(!is.null(lm_fit$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    validate(
+      need(!is.null(lm_fit1$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    validate(
+      need(!is.null(mlr_fit1$fit),
+           message = "Be sure to fit all four models above!")
+    )
+    all_mods_plot$main
   })
   
 
@@ -1305,6 +1551,8 @@ shinyServer(function(input, output, session) {
     df <- persist_df$df
     df <- df[df$Date > "2020-01-01", ]
     persist_plot$layer1 <- geom_line(data = df, aes(Date, Mod, color = "Mod"))
+    mod_selec_tab$dt$eqn[1] <- "$$wtemp_{t+1} = wtemp_{t}$$"
+    
   })
 
   observe({

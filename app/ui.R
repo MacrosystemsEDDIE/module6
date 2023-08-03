@@ -600,11 +600,11 @@ ui <- function(req) {
                                              fluidRow(
                                                column(6,
                                                       h3("Create persistence model"),
-                                                      p(id = "txt_j", "The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a ", tags$b("persistence model.")),
+                                                      p(id = "txt_j", "The simplest model that we can create is to predict that today's water temperature will be the same as yesterday’s water temperature. This is called a ", tags$b("persistence model.")),
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),
-                                                        div("$$wtemp_{t+1} = wtemp_{t}$$"),
-                                                        p("where t+1 = tomorrow and t = today.")
+                                                        div("$$wtemp_{t} = wtemp_{t-1}$$"),
+                                                        p("where t = today and t = yesterday.")
                                                       ),
                                                       p(id = "txt_j", "Let's plot this model versus observations."),
                                                       br(),
@@ -770,62 +770,67 @@ ui <- function(req) {
                                              p(id = "txt_j", "Finally, we will fit a ", tags$b("multiple linear regression model.")," This model will use two independent variables, yesterday's water temperature and today's air temperature, to predict today's water temperature."),
                                              wellPanel(
                                                h4("Multiple linear regression model:"),
-                                               div("$$wtemp_{t} = = \\beta _{0} + \\beta _{1}wtemp_{t-1} + \\beta _{2}atemp_{t}$$"),
+                                               div("$$wtemp_{t} = \\beta _{0} + \\beta _{1}wtemp_{t-1} + \\beta _{2}atemp_{t}$$"),
                                                p("where t = today and t-1 = yesterday.")
                                              ),
                                              p(id = "txt_j", "Let's plot this model versus observations."),
                                              br(),
-                                             actionButton("plot_persist", "Plot"),
+                                             actionButton("plot_mlr", "Plot"),
                                              br(), br(),
                                              box(id = "box2", width = 12, status = "primary",
                                                  solidHeader = TRUE,
                                                  fluidRow(
                                                    column(10, offset = 1,
                                                           h3("Questions"),
-                                                          p(tags$b(quest["q11", 1])),
-                                                          p(tags$b(quest["q12", 1]))
-                                                   )
+                                                          p(tags$b(quest["q17", 1])),
+                                                          radioButtons("mlr_params", "", c("wtemp", "atemp"),
+                                                                       selected = character(0)),
+                                                          conditionalPanel("input.mlr_params == 'wtemp'",
+                                                                           p("That's right!")
+                                                          ),
+                                                          conditionalPanel("input.mlr_params == 'atemp'",
+                                                                           p("Whoops! Try again.")
+                                                          )                                                  
+                                                          )
                                                  )
                                              )
                                       ),
                                       column(6,
                                              wellPanel(
-                                               plotlyOutput("persist_plot")
+                                               plotlyOutput("mlr_ts_plot1")
+                                             ),
+                                             DTOutput("mlr_DT", width = "100%"),
+                                             br(),
+                                             wellPanel(
+                                               uiOutput("mlr_mod1")
                                              )
                                       )
                                     ),
-                                             fluidRow(
-                                               column(8,
-                                                      h3("Water temperature time series"),
-                                                      p(id = "txt_j", "When you add your models to the table, they will appear here as lines with colors corresponding to the plot above."),
-                                                      p(id = "txt_j", "Use the interactivity of the plots to zoom in at different times of the year to inspect closer."),
-                                                      wellPanel(
-                                                        plotlyOutput("lm_ts_plot")
-                                                      )
-                                               ),
-                                               column(4,
-                                                      h3("Compare model performance"),
-                                                      p(tags$b("Model performance measured with the RMSE value.")),
-                                                      p(id = "txt_j", "Generally, an RMSE value <1.5 \u00B0C is regarded as a 'good' model fit for water temperature."),
-                                                      DTOutput("r2_tab"),
-                                                      br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[15], label = quest[qid[15], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[16], label = quest[qid[16], ], width = "90%")
-                                                            )
-                                                          )
-                                                      )
-                                               )
+                                    hr(),
+                                    fluidRow(
+                                      column(6,
+                                             h3("Nice work! You've fit four models!"),
+                                             box(id = "box2", width = 12, status = "primary",
+                                                 solidHeader = TRUE,
+                                                 fluidRow(
+                                                   column(10, offset = 1,
+                                                          h3("Question"),
+                                                          p(tags$b(quest["q18", 1])),
+                                                   )
+                                                 )
+                                             )
                                              ),
-                                             hr(),
+                                      column(6,
+                                             wellPanel(
+                                               plotlyOutput("all_mods_plot")
+                                             )
+                                             )
+                                    ),
+                                    hr(),
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will build alternative models with different structures."))
+                                                      p("We will use the models we have built to generate forecasts."))
                                              )
                                     ),
                                     
