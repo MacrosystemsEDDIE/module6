@@ -7,27 +7,27 @@ shinyServer(function(input, output, session) {
   
   # Slickr model output
   output$model_slides <- renderSlickR({
-    slickR(model_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(model_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
 
   # Slickr Process UC slides
   output$proc_uc_slides <- renderSlickR({
-    slickR(proc_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(proc_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
 
   # Slickr Parameter UC slides
   output$param_uc_slides <- renderSlickR({
-    slickR(param_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
 
   # Slickr Initial conditions UC slides
   output$ic_uc_slides <- renderSlickR({
-    slickR(ic_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(ic_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
 
   # Slickr Driver UC slides
   output$driver_uc_slides <- renderSlickR({
-    slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
 
   # NEON Sites datatable ----
@@ -494,7 +494,7 @@ shinyServer(function(input, output, session) {
       geom_point(data = df, aes(Date, wtemp, color = "Obs")) +
       ylab("Water temperature (\u00B0C)") +
       xlab("Time") +
-      scale_color_manual(values = c("Mod" = cols[1], "Obs" = "black"), name = "") +
+      scale_color_manual(values = c("Mod" = cols[3], "Obs" = "black"), name = "") +
       theme_bw(base_size = 16)
     
   })
@@ -661,7 +661,7 @@ shinyServer(function(input, output, session) {
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Yesterday's water temperature (\u00B0C)") +
       geom_point(data = df, aes(wtemp_yday, wtemp, color = "Obs")) +
-      scale_color_manual(values = c("Mod" = cols[2], "Obs" = "black"), name = "") +
+      scale_color_manual(values = c("Mod" = cols[4], "Obs" = "black"), name = "") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 12)
     
@@ -674,7 +674,7 @@ shinyServer(function(input, output, session) {
       geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
-      scale_color_manual(values = c("Mod" = cols[2],
+      scale_color_manual(values = c("Mod" = cols[4],
                                     "Obs" = "black"), name = "") +
       theme_bw(base_size = 12)
     
@@ -858,7 +858,7 @@ shinyServer(function(input, output, session) {
       ylab("Surface water temperature (\u00B0C)") +
       xlab("Air temperature (\u00B0C)") +
       geom_point(data = df, aes(airt, wtemp, color = "Obs")) +
-      scale_color_manual(values = c("Mod" = cols[3], "Obs" = "black"), name = "") +
+      scale_color_manual(values = c("Mod" = cols[5], "Obs" = "black"), name = "") +
       coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
       theme_bw(base_size = 12)
     
@@ -871,7 +871,7 @@ shinyServer(function(input, output, session) {
       geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
-      scale_color_manual(values = c("Mod" = cols[3],
+      scale_color_manual(values = c("Mod" = cols[5],
                                     "Obs" = "black"), name = "") +
       theme_bw(base_size = 12)
     
@@ -954,10 +954,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$plot_mlr, { # view_var
     
     req(!is.null(airt_swt$df))
-    # Date slider
-    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
-    
-    
+   
     idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
     
     airt_swt$sub <- airt_swt$df[airt_swt$df$Date %in% idx_dates, ]
@@ -1043,7 +1040,7 @@ shinyServer(function(input, output, session) {
     
     
     # For model selection table
-    mod_selec_tab$dt$eqn[4] <- paste0("$$wtemp_{t} =  ",round(out$coefficients[1, 1], 2)," + ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t-1} + ", round(out$coefficients[3, 1], 2), "\\times atemp_{t}$$")
+    mod_selec_tab$dt$eqn[4] <- paste0("$$wtemp_{t+1} =  ",round(out$coefficients[1, 1], 2)," + ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t} + ", round(out$coefficients[3, 1], 2), "\\times atemp_{t+1}$$")
     mod_selec_tab$dt$r2[4] <- round(out$r.squared, 2)
     
     df1 <- df %>%
@@ -1059,7 +1056,7 @@ shinyServer(function(input, output, session) {
       geom_line(data = pred, aes(Date, model, color = "Mod")) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
-      scale_color_manual(values = c("Mod" = cols[4],
+      scale_color_manual(values = c("Mod" = cols[6],
                                     "Obs" = "black"), name = "") +
       theme_bw(base_size = 12)
     
@@ -1162,10 +1159,10 @@ shinyServer(function(input, output, session) {
       geom_line(data = pred, aes(Date, model4, color = "Both")) +
       ylab("Temperature (\u00B0C)") +
       xlab("Time") +
-      scale_color_manual(values = c("Pers" = cols[1],
-                                    "Wtemp" = cols[2],
-                                    "Atemp" = cols[3],
-                                    "Both" = cols[4],
+      scale_color_manual(values = c("Pers" = cols[3],
+                                    "Wtemp" = cols[4],
+                                    "Atemp" = cols[5],
+                                    "Both" = cols[6],
                                     "Obs" = "black"), name = "") +
       theme_bw(base_size = 12)
     
@@ -1235,12 +1232,12 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 5)]
+    mod_selec_tab$dt[, c(1,5)]
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
+  colnames = c("Model",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
 
   
@@ -1400,6 +1397,18 @@ shinyServer(function(input, output, session) {
   })
   
   # end Objective 4 and Activity A
+  
+  # Activity B ----
+  
+  ## Objective 5 ----
+  
+  observeEvent(input$gen_proc_dist,{
+    
+    
+    
+  })
+  
+  
   
   
   #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET

@@ -847,6 +847,13 @@ ui <- function(req) {
                                                column(6,
                                                       h3("Deterministic forecasts"),
                                                       p(id = "txt_j", "We will now use the models you have fit to generate ", tags$b("deterministic")," forecasts of water temperature. A deterministic forecast is one that does not account for any uncertainty associated with predictions."),
+                                                      h4("Shifting from model fitting to forecasting"),
+                                                      p(id = "txt_j", "So far, we have fit our water temperature models using yesterday's water temperature and today's air temperature to predict today's water temperature. For example:"),
+                                                      div("$$wtemp_{t} = \\beta_0 + \\beta_1*wtemp_{t-1} + \\beta_2*atemp_{t}$$"),
+                                                      p(id = "txt_j", "Now, to forecast, we will need to make a subtle but important change in the way we write our models, to show that instead of predicting today's water temperature, we are now forecasting tomorrow's water temperature:"),
+                                                      div("$$wtemp_{t+1} = \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1}$$"),
+                                                      p(tags$b("Note the change in the subscripts of the wtemp and atemp variables from t-1 to t and t to t+1!!")),
+                                                      p("This means, for models that require air temperature as an input, we will need some way of estimating tomorrow's air temperature in order to forecast tomorrow's water temperature.")
                                                ),
                                                column(6, align = "center",
                                                       img(src = "model_UC_draft_v2.png", height = "60%", id = "bla_border",
@@ -873,8 +880,8 @@ ui <- function(req) {
                                                #** Deterministic Forecast ----
                                                column(6,
                                                       h3("Deterministic Forecasts"),
-                                                      p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
-                                                      p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver. We will generate forecasts from today (Sep 25th), which is represented in the plots as the vertical dashed line, for seven days into the future (Oct 2nd)."),
+                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
                                                       br(),
@@ -957,11 +964,10 @@ ui <- function(req) {
                                                column(4,
                                                       p(id = "txt_j", tags$b("Process uncertainty")," is uncertainty caused by our inability to model all processes as observed in the real world."),
                                                       p(id = "txt_j", "Our 'simple' water temperature models use today's water temperature and tomorrow's forecasted air temperature to forecast tomorrow's water temperature. For example:"),
-                                                      div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + \\beta_3$$"),
-                                                      p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W),")),
-                                                      div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + \\beta_3 + W_t$$"),
-                                                      uiOutput("sigma"),
-                                                      div("$$W \\sim {\\mathrm Norm}(0, \\sigma)$$")
+                                                      div("$$wtemp_{t+1} =  \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1}$$"),
+                                                      p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W):")),
+                                                      div("$$wtemp_{t+1} = \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + W_t$$"),
+                                                      p("Scroll through the slides to the right to learn how",tags$b(" W")," is calculated and accounted for in a forecast.")
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -970,10 +976,27 @@ ui <- function(req) {
                                                         )
                                                       )
                                                ),
+                                             hr(),
+                                             fluidRow(
+                                               column(6,
+                                                      h4("Generate Process Uncertainty Distributions"),
+                                                      p("We will generate a process uncertainty distribution for each of our models and sample these distributions to create an ensemble forecast."),
+                                                      p(id = "txt_j", "Select a model from the table below and then calculate the process uncertainty distribution and run the forecast."),
+                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
+                                                      DTOutput("mod_selec_tab2"),
+                                                      actionButton("gen_proc_dist", "Generate process uncertainty distribution"),
+                                                      actionButton("run_wtemp_fc2", "Run forecast")
+                                                      ),
+                                               column(6,
+                                                      wellPanel(
+                                                        plotlyOutput("proc_dist")
+                                                      )
+                                                      )
+                                             ),
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Process Uncertainty"),
-                                                      p(id = "txt_j", "First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with differing numbers of members and observe how the forecast outcome changes. We will generate forecasts from today (Sep 25th), which is represented in the plots as the vertical dashed line, for seven days into the future (Oct 2nd)."),
+                                                      p(id = "txt_j", "First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with many ensemble members and observe how the forecast outcome changes."),
                                                       p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
