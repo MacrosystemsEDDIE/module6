@@ -485,10 +485,6 @@ shinyServer(function(input, output, session) {
     
     df <- persist_df$df
     df <- df[df$Date > "2020-01-01", ]
-    # df <- df[df$Date >= input$persist_date[1] & df$Date <= input$persist_date[2], ]
-    # validate(
-    #   need(nrow(df) > 0, "No data between those dates. Adjust the Date range.")
-    # )
     
     persist_plot$main <- ggplot() +
       geom_point(data = df, aes(Date, wtemp, color = "Obs")) +
