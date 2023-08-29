@@ -1200,302 +1200,6 @@ shinyServer(function(input, output, session) {
   
 ## end Obj 3
   
-#### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET
-
-  observeEvent(input$lr_DT2_rows_selected, {
-    req(sum(!is.na(lr_pars$dt$m_est)) > 0)
-    req(!is.na(lr_pars$dt$m_est[input$lr_DT2_rows_selected]))
-
-    mb_samples$df <- NULL
-
-    df <- data.frame("m_mn" = lr_pars$dt$m_est[input$lr_DT2_rows_selected],
-                     "m_sd" = lr_pars$dt$m_se[input$lr_DT2_rows_selected],
-                     "b_mn" = lr_pars$dt$b_est[input$lr_DT2_rows_selected],
-                     "b_sd" = lr_pars$dt$b_se[input$lr_DT2_rows_selected])
-    #updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
-    #updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
-    linr_stats$dt <- signif(df, 3)
-  })
-
-  #** Generate distribution plots ----
-  lr_dist_plot <- reactiveValues(lst = as.list(rep(NA, 5)))
-  observeEvent(input$gen_lr_dist_plot, {
-
-    req(!is.null(input$lr_DT2_rows_selected))
-
-    df <- data.frame(m = rnorm(500, mean = linr_stats$dt[1, 1], sd = linr_stats$dt[1, 2]),
-                     b = rnorm(500, mean = linr_stats$dt[1, 3], sd = linr_stats$dt[1, 4]))
-    if(!is.null(input$lr_DT2_rows_selected)) {
-      if(input$lr_DT2_rows_selected != "") {
-        df$Frequency <- samp_freq[input$lr_DT2_rows_selected]
-        lr_dist_plot$lst[[input$lr_DT2_rows_selected]] <- df
-      }
-    } else {
-      df$Frequency <- "User input"
-      lr_dist_plot$lst[[5]] <- df
-    }
-    #linr_stats$dt$b_sd <- input$b_std
-    #linr_stats$dt$m_sd <- input$m_std
-  })
-
-  # Reset samples
-  observeEvent(input$b_std, {
-    mb_samples$df <- NULL
-  })
-  observeEvent(input$m_std, {
-    mb_samples$df <- NULL
-  })
-  observeEvent(input$n_samp, {
-    mb_samples$df <- NULL
-  })
-  
-  lr_param_dist_plot <- reactiveValues(main = NULL)
-  
-  observeEvent(input$gen_lr_dist_plot, {
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
-    )
-    validate(
-      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
-    )
-    validate(
-      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
-    )
-    
-    lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
-    
-    mlt <- do.call(rbind, lst)
-    
-    y_max_m <- lapply(lst, function(x) {
-      dens_m <- density(x$m)
-      max(dens_m$y)
-    })
-    
-    ylims_m <- c(0, max(c(6, max(unlist(y_max_m), na.rm = TRUE))))
-    
-    y_max_b <- lapply(lst, function(x) {
-      dens_b <- density(x$b)
-      max(dens_b$y)
-    })
-    
-    ylims_b <- c(0, max(c(1.5, max(unlist(y_max_b), na.rm = TRUE))))
-    
-    # df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
-    
-    xlims_m <- c(min(0, mlt$m), max(2, mlt$m))
-    xlims_b <- c(min(-2.5, mlt$b), max(10, mlt$b))
-    
-    # scales_y <- list()
-    
-    p1 <- ggplot() +
-      geom_density(data = mlt, aes(m, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_m, ylim = ylims_m) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Slope (m)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
-      theme_bw(base_size = 22)
-    
-    p2 <- ggplot() +
-      geom_density(data = mlt, aes(b, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_b, ylim = ylims_b) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Intercept (b)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
-      theme_bw(base_size = 22)
-    
-    lr_param_dist_plot$main <- ggpubr::ggarrange(p1, p2, nrow = 1, align = "h", common.legend = TRUE, legend = "bottom")
-  })
-
-  output$lr_param_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
-    )
-    validate(
-      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
-    )
-    validate(
-      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
-    )
-    lr_param_dist_plot$main
-  })
-
-  # Sample m and b for plotting
-  mb_samples <- reactiveValues(df = NULL)
-  lm_dist <- reactiveValues(df = NULL)
-
-
-  observeEvent(input$gen_lin_mods, {
-    req(!is.null(input$n_samp))
-    req(!is.na(linr_stats$dt$b_sd))
-    # req(!is.null(input$lr_DT2_rows_selected))
-    # req(input$lr_DT2_rows_selected != "")
-    # req(!is.null(lr_dist_plot$m))
-    # req(!is.null(lr_dist_plot$b))
-    updateRadioButtons(inputId = "plot_type1", selected = "Line")
-
-    if(!is.null(input$lr_DT2_rows_selected)) {
-      if(input$lr_DT2_rows_selected != "") {
-        idx <- sample(1:nrow(lr_dist_plot$lst[[input$lr_DT2_rows_selected]]), input$n_samp)
-        mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$m[idx],
-                                           "b" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$b[idx]), 3)
-      }
-    } else {
-      idx <- sample(1:nrow(lr_dist_plot$lst[[5]]), input$n_samp)
-      mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[5]]$m[idx],
-                                         "b" = lr_dist_plot$lst[[5]]$b[idx]), 3)
-    }
-    # Create summary data frame
-    x = c(-5, 35) # seq(-5, 35, 0.1)
-    y = apply(mb_samples$df, 1, function(y) y[1]* x + y[2])
-
-    lm_dist$df <- data.frame(x = x,
-                             p5 = apply(y, 1, function(x) quantile(x, 0.05)),
-                             p125 = apply(y, 1, function(x) quantile(x, 0.125)),
-                             p875 = apply(y, 1, function(x) quantile(x, 0.875)),
-                             p95 = apply(y, 1, function(x) quantile(x, 0.95)),
-                             mean = apply(y, 1, function(x) mean(x)),
-                             median = apply(y, 1, function(x) median(x)))
-  })
-
-  output$mb_samps <- renderDT(mb_samples$df, selection = "none",
-                              options = list(searching = FALSE, paging = TRUE, ordering= FALSE,
-                                             # dom = "t",
-                                             autoWidth = TRUE,
-                                             pageLength = 5
-                              ),
-                              colnames = c("Slope (m)", "Intercept (b)"),
-                              rownames = FALSE,
-                              server = FALSE, escape = FALSE)
-
-  click_df <- reactiveValues(df = NULL)
-  observe({
-    req(!is.null(lm_dist$df))
-    pnts <- nearPoints(airt_swt$df, input$mod_err_plot_click)[, -1]
-    # class(pnts)
-    brsh <- brushedPoints(airt_swt$df, brush = input$mod_err_plot_brush)[, -1]
-    df <- rbind(pnts, brsh)
-    df <- round(df, 1)
-    # idx <- which(lm_dist$df$x %in% df$airt)
-    df$`Modelled Water Temp.` <- linr_stats$dt[1, 1] * df$airt + linr_stats$dt[1, 3]
-    colnames(df)[1:2] <- c("Air Temp.", "Observed Water Temp.")
-    df$Error <- df[, 3] - df[, 2]
-    click_df$df <- df
-    mean_err$val <- NULL
-  })
-
-  #** Calculate mean error ----
-  mean_err <- reactiveValues(val = NULL)
-  observeEvent(input$calc_err, {
-    req(!is.null(click_df$df))
-    mean_err$val <- mean(click_df$df$Error, na.rm = TRUE)
-  })
-
-  selected <- reactiveValues(sel = NULL)
-
-  observeEvent(input$clear_sel1, {
-    airt_swt$sel <- NULL
-    selected$sel <- NULL
-  })
-
-  #selected
-  observe({
-    # suppress warnings
-    storeWarn<- getOption("warn")
-    options(warn = -1)
-    selected$sel <- event_data(event = "plotly_selected", source = "ci_sel")
-
-    #restore warnings, delayed so plot is completed
-    shinyjs::delay(expr =({
-      options(warn = storeWarn)
-    }) ,ms = 100)
-  })
-
-  pct_msg <- reactiveValues(txt = NULL)
-  observeEvent(input$calc_pct, {
-    n_pnts = nrow(na.exclude(airt_swt$df))
-    insid <- n_pnts - (input$points_above + input$points_below)
-    pct_msg$txt <- paste0("Percentage points inside the CI: ", round((insid * 100 / n_pnts), 2), "%")
-  })
-  
-  ## END BIZARRE CODE THAT I NEED TO FIGURE OUT DEPENDENCIES OF
-  
-  # Model selection tables for various objectives
-
-  output$sel_mod2 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab2_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab2_rows_selected])
-    )
-  })
-
-  # Parameter UC
-  output$sel_mod3b <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab3_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab3_rows_selected])
-    )
-  })
-
-
-  # IC Forecast
-  output$sel_mod4 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab4_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab4_rows_selected])
-    )
-  })
-
-  # Driver forecast UC
-  output$sel_mod5 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab5_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
-    )
-  })
-
-  # end model selection tables
-
- 
-
-  
   
 
   # Objective 4 ----
@@ -1694,6 +1398,302 @@ shinyServer(function(input, output, session) {
     )
     "Forecast complete!"
   })
+  
+  # end Objective 4 and Activity A
+  
+  
+  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET
+  
+  observeEvent(input$lr_DT2_rows_selected, {
+    req(sum(!is.na(lr_pars$dt$m_est)) > 0)
+    req(!is.na(lr_pars$dt$m_est[input$lr_DT2_rows_selected]))
+    
+    mb_samples$df <- NULL
+    
+    df <- data.frame("m_mn" = lr_pars$dt$m_est[input$lr_DT2_rows_selected],
+                     "m_sd" = lr_pars$dt$m_se[input$lr_DT2_rows_selected],
+                     "b_mn" = lr_pars$dt$b_est[input$lr_DT2_rows_selected],
+                     "b_sd" = lr_pars$dt$b_se[input$lr_DT2_rows_selected])
+    #updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
+    #updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
+    linr_stats$dt <- signif(df, 3)
+  })
+  
+  #** Generate distribution plots ----
+  lr_dist_plot <- reactiveValues(lst = as.list(rep(NA, 5)))
+  observeEvent(input$gen_lr_dist_plot, {
+    
+    req(!is.null(input$lr_DT2_rows_selected))
+    
+    df <- data.frame(m = rnorm(500, mean = linr_stats$dt[1, 1], sd = linr_stats$dt[1, 2]),
+                     b = rnorm(500, mean = linr_stats$dt[1, 3], sd = linr_stats$dt[1, 4]))
+    if(!is.null(input$lr_DT2_rows_selected)) {
+      if(input$lr_DT2_rows_selected != "") {
+        df$Frequency <- samp_freq[input$lr_DT2_rows_selected]
+        lr_dist_plot$lst[[input$lr_DT2_rows_selected]] <- df
+      }
+    } else {
+      df$Frequency <- "User input"
+      lr_dist_plot$lst[[5]] <- df
+    }
+    #linr_stats$dt$b_sd <- input$b_std
+    #linr_stats$dt$m_sd <- input$m_std
+  })
+  
+  # Reset samples
+  observeEvent(input$b_std, {
+    mb_samples$df <- NULL
+  })
+  observeEvent(input$m_std, {
+    mb_samples$df <- NULL
+  })
+  observeEvent(input$n_samp, {
+    mb_samples$df <- NULL
+  })
+  
+  lr_param_dist_plot <- reactiveValues(main = NULL)
+  
+  observeEvent(input$gen_lr_dist_plot, {
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
+    )
+    validate(
+      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
+    )
+    validate(
+      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
+    )
+    
+    lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
+    
+    mlt <- do.call(rbind, lst)
+    
+    y_max_m <- lapply(lst, function(x) {
+      dens_m <- density(x$m)
+      max(dens_m$y)
+    })
+    
+    ylims_m <- c(0, max(c(6, max(unlist(y_max_m), na.rm = TRUE))))
+    
+    y_max_b <- lapply(lst, function(x) {
+      dens_b <- density(x$b)
+      max(dens_b$y)
+    })
+    
+    ylims_b <- c(0, max(c(1.5, max(unlist(y_max_b), na.rm = TRUE))))
+    
+    # df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
+    
+    xlims_m <- c(min(0, mlt$m), max(2, mlt$m))
+    xlims_b <- c(min(-2.5, mlt$b), max(10, mlt$b))
+    
+    # scales_y <- list()
+    
+    p1 <- ggplot() +
+      geom_density(data = mlt, aes(m, fill = Frequency), color = NA, alpha = 0.3) +
+      coord_cartesian(xlim = xlims_m, ylim = ylims_m) +
+      ylab("Density") +
+      xlab("Value") +
+      ggtitle("Slope (m)") +
+      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
+      theme_bw(base_size = 22)
+    
+    p2 <- ggplot() +
+      geom_density(data = mlt, aes(b, fill = Frequency), color = NA, alpha = 0.3) +
+      coord_cartesian(xlim = xlims_b, ylim = ylims_b) +
+      ylab("Density") +
+      xlab("Value") +
+      ggtitle("Intercept (b)") +
+      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
+      theme_bw(base_size = 22)
+    
+    lr_param_dist_plot$main <- ggpubr::ggarrange(p1, p2, nrow = 1, align = "h", common.legend = TRUE, legend = "bottom")
+  })
+  
+  output$lr_param_dist_plot <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
+    )
+    validate(
+      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
+    )
+    validate(
+      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
+    )
+    lr_param_dist_plot$main
+  })
+  
+  # Sample m and b for plotting
+  mb_samples <- reactiveValues(df = NULL)
+  lm_dist <- reactiveValues(df = NULL)
+  
+  
+  observeEvent(input$gen_lin_mods, {
+    req(!is.null(input$n_samp))
+    req(!is.na(linr_stats$dt$b_sd))
+    # req(!is.null(input$lr_DT2_rows_selected))
+    # req(input$lr_DT2_rows_selected != "")
+    # req(!is.null(lr_dist_plot$m))
+    # req(!is.null(lr_dist_plot$b))
+    updateRadioButtons(inputId = "plot_type1", selected = "Line")
+    
+    if(!is.null(input$lr_DT2_rows_selected)) {
+      if(input$lr_DT2_rows_selected != "") {
+        idx <- sample(1:nrow(lr_dist_plot$lst[[input$lr_DT2_rows_selected]]), input$n_samp)
+        mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$m[idx],
+                                           "b" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$b[idx]), 3)
+      }
+    } else {
+      idx <- sample(1:nrow(lr_dist_plot$lst[[5]]), input$n_samp)
+      mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[5]]$m[idx],
+                                         "b" = lr_dist_plot$lst[[5]]$b[idx]), 3)
+    }
+    # Create summary data frame
+    x = c(-5, 35) # seq(-5, 35, 0.1)
+    y = apply(mb_samples$df, 1, function(y) y[1]* x + y[2])
+    
+    lm_dist$df <- data.frame(x = x,
+                             p5 = apply(y, 1, function(x) quantile(x, 0.05)),
+                             p125 = apply(y, 1, function(x) quantile(x, 0.125)),
+                             p875 = apply(y, 1, function(x) quantile(x, 0.875)),
+                             p95 = apply(y, 1, function(x) quantile(x, 0.95)),
+                             mean = apply(y, 1, function(x) mean(x)),
+                             median = apply(y, 1, function(x) median(x)))
+  })
+  
+  output$mb_samps <- renderDT(mb_samples$df, selection = "none",
+                              options = list(searching = FALSE, paging = TRUE, ordering= FALSE,
+                                             # dom = "t",
+                                             autoWidth = TRUE,
+                                             pageLength = 5
+                              ),
+                              colnames = c("Slope (m)", "Intercept (b)"),
+                              rownames = FALSE,
+                              server = FALSE, escape = FALSE)
+  
+  click_df <- reactiveValues(df = NULL)
+  observe({
+    req(!is.null(lm_dist$df))
+    pnts <- nearPoints(airt_swt$df, input$mod_err_plot_click)[, -1]
+    # class(pnts)
+    brsh <- brushedPoints(airt_swt$df, brush = input$mod_err_plot_brush)[, -1]
+    df <- rbind(pnts, brsh)
+    df <- round(df, 1)
+    # idx <- which(lm_dist$df$x %in% df$airt)
+    df$`Modelled Water Temp.` <- linr_stats$dt[1, 1] * df$airt + linr_stats$dt[1, 3]
+    colnames(df)[1:2] <- c("Air Temp.", "Observed Water Temp.")
+    df$Error <- df[, 3] - df[, 2]
+    click_df$df <- df
+    mean_err$val <- NULL
+  })
+  
+  #** Calculate mean error ----
+  mean_err <- reactiveValues(val = NULL)
+  observeEvent(input$calc_err, {
+    req(!is.null(click_df$df))
+    mean_err$val <- mean(click_df$df$Error, na.rm = TRUE)
+  })
+  
+  selected <- reactiveValues(sel = NULL)
+  
+  observeEvent(input$clear_sel1, {
+    airt_swt$sel <- NULL
+    selected$sel <- NULL
+  })
+  
+  #selected
+  observe({
+    # suppress warnings
+    storeWarn<- getOption("warn")
+    options(warn = -1)
+    selected$sel <- event_data(event = "plotly_selected", source = "ci_sel")
+    
+    #restore warnings, delayed so plot is completed
+    shinyjs::delay(expr =({
+      options(warn = storeWarn)
+    }) ,ms = 100)
+  })
+  
+  pct_msg <- reactiveValues(txt = NULL)
+  observeEvent(input$calc_pct, {
+    n_pnts = nrow(na.exclude(airt_swt$df))
+    insid <- n_pnts - (input$points_above + input$points_below)
+    pct_msg$txt <- paste0("Percentage points inside the CI: ", round((insid * 100 / n_pnts), 2), "%")
+  })
+  
+  ## END BIZARRE CODE THAT I NEED TO FIGURE OUT DEPENDENCIES OF
+  
+  # Model selection tables for various objectives
+  
+  output$sel_mod2 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab2_rows_selected != "",
+           message = "")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab2_rows_selected])
+    )
+  })
+  
+  # Parameter UC
+  output$sel_mod3b <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab3_rows_selected != "",
+           message = "")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab3_rows_selected])
+    )
+  })
+  
+  
+  # IC Forecast
+  output$sel_mod4 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab4_rows_selected != "",
+           message = "")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab4_rows_selected])
+    )
+  })
+  
+  # Driver forecast UC
+  output$sel_mod5 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab5_rows_selected != "",
+           message = "")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
+    )
+  })
+  
+  # end model selection tables
   
   
   wtemp_fc_data <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
