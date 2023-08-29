@@ -1,4 +1,4 @@
-q_no,Question,location
+﻿q_no,Question,location
 q1,What is meant by the term 'uncertainty' in the context of ecological forecasting?,Introduction:
 q2,"How do you think knowing the uncertainty in a forecast helps natural resource managers? For example, if a drinking water manager received a toxic algal bloom forecast with high vs. low uncertainty in a bloom prediction, how might that affect their decision-making?",Introduction:
 q3,Fill out information about your selected NEON site:,Site Selection: Objective 1
@@ -23,8 +23,8 @@ q15,"In a scatterplot of a perfect linear relationship, all the points fall exac
 q16,"A positive linear regression model with a perfect fit has a slope (m = 1) and an intercept (b = 0). Knowing this, use the parameter values of your two linear regression models to assess the fit of: 1) the model using yesterday's water temperature to predict today's water temperature;  and 2) the module using today's air temperature and today's water temperature. Which model do you think exhibits a better fit, and why?",Activity A: Objective 5
 q17,"Because both of our independent variables have the same units (degrees Celsius), we can compare the values of the coefficients to understand which independent variable has a stronger relationship with the dependent variable. Knowing this, is yesterday's water temperature or today's air temperature more strongly associated with today's water temperature?",Activity A: Objective 5
 q18,Which model do you think will produce the best forecasts of water temperature? Why?,Activity B: Overview
-q19,"Using the slider above, adjust the number of members and run the forecasts. How does forecast uncertainty change further into the future (e.g. with increasing forecast horizon)?",Activity B: Objective 6
-q20,Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Objective 7
+q19,"Using the forecasts you have generated, what is your best estimate of what the water temperature will be 7 days in the future? Explain your reasoning.",Activity B: Objective 6
+q20,"Describe, in your own words, the difference between a deterministic and a probabilistic forecast.",Activity B: Objective 7
 q21,Can you think of potential ways to reduce parameter uncertainty?,Activity B: Objective 7
 q22,Which model was most sensitive to initial conditions (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 8
 q23,What factors can lead to an increase in initial conditions uncertainty?,Activity B: Objective 8

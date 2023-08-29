@@ -833,152 +833,95 @@ ui <- function(req) {
                                                       p("We will use the models we have built to generate forecasts."))
                                              )
                                     ),
-                                    
-                                    #* Objective 4 - Explore Parameter ====
-                                    tabPanel(title = "Objective 4 - Explore Parameters", value = "obj4",
+                                    #* Activity B - Overview ====
+                                    tabPanel(title = "Objective 4 - Generate forecasts", value = "obj6",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 4 - Explore Parameters"),
+                                                                h3("Objective 4 - Generate forecasts"),
                                                                 p(id = "txt_j", module_text["obj_04", ])
-                                                                )
-                                                      )
-                                               ),
-                                             #** Generate distributions for intercept & slope ----
-                                             fluidRow(
-                                               column(12,
-                                                      h3("Generate distributions for intercept & slope")
-                                               ),
-                                               column(4,
-                                                      p(id = "txt_j", "When fitting the models to the data in the previous objective, a standard error of the estimated parameters is calculated."),
-                                                      p(id = "txt_j", module_text["std_error", ]),
-                                                      DTOutput("lr_DT2", width = "100%"),
-                                                      br(),
-                                                      # p("You must select rows in the data table before you can calculate the statistics."),
-                                                      # actionButton("calc_stats", "Calculate!"),
-                                                      # div(DTOutput("lr_stats"), style = "font-size: 50%; width: 50%"),
-                                                      p(id = "txt_j", "Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the models you fit by selecting a row in the table and clicking 'Generate plot'."),
-                                                      p(id = "txt_j", tags$b("Density plots")," are used to observe the distribution of a variable in a dataset. Density plots are a variation of histograms and they are better at determining the distribution shape.")
-                                               ),
-                                               column(8,
-                                                      fluidRow(
-                                                        column(12,
-                                                               wellPanel(
-                                                                 plotOutput("lr_param_dist_plot")
-                                                                 )
-                                                               ),
-                                                        column(12, align = "center",
-                                                                #sliderInput("m_std", "Slope (m) - Std. Dev.", min = 0, max = 0.5, value = 0.25, step = 0.01),
-                                                                actionButton("gen_lr_dist_plot", "Generate distributions")
-                                                               # p("Note: When generating the plots for Q14-15, make sure to deselect the row in the model table. This will add the distributions drawn as 'User input'")
-                                                                ),
-                                                        # column(6, align = "center",
-                                                        #        sliderInput("b_std", "Intercept (b) - Std. Dev.", min = 0, max = 1, value = 0.5, step = 0.1)
-                                                        #        ),
-                                                        column(12,
-                                                               br(), br(),
-                                                               box(id = "box2", width = 12, status = "primary",
-                                                                   solidHeader = TRUE,
-                                                                   fluidRow(
-                                                                     column(10, offset = 1,
-                                                                            h3("Questions"),
-                                                                            textAreaInput2(inputId = qid[17], label = quest[qid[17], ], width = "90%")
-                                                                            )
-                                                                     )
-                                                                   )
-                                                               )
-                                                        )
-                                                      )
-                                               ),
-                                             hr(),
-                                             fluidRow(
-                                               column(5, offset = 1,
-                                                      h3("Next step"),
-                                                      p("We will build alternative models with different structures."))
-                                               )
-                                             ),
-                                    #* Objective 5 - Improve Model for Forecasting ====
-                                    tabPanel(title = "Objective 5 - Improve Model for Forecasting", value = "obj5",
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 5 - Improve Model for Forecasting"),
-                                                                p(id = "txt_j", module_text["obj_05", ])
                                                       )
                                                )
                                              ),
-                                             hr(),
                                              fluidRow(
-                                               column(12,
-                                                      h3("Build a ", tags$em("Better"), " model")
+                                               column(6,
+                                                      h3("Deterministic forecasts"),
+                                                      p(id = "txt_j", "We will now use the models you have fit to generate ", tags$b("deterministic")," forecasts of water temperature. A deterministic forecast is one that does not account for any uncertainty associated with predictions."),
                                                ),
-                                               column(3,
-                                                      # p("The model we have built depends on the current air temperature. But, if we want to make a forecast of water temperature, we would be unable to use this model unless we used forecasted air temperature."),
-                                                      p(id = "txt_j", "We are now going to build two models that we will use to forecast water temperature."),
-                                                      tags$ol(
-                                                        tags$li("A linear regression using today's water temperature to predict tomorrow's water temperature"),
-                                                        tags$li("A multiple linear regression using today's water temperature and tomorrow's air temperature to predict tomorrow's water temperature")
-                                                      ),
-                                                      br()
-                                               ),
-                                               column(3,
-                                                      p("Build the models below and see how well your model performs at predicting water temperature."),
-                                                      wellPanel(
-                                                        p("Models are of the form"),
-                                                        div("$$y = \\beta _{1}x_{1} + \\beta _{2}x_{2} + ... + \\beta _{n}$$"),
-                                                        p("where \\(\\beta_{n}\\) represents the parameters in the model, similarly to the slope in a linear regression model.")
-                                                        ),
-                                                      selectInput("mult_lin_reg_vars", "Select predictors", choices = lin_reg_vars$Name, multiple = TRUE),
-                                                      h4("Fit model to data"),
-                                                      p(id = "txt_j", "Use a multiple linear regression model to estimate the parameters (\\(\\beta_{n}\\)) in your model below."),
-                                                      wellPanel(
-                                                        uiOutput("mult_lin_reg_eqn")
-                                                      ),
-                                                      br(),
-                                                      actionButton("fit_mlr", "Fit model")
+                                               column(6, align = "center",
+                                                      img(src = "model_UC_draft_v2.png", height = "60%", id = "bla_border",
+                                                          width = "60%", tags$style("border: solid 2px black;"))
+                                               )
+                                             ),
+                                             hr(),
+                                             #** View Weather Forecast Data ----
+                                             fluidRow(
+                                               column(6,
+                                                      h3("Weather forecast data"),
+                                                      p(id = "txt_j", "We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. We will need this data for our forecasts as some of our models depend on forecasted air temperature. Click the button below to view it."),
+                                                      actionButton("view_at_fc", "View forecast"),
+                                                      p(id = "txt_j", "With this air temperature forecast we can use the models that we built in Objective 3 that require air temperature, to forecast water temperature.")
                                                ),
                                                column(6,
-                                                      h4("Timeseries of Better Models"),
+                                                      h4("Air temperature forecast"),
                                                       wellPanel(
-                                                        plotlyOutput("mlr_ts_plot"),
-                                                        br(),
-                                                        uiOutput("mlr_mod")
-                                                      ),
-                                                      DTOutput("mlr_dt"),
-                                                      br()
+                                                        plotlyOutput("airt1_fc_plot")
                                                       )
-                                               ),
+                                               )
+                                             ),
                                              fluidRow(
-                                               column(12,
+                                               #** Deterministic Forecast ----
+                                               column(6,
+                                                      h3("Deterministic Forecasts"),
+                                                      p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
+                                                      p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
+                                                      DTOutput("mod_selec_tab1a"),
+                                                      br(),
+                                                      actionButton("run_wtemp_fc1a", "Run forecast"),
+                                                      br(), br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
-                                                            column(12,
-                                                                   h4("Questions")
-                                                            )
-                                                          ),
-                                                          fluidRow(
-                                                            column(4,
-                                                                   textAreaInput2(inputId = qid[19], label = quest[qid[19], ], width = "90%")
-                                                            ),
-                                                            column(4,
-                                                                   textAreaInput2(inputId = qid[20], label = quest[qid[20], ], width = "90%")
-                                                            ),
-                                                            column(4,
-                                                                   textAreaInput2(inputId = qid[21], label = quest[qid[21], ], width = "90%")
-                                                                   )
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   p(tags$b(quest["q19", 1]))
                                                             )
                                                           )
                                                       )
                                                ),
+                                               column(6,
+                                                      h4("Water temperature forecast"),
+                                                      wellPanel(
+                                                        plotlyOutput("wtemp_fc1a")
+                                                      ),
+                                                      wellPanel(
+                                                        uiOutput("sel_mod1a"),
+                                                        textOutput("txt_fc_out1a")
+                                                      )
+                                               )
+                                             ),
                                              hr(),
                                              fluidRow(
-                                               column(5, offset = 1,
-                                                      h3("Next step"),
-                                                      p(id = "txt_j", "We will use the models we have built to generate forecasts and explore different sources of uncertainty.")
+                                               column(6,
+                                                      h4("What is wrong with deterministic forecasts?"),
+                                                      p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (e.g. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
+                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
+                                                      p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
+                                               ),
+                                               column(6,
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   p(tags$b(quest["q20", 1]))
+                                                            )
+                                                          )
                                                       )
                                                )
                                              )
+                                    ),
                                     )
                         ),
                # 6. Activity B ----
@@ -994,92 +937,6 @@ ui <- function(req) {
                           )
                         ),
                         tabsetPanel(id = "tabseries3",
-                                    #* Activity B - Overview ====
-                                    tabPanel(title = "Overview", value = "obj6",
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Overview"),
-                                                                p(id = "txt_j", module_text["act_B_overview", ])
-                                                                )
-                                                      )
-                                               ),
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Overview"),
-                                                      p(id = "txt_j", "We will now generate forecasts of water temperature."),
-                                                      p(id = "txt_j", "We will use the models that you developed in Activity A to explore four different types of uncertainty associated with ecological forecasts."),
-                                                      tags$ol(
-                                                        tags$li("Process uncertainty"),
-                                                        tags$li("Parameter uncertainty"),
-                                                        tags$li("Initial conditions uncertainty"),
-                                                        tags$li("Driver uncertainty")
-                                                      )
-                                               ),
-                                               column(6, align = "center",
-                                                      img(src = "model_UC_draft_v2.png", height = "60%", id = "bla_border",
-                                                          width = "60%", tags$style("border: solid 2px black;"))
-                                                      )
-                                               ),
-                                             hr(),
-                                             #** View Weather Forecast Data ----
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Weather forecast data"),
-                                                      p(id = "txt_j", "We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. We will need this data for our forecasts as some of our models depend on forecasted air temperature. Click the button below to view it."),
-                                                      actionButton("view_at_fc", "View forecast"),
-                                                      p(id = "txt_j", "With this air temperature forecast we can use the models that we built in Activity A that require air temperature, to forecast water temperature:")
-                                               ),
-                                               column(6,
-                                                      h4("Air temperature forecast"),
-                                                      wellPanel(
-                                                        plotlyOutput("airt1_fc_plot")
-                                                        )
-                                               )
-                                             ),
-                                             fluidRow(
-                                               #** Deterministic Forecast ----
-                                               column(6,
-                                                      h3("Deterministic Forecasts"),
-                                                      p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver."),
-                                                      p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
-                                                      #actionButton("load_mods", "Load models"),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab1a"),
-                                                      br(),
-                                                      actionButton("run_wtemp_fc1a", "Run forecast"),
-                                                      br(), br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[22], label = quest[qid[22], ], width = "90%")
-                                                            )
-                                                          )
-                                                      )
-                                               ),
-                                               column(6,
-                                                      h4("Water temperature forecast"),
-                                                      wellPanel(
-                                                        plotlyOutput("wtemp_fc1a")
-                                                      ),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod1a"),
-                                                        textOutput("txt_fc_out1a")
-                                                        )
-                                                      )
-                                               ),
-                                             br(),
-                                             fluidRow(
-                                               column(6,
-                                                      h4("What is wrong with deterministic forecasts?"),
-                                                      p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (e.g. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
-                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
-                                                      p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
-                                                      )
-                                               )
-                                             ),
                                     #* Objective 6 - Process Uncertainty ====
                                     tabPanel(title = "Objective 6 - Process Uncertainty", value = "obj7",
                                              fluidRow(
