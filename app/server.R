@@ -1400,7 +1400,31 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$gen_proc_dist,{
     
+    pers <- persist_df$df
+    pers_residuals = pers$Mod - pers$wtemp
+    pers_sigma = sd(pers_residuals, na.rm = TRUE)
+    print(length(pers_residuals))
+    print(pers_sigma)
     
+    #when run this, am getting error:
+    #Warning: Error in colnames<-: attempt to set 'colnames' on an object with less than two dimensions
+    #need to figure out current status of airt_swt$sub 
+    #ultimately need to create objects to save pred v obs of model fits so can use them here
+    
+    lr1_df <- airt_swt$sub
+    lr1_df <- na.exclude(df)
+    colnames(lr1_df)[2:3] <- c("airt", "wtemp")
+    lr1_df <- lr1_df %>%
+      mutate(wtemp_yday = dplyr::lag(wtemp)) %>%
+      filter(year(Date) == 2020)
+    fit1 <- lm(lr1_df$wtemp ~ lr1_df$wtemp_yday)
+    lr1_pred <- predict(fit1, lr1_df)
+    
+    lr1_residuals = lr1_pred - lr1_df$wtemp
+    lr1_sigma = sd(lr1_residuals, na.rm = TRUE)
+    print(length(lr1_residuals))
+    print(lr1_sigma)
+
     
   })
   

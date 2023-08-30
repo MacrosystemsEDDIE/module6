@@ -983,7 +983,7 @@ ui <- function(req) {
                                                       p("We will generate a process uncertainty distribution for each of our models and sample these distributions to create an ensemble forecast."),
                                                       p(id = "txt_j", "Select a model from the table below and then calculate the process uncertainty distribution and run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab2"),
+                                                      #DTOutput("mod_selec_tab2"),
                                                       actionButton("gen_proc_dist", "Generate process uncertainty distribution"),
                                                       actionButton("run_wtemp_fc2", "Run forecast")
                                                       ),
