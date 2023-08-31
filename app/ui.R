@@ -978,44 +978,61 @@ ui <- function(req) {
                                                ),
                                              hr(),
                                              fluidRow(
-                                               column(4,
+                                               column(10, align = "left",
+                                                      box(id = "box10", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   h4("Hint: Read through the slides above before attempting to answer these questions!"),
+                                                                   p(tags$b(quest["q21", 1])),
+                                                                   p(tags$b(quest["q22", 1])),
+                                                                   p(tags$b(quest["q23", 1]))
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(6,
                                                       h4("Generate Process Uncertainty Distributions"),
                                                       p("We will generate a process uncertainty distribution for each of our models and sample these distributions to create an ensemble forecast."),
                                                       p(id = "txt_j", "First, click 'Generate distributions' to obtain the process uncertainty distributions for each model."),
                                                       actionButton("gen_proc_dist", "Generate distributions"),
                                                       br(), br(),
+                                                      column(6,
                                                       DTOutput("sigma_table")
                                                       ),
-                                               column(8,
+                                                      column(6,
+                                                             box(id = "box10", width = 12, status = "primary",
+                                                                 solidHeader = TRUE,
+                                                                 fluidRow(
+                                                                   column(10, offset = 1,
+                                                                          h3("Question"),
+                                                                          p(tags$b(quest["q24", 1]))
+                                                                   )
+                                                                 )
+                                                             )
+                                                             )
+                                                      ),
+                                               column(6,
                                                       wellPanel(
                                                         plotOutput("proc_dist_plot")
                                                       )
                                                       )
                                              ),
+                                             hr(),
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Process Uncertainty"),
-                                                      p(id = "txt_j", "First we will explore how the different models respond to the addition of process uncertainty. Run each of the models with many ensemble members and observe how the forecast outcome changes."),
-                                                      p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
+                                                      p(id = "txt_j", "Now we can generate forecasts with process uncertainty. Run each of the models as an ensemble forecast with process uncertainty and observe how the outcome changes compared to deterministic forecasts."),
+                                                      p(id = "txt_j", "Select a model from the table below and click 'Run forecast'."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
+                                                      br(), br(),
                                                       actionButton("run_wtemp_fc2", "Run forecast"),
-                                                      br(),
-                                                      # actionButton("load_driv2", "Load driver data"),
-                                                      actionButton("run_wtemp_fc2", "Run forecast"),
-                                                      br(),
-                                                      p(id = "txt_j", "To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an ", tags$b("ensemble."), " Each individual run is referred to as an ensemble ", tags$b("member."), "Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts."),
-                                                      p(id = "txt_j", "Using the slider below, adjust the number of members to see how process uncertainty changes with time into the future (e.g. forecast horizon)."),
-                                                      sliderInput("n_mem2", "No. of members", min = 5, max = 100, value = 50, step = 5),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[23], label = quest[qid[23], ], width = "90%")
-                                                                   )
-                                                            )
-                                                          )
+                                                      br(), br()
                                                ),
                                                column(6,
                                                       wellPanel(
@@ -1033,7 +1050,20 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
-                                             hr()
+                                             hr(),
+                                             fluidRow(
+                                               column(10, align = "left",
+                                                      box(id = "box10", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Question"),
+                                                                   p(tags$b(quest["q25", 1]))
+                                                            )
+                                                          )
+                                                      )
+                                               )
+                                             ),
                                     ),
                                     #* Objective 7 - Parameter Uncertainty ====
                                     tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj8",

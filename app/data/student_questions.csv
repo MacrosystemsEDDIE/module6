@@ -25,11 +25,11 @@ q17,"Because both of our independent variables have the same units (degrees Cels
 q18,Which model do you think will produce the best forecasts of water temperature? Why?,Activity B: Overview
 q19,"Using the forecasts you have generated, what is your best estimate of what the water temperature will be 7 days in the future? Explain your reasoning.",Activity B: Objective 6
 q20,"Describe, in your own words, the difference between a deterministic and a probabilistic forecast.",Activity B: Objective 7
-q21,Can you think of potential ways to reduce parameter uncertainty?,Activity B: Objective 7
-q22,Which model was most sensitive to initial conditions (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 8
-q23,What factors can lead to an increase in initial conditions uncertainty?,Activity B: Objective 8
-q24,What potential steps could be taken to reduce initial conditions uncertainty?,Activity B: Objective 8
-q25,Which model was most sensitive to the forecast drivers (e.g. had a large distribution of forecast members even after 7 days)? Why do you think that is?,Activity B: Objective 9
+q21,What are model residuals?,Activity B: Objective 7
+q22,"Briefly explain, in your own words, how the residuals of a model can be used to generate a process uncertainty distribution.",Activity B: Objective 8
+q23,Define 'ensemble forecast' in your own words.,Activity B: Objective 8
+q24,Examine the plot of process uncertainty distributions on the right. Which model do you think has the smallest amount of process uncertainty? Explain your reasoning.,Activity B: Objective 8
+q25,Examine the forecast plot to the right. How does uncertainty change as the forecast goes farther into the future?,Activity B: Objective 9
 q26,Can you think of a way to reduce driver uncertainty in your forecast of water temperature?,Activity B: Objective 9
 q27,Which source of uncertainty do you think contributes the most to total forecast uncertainty for a forecast of water temperature?,Activity B: Summary
 q28,"You have been given $5,000 to improve your water temperature forecasts. What would you spend it on to reduce your forecast uncertainty?",Activity B: Summary
