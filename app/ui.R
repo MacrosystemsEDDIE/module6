@@ -944,12 +944,12 @@ ui <- function(req) {
                           )
                         ),
                         tabsetPanel(id = "tabseries3",
-                                    #* Objective 6 - Process Uncertainty ====
-                                    tabPanel(title = "Objective 6 - Process Uncertainty", value = "obj7",
+                                    #* Objective 5 - Process Uncertainty ====
+                                    tabPanel(title = "Objective 5 - Process Uncertainty", value = "obj7",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 6 - Process Uncertainty"),
+                                                                h3("Objective 5 - Process Uncertainty"),
                                                                 p(id = "txt_j", module_text["obj_06", ])
                                                                 )
                                                       )
@@ -978,18 +978,17 @@ ui <- function(req) {
                                                ),
                                              hr(),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       h4("Generate Process Uncertainty Distributions"),
                                                       p("We will generate a process uncertainty distribution for each of our models and sample these distributions to create an ensemble forecast."),
-                                                      p(id = "txt_j", "Select a model from the table below and then calculate the process uncertainty distribution and run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      #DTOutput("mod_selec_tab2"),
-                                                      actionButton("gen_proc_dist", "Generate process uncertainty distribution"),
-                                                      actionButton("run_wtemp_fc2", "Run forecast")
+                                                      p(id = "txt_j", "First, click 'Generate distributions' to obtain the process uncertainty distributions for each model."),
+                                                      actionButton("gen_proc_dist", "Generate distributions"),
+                                                      br(), br(),
+                                                      DTOutput("sigma_table")
                                                       ),
-                                               column(6,
+                                               column(8,
                                                       wellPanel(
-                                                        plotlyOutput("proc_dist")
+                                                        plotOutput("proc_dist_plot")
                                                       )
                                                       )
                                              ),
@@ -1000,6 +999,7 @@ ui <- function(req) {
                                                       p(id = "txt_j", "Select a model from the table below and then load the driver data and run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
+                                                      actionButton("run_wtemp_fc2", "Run forecast"),
                                                       br(),
                                                       # actionButton("load_driv2", "Load driver data"),
                                                       actionButton("run_wtemp_fc2", "Run forecast"),

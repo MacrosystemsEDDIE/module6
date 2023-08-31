@@ -1105,7 +1105,7 @@ shinyServer(function(input, output, session) {
   # Final plot with all four model fits
   
   all_mods_plot <- reactiveValues(main = NULL)
-  
+  all_mods_df <- reactiveValues(df = NULL)
   
   observeEvent(input$plot_mlr,{
     
@@ -1145,7 +1145,10 @@ shinyServer(function(input, output, session) {
                        model1 = mod1,
                        model2 = mod2,
                        model3 = mod3,
-                       model4 = mod4) 
+                       model4 = mod4,
+                       wtemp = df1$wtemp) 
+    
+    all_mods_df$df <- pred
     
     p1 <- ggplot() +
       geom_point(data = df1, aes(Date, wtemp, color = "Obs")) +
@@ -1398,35 +1401,89 @@ shinyServer(function(input, output, session) {
   
   ## Objective 5 ----
   
+  proc_dist_plot <- reactiveValues(main = NULL)
+  sigma_table <- reactiveValues(df = NULL)
+  
   observeEvent(input$gen_proc_dist,{
     
-    pers <- persist_df$df
-    pers_residuals = pers$Mod - pers$wtemp
+    df <- all_mods_df$df 
+    
+    pers_residuals = df$model1 - df$wtemp
     pers_sigma = sd(pers_residuals, na.rm = TRUE)
     print(length(pers_residuals))
     print(pers_sigma)
     
-    #when run this, am getting error:
-    #Warning: Error in colnames<-: attempt to set 'colnames' on an object with less than two dimensions
-    #need to figure out current status of airt_swt$sub 
-    #ultimately need to create objects to save pred v obs of model fits so can use them here
-    
-    lr1_df <- airt_swt$sub
-    lr1_df <- na.exclude(df)
-    colnames(lr1_df)[2:3] <- c("airt", "wtemp")
-    lr1_df <- lr1_df %>%
-      mutate(wtemp_yday = dplyr::lag(wtemp)) %>%
-      filter(year(Date) == 2020)
-    fit1 <- lm(lr1_df$wtemp ~ lr1_df$wtemp_yday)
-    lr1_pred <- predict(fit1, lr1_df)
-    
-    lr1_residuals = lr1_pred - lr1_df$wtemp
+    lr1_residuals = df$model2 - df$wtemp
     lr1_sigma = sd(lr1_residuals, na.rm = TRUE)
     print(length(lr1_residuals))
     print(lr1_sigma)
-
+    
+    lr2_residuals = df$model3 - df$wtemp
+    lr2_sigma = sd(lr2_residuals, na.rm = TRUE)
+    
+    mlr_residuals = df$model4 - df$wtemp
+    mlr_sigma = sd(mlr_residuals, na.rm = TRUE)
+    
+    proc_dist_data <- data.frame(W = c(rnorm(1000, 0, pers_sigma),
+                                       rnorm(1000, 0, lr1_sigma),
+                                       rnorm(1000, 0, lr2_sigma),
+                                       rnorm(1000, 0, mlr_sigma)),
+                                 Model = rep(c("Pers.","Wtemp","Atemp","Both"), each = 1000)) %>%
+      mutate(Model = factor(Model, levels = c("Pers.","Wtemp","Atemp","Both")))
+    
+    proc_dist_plot$main <- ggplot(data = proc_dist_data, aes(x = W, fill = Model))+
+      geom_density(alpha = 0.5)+
+      facet_wrap(facets = vars(Model), nrow = 2)+
+      scale_fill_manual(values = c(cols[3],cols[4],cols[5],cols[6]))+
+      theme_bw(base_size = 16)
+    
+    sigma_table$df <- data.frame(Model = c("Pers.","Wtemp","Atemp","Both"),
+                              Sigma = round(c(pers_sigma, lr1_sigma, lr2_sigma, mlr_sigma),2))
+    
     
   })
+  
+  output$proc_dist_plot <- renderPlot({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$gen_proc_dist > 0,
+           message = "Click 'Generate distributions'.")
+    )
+    
+    return(proc_dist_plot$main)
+  })
+  
+  output$sigma_table <- renderDT({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$gen_proc_dist > 0,
+           message = "Click 'Generate distributions'.")
+    )
+    
+    sigma_table$df
+  }, selection = "single",
+  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                 columnDefs = list(list(width = '10%', targets = "_all")),
+                 scrollX = TRUE),
+  colnames = c("Model", "SD of residuals"), rownames = "",
+  server = FALSE, escape = FALSE)
+  
   
   
   
