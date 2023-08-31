@@ -1077,12 +1077,12 @@ ui <- function(req) {
                                                       p("We will learn how to calculate and incorporate parameter uncertainty into our forecasts."))
                                              )
                                     ),
-                                    #* Objective 7 - Parameter Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj8",
+                                    #* Objective 6 - Parameter Uncertainty ====
+                                    tabPanel(title = "Objective 6 - Parameter Uncertainty", value = "obj8",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 7 - Parameter Uncertainty"),
+                                                                h3("Objective 6 - Parameter Uncertainty"),
                                                                 p(id = "txt_j", module_text["obj_07", ])
                                                       )
                                                )
@@ -1108,18 +1108,20 @@ ui <- function(req) {
                                              fluidRow(
                                                column(4,
                                                       h4("Uncertainty in Parameters"),
-                                                      p(id = "txt_j", "We know, from Objective 4, that when we used different amounts of data (e.g., monthly vs. daily data) to build our model, we got slightly different estimations of our model parameters ", tags$em("m"), " and ", tags$em("b.")),
+                                                      p(id = "txt_j", "To illustrate how there is uncertainty associated with model parameters, consider the following example, we will fit two models to your focal lake using two years of water and air temperature data."),
                                                       p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models, from which we will draw samples for forecasting."),
-                                                      wellPanel(
-                                                        h4("A Note on Parameters:"),
-                                                        uiOutput("param_notation"),
-                                                        div("$$wtemp_{t+1} = m*wtemp_{t} + b$$"),
-                                                        div("$$wtemp_{t+1} = \\beta_1*wtemp_{t} + \\beta_2$$")
-                                                      )
+                                                      actionButton("fit_model_year_1","Fit model to Year One data"),
+                                                      actionButton("fit_model_year_2","Fit model to Year Two data"),
+                                                      DTOutput("param_uc_example_table")
                                                       ),
-                                               column(8,
-                                                      plotOutput("param_fcast3b")
-                                                      )
+                                               column(4,
+                                                      h4("Model fit to Year One data"),
+                                                      plotlyOutput("model_fit_year_1")
+                                                      ),
+                                               column(4,
+                                                      h4("Model fit to Year Two data"),
+                                                      plotlyOutput("model_fit_year_2")
+                                               )
                                                ),
                                              fluidRow(
                                                column(6,

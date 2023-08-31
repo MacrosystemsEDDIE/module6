@@ -1684,6 +1684,100 @@ shinyServer(function(input, output, session) {
     slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
   
+  # plot model fit from Objective 3 ("Year One" data)
+  output$model_fit_year_1 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$fit_model_year_1 > 0,
+           message = "Click 'Fit model to Year One data'.")
+    )
+    airt_swt_plot_lines$main 
+  })
+  
+  # create reactive value for plot of model fit from year 2
+  airt_swt_plot_year2 <- reactiveValues(main = NULL)
+  
+  # create reactive value for table with model fit parameters
+  param_uc_example_table <- reactiveValues(df = data.frame(m = c(NA,NA),
+                                                           b = c(NA,NA)))
+  
+  # calculate model params for first year and put in table
+  observeEvent(input$fit_model_year_1, {
+    
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    df <- df %>%
+      filter(year(Date) == 2020)
+    fit <- lm(df$wtemp ~ df$airt)
+    out <- summary(fit)
+    
+    param_uc_example_table$df[1,] <- c(round(out$coefficients[2, 1], 2),round(out$coefficients[1, 1], 2))
+    
+  })
+  
+  # calculate model fit for second year and write plot
+  observeEvent(input$fit_model_year_2, {
+    
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    df <- df %>%
+      filter(year(Date) == 2019)
+    fit <- lm(df$wtemp ~ df$airt)
+    out <- summary(fit)
+    
+    param_uc_example_table$df[2,] <- c(round(out$coefficients[2, 1], 2),round(out$coefficients[1, 1], 2))
+                                                                          
+    mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
+    mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
+    
+    sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
+    
+    p <- ggplot() +
+      geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      geom_point(data = df, aes(airt, wtemp, color = "Obs")) +
+      scale_color_manual(values = c("Mod" = cols[5], "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12) + 
+      geom_smooth(data = df, aes(airt, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
+                  se = FALSE) 
+    
+    airt_swt_plot_year2$main <- p
+  })
+  
+  # output object for plot model fit from Objective 3 ("Year Two" data)
+  output$model_fit_year_2 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$fit_model_year_2 > 0,
+           message = "Click 'Fit model to Year One data'.")
+    )
+    airt_swt_plot_year2$main 
+  })
+  
+  # table showing parameters from models fit to year 1 and year 2
+  output$param_uc_example_table <- renderDT(param_uc_example_table$df, selection = "none",
+                             options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
+                                            columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
+                             ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("Year 1 data","Year 2 data"),
+                             server = FALSE, escape = FALSE)
+  
   
   #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
   

@@ -26,8 +26,8 @@ obj_01,"Select a NEON site from the table, then click on the 'View latest photo'
 obj_02,Explore the water and air temperature data measured at the selected site. This is data that has been downloaded from the NEON Data Portal. The variables shown have been selected for this module but there are a wide range of variables collected at each NEON site.
 obj_03,Use observed water temperature and air temperature data to build linear regression models to predict water temperature.
 obj_04,Generate multiple forecasts of water temperature.
-obj_05,There are limitations to using the linear regression model to predict future water temperature. You will build different models to predict water temperature.
-obj_06,Explore how process uncertainty affects the different models when forecasting water temperature.
+obj_05,Explore how process uncertainty affects the different models when forecasting water temperature.
+obj_06,Explore how parameter uncertainty affects the different models when forecasting water temperature.
 obj_07,Explore how parameter uncertainty affects the different models when forecasting water temperature.
 obj_08,Explore how initial conditions uncertainty affects the different models when forecasting water temperature.
 obj_09,Explore how driver uncertainty affects the different models when forecasting water temperature.
