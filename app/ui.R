@@ -927,6 +927,12 @@ ui <- function(req) {
                                                           )
                                                       )
                                                )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("We will learn how to calculate and incorporate different sources of uncertainty into our forecasts, beginning with process uncertainty."))
                                              )
                                     ),
                                     )
@@ -1064,6 +1070,12 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
+                                             hr(),
+                                             fluidRow(
+                                               column(5, offset = 1,
+                                                      h3("Next step"),
+                                                      p("We will learn how to calculate and incorporate parameter uncertainty into our forecasts."))
+                                             )
                                     ),
                                     #* Objective 7 - Parameter Uncertainty ====
                                     tabPanel(title = "Objective 7 - Parameter Uncertainty", value = "obj8",
@@ -1082,8 +1094,8 @@ ui <- function(req) {
                                                       p(id = "txt_j", tags$b("Parameter uncertainty")," refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used."),
                                                       p(id = "txt_j", "With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model."),
                                                       p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters."),
-                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similar metrics of model performance, e.g., similar RMSE values."),
-                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of the potential predicted outcomes, leading to better quantification of the uncertainty.")
+                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similarly good model fits during calibration."),
+                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty.")
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),

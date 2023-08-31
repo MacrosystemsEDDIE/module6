@@ -1,34 +1,41 @@
 shinyServer(function(input, output, session) {
 
+  #### Header ----
+  
+  # Help button
+  observeEvent(input$help, {
+    introjs(session, events = list(onbeforechange = readCallback("switchTabs")))
+  })
+  
+  #### Presentation ----
+  
   # Slickr summary output
   output$slides <- renderSlickR({
     slickR(recap_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
   })
   
-  # Slickr model output
-  output$model_slides <- renderSlickR({
-    slickR(model_slides) + settings(dots = TRUE, autoplay = FALSE)
+  #### Introduction ----
+  
+  # Hide download button until report is generated
+  output$handoutbuilt <- reactive({
+    return(file.exists("report.docx"))
   })
-
-  # Slickr Process UC slides
-  output$proc_uc_slides <- renderSlickR({
-    slickR(proc_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
-  })
-
-  # Slickr Parameter UC slides
-  output$param_uc_slides <- renderSlickR({
-    slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
-  })
-
-  # Slickr Initial conditions UC slides
-  output$ic_uc_slides <- renderSlickR({
-    slickR(ic_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
-  })
-
-  # Slickr Driver UC slides
-  output$driver_uc_slides <- renderSlickR({
-    slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
-  })
+  outputOptions(output, 'handoutbuilt', suspendWhenHidden= FALSE)
+  
+  handout_file <- "Student_handout.docx"
+  
+  output$stud_dl <-  downloadHandler(
+    filename = function() {
+      handout_file
+    },
+    content = function(file) {
+      file.copy("report.docx", file)
+    }
+  )
+  
+  #### Activity A ----
+  
+  ## Objective 1 - Select NEON site ----
 
   # NEON Sites datatable ----
   output$table01 <- DT::renderDT(
@@ -41,9 +48,6 @@ shinyServer(function(input, output, session) {
 
   # new icon style
   my_icon = makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'white')
-
-
-  # Objective 1 ----
   
   # Select NEON DT rows ----
   
@@ -224,9 +228,10 @@ shinyServer(function(input, output, session) {
     })
   })
   
-  #** A df of air and water temperature data is also created when site is selected ----
-  persist_df <- reactiveValues(df = NULL)
+  # A df of air and water temperature data is also created when site is selected 
+  # Also a df that will be used to plot the persistence model
   airt_swt <- reactiveValues(df = NULL, sub = NULL, sel = NULL)
+  persist_df <- reactiveValues(df = NULL)
   
   observeEvent(input$table01_rows_selected, {
     
@@ -286,7 +291,7 @@ shinyServer(function(input, output, session) {
 
   })
 
-  # Objective 2 ----
+  ### Objective 2 - View water temperature data ----
 
   observe({
     airt_swt$sel <- tryCatch(airt_swt$df[(selected$sel$pointNumber+1),,drop=FALSE] , error=function(e){NULL})
@@ -435,16 +440,6 @@ shinyServer(function(input, output, session) {
     server = FALSE, escape = FALSE, rownames= c("Water temperature"), colnames=c("Mean", "Min.", "Max."), editable = FALSE
   )
   
-  q6_proxy <- dataTableProxy("q6_tab")
-  observeEvent(input$q6_tab_cell_edit, {
-    info = input$q6_tab_cell_edit
-    i = info$row
-    j = info$col
-    v = info$value
-    q6_ans$dt[i, j] <<- DT::coerceValue(v, q6_ans$dt[i, j])
-    # replaceData(q6_proxy, q6_ans$dt, resetPaging = FALSE)  # important
-  })
-  
   q8_ans <- reactiveValues(dt = q8_table) # %>% formatStyle(c(1:3), border = '1px solid #ddd'))
   
   output$q8_tab <- DT::renderDT(
@@ -454,17 +449,13 @@ shinyServer(function(input, output, session) {
     server = FALSE, escape = FALSE, rownames= c("Air temperature"), colnames=c("Mean", "Min.", "Max."), editable = FALSE
   )
   
-  q8_proxy <- dataTableProxy("q8_tab")
-  observeEvent(input$q8_tab_cell_edit, {
-    info = input$q6_tab_cell_edit
-    i = info$row
-    j = info$col
-    v = info$value
-    q8_ans$dt[i, j] <<- DT::coerceValue(v, q8_ans$dt[i, j])
-    # replaceData(q6_proxy, q6_ans$dt, resetPaging = FALSE)  # important
-  })
   
-  #Objective 3
+  ## Objective 3 - Build models ----
+  
+  # Slickr model output
+  output$model_slides <- renderSlickR({
+    slickR(model_slides) + settings(dots = TRUE, autoplay = FALSE)
+  })
   
   # Create reactive value for model selection table
   mod_selec_tab <- reactiveValues(dt = data.frame(eqn = rep(NA, 4),
@@ -1194,13 +1185,10 @@ shinyServer(function(input, output, session) {
     all_mods_plot$main
   })
   
-## end Obj 3
-  
+  # end Objective 3
   
 
-  # Objective 4 ----
-  #* Generate deterministic forecasts ----
-  
+  ## Objective 4 - Generate deterministic forecasts ----
   
   # air temperature forecast plot
   output$airt1_fc_plot <- renderPlotly({
@@ -1367,7 +1355,6 @@ shinyServer(function(input, output, session) {
     
   })
   
-  
   # text showing equation of selected model
   output$sel_mod1a <- renderUI({
     validate(
@@ -1383,7 +1370,6 @@ shinyServer(function(input, output, session) {
     )
   })
   
-  
   # text showing forecast is complete
   output$txt_fc_out1a <- renderText({
     validate(
@@ -1397,9 +1383,14 @@ shinyServer(function(input, output, session) {
   
   # end Objective 4 and Activity A
   
-  # Activity B ----
+  #### Activity B ----
   
-  ## Objective 5 ----
+  ## Objective 5 - Process Uncertainty ----
+  
+  # Slickr Process UC slides
+  output$proc_uc_slides <- renderSlickR({
+    slickR(proc_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
+  })
   
   # create reactive value for process uncertainty distribution plot
   proc_dist_plot <- reactiveValues(main = NULL)
@@ -1684,9 +1675,27 @@ shinyServer(function(input, output, session) {
     "Forecast complete!"
   })
   
-  #end Objective 5
+  # end Objective 5
   
-  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET
+  ## Objective 6 - Parameter Uncertainty ----
+  
+  # Slickr Parameter UC slides
+  output$param_uc_slides <- renderSlickR({
+    slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
+  })
+  
+  
+  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
+  
+  # Slickr Initial conditions UC slides
+  output$ic_uc_slides <- renderSlickR({
+    slickR(ic_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
+  })
+  
+  # Slickr Driver UC slides
+  output$driver_uc_slides <- renderSlickR({
+    slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
+  })
   
   observeEvent(input$lr_DT2_rows_selected, {
     req(sum(!is.na(lr_pars$dt$m_est)) > 0)
@@ -5326,23 +5335,6 @@ shinyServer(function(input, output, session) {
   report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
   report2 <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
 
-  # Hide download button until report is generated
-  handout <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
-  output$handoutbuilt <- reactive({
-    return(file.exists("report.docx"))
-  })
-  outputOptions(output, 'handoutbuilt', suspendWhenHidden= FALSE)
-  
-  handout_file <- "Student_handout.docx"
-  
-  output$stud_dl <-  downloadHandler(
-    filename = function() {
-      handout_file
-    },
-    content = function(file) {
-      file.copy("report.docx", file)
-    }
-  )
 
   
   
@@ -5351,15 +5343,6 @@ shinyServer(function(input, output, session) {
       dt_proxy <- dataTableProxy("table01")
       selectRows(dt_proxy, input$row_num)
     }
-  })
-
-
-  # Help button
-  observeEvent(input$help, {
-    introjs(session, events = list(onbeforechange = readCallback("switchTabs")))
-  })
-  observeEvent(input$help2, {
-    shinyalert(title = "Resume Progress", text = "Use this field to upload your '.eddie' file to resume your progress.", type = "info")
   })
 
   output$check_list2 <- renderUI({
