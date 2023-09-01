@@ -1125,6 +1125,7 @@ ui <- function(req) {
                                                       h4("Model fit to Year Two data"),
                                                       plotlyOutput("model_fit_year_2")
                                                ),
+                                               fluidRow(
                                                box(id = "box10", width = 12, status = "primary",
                                                    solidHeader = TRUE,
                                                    fluidRow(
@@ -1133,6 +1134,7 @@ ui <- function(req) {
                                                             p(tags$b(quest["q27", 1]))
                                                      )
                                                    )
+                                               )
                                                )
                                                )
                                              ),
@@ -1147,7 +1149,7 @@ ui <- function(req) {
                                                column(6,
                                                       DTOutput("mod_selec_tab3"),
                                                       br(),
-                                                      actionButton("gen_params3b", "Generate parameters"),
+                                                      actionButton("gen_params3b", "Generate parameter distributions"),
                                                       actionButton("run_wtemp_fc3b", "Run forecast"),
                                                )
                                              ),

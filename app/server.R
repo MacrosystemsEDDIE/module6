@@ -1012,7 +1012,7 @@ shinyServer(function(input, output, session) {
     mlr_pars$dt$b2_est[idx] <- round(out$coefficients[3, 1], 2)
     mlr_pars$dt$b0_se[idx] <- round(out$coefficients[1, 2], 2)
     mlr_pars$dt$b1_se[idx] <- round(out$coefficients[2, 2], 2)
-    mlr_pars$dt$b1_se[idx] <- round(out$coefficients[3, 2], 2)
+    mlr_pars$dt$b2_se[idx] <- round(out$coefficients[3, 2], 2)
     mlr_pars$dt$r2[idx] <- round(out$r.squared, 2)
     mlr_pars$dt$N[idx] <- nrow(df)
     mlr_pars$dt$rmse[idx] <- 0
@@ -1778,6 +1778,61 @@ shinyServer(function(input, output, session) {
                              ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("Year 1 data","Year 2 data"),
                              server = FALSE, escape = FALSE)
   
+  # create reactive value to hold parameter distributions
+  param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)))
+  
+  # this code will run when the user clicks 'Generate parameter distributions'
+  observeEvent(input$gen_params3b, {
+    req(input$mod_selec_tab3_rows_selected != "")
+    
+    idx <- input$mod_selec_tab3_rows_selected
+    
+    if(idx == 3) {
+      df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[1], lr_pars$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars$dt$b_est[1], lr_pars$dt$b_se[1]))
+    } else if(idx == 1) {
+      df <- "None"
+    } else if(idx == 2) {
+      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
+    } else if(idx == 4) {
+      df <- data.frame(beta0 = rnorm(5000, mlr_pars$dt$b0_est[1], mlr_pars$dt$b0_se[1]),
+                       beta1 = rnorm(5000, mlr_pars$dt$b1_est[1], mlr_pars$dt$b1_se[1]),
+                       beta2 = rnorm(5000, mlr_pars$dt$b2_est[1], mlr_pars$dt$b2_se[1]))
+    }
+    param_dist3b$dist[[idx]] <- df
+  })
+  
+  # write plot output for parameter distributions
+  output$param_dist3b <- renderPlot({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab3_rows_selected != "", "Please select a model in the table.")
+    )
+    idx <- input$mod_selec_tab3_rows_selected
+    
+    if(idx == 1) {
+      validate(
+        need(param_dist3b$dist[[idx]] != "None", "Looks like the model you selected has no parameters, but you can still generate a forecast with it below!")
+      )
+    }
+    
+    validate(
+      need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameter distributions'.")
+    )
+    
+    mlt <- reshape::melt(param_dist3b$dist[[idx]])
+    
+    ggplot(mlt) +
+      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
+      facet_wrap(~variable, nrow = 1, scales = "free_x") +
+      theme_bw(base_size = 16)
+    
+  })
+  
   
   #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
   
@@ -2425,66 +2480,7 @@ shinyServer(function(input, output, session) {
 
   })
 
-  #** Generate parameter distributions ----
-  param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)))
-  observeEvent(input$mod_selec_tab3_rows_selected, {
-    if(input$mod_selec_tab3_rows_selected == 1) {
-      param_dist3b$dist[[1]] <- "None"
-    }
-  })
-  observeEvent(input$gen_params3b, {
-    req(input$mod_selec_tab3_rows_selected != "")
 
-    idx <- input$mod_selec_tab3_rows_selected
-
-    if(idx == 3) {
-      req(!is.na(lr_pars$dt$m_est[4]))
-      df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[4], lr_pars$dt$m_se[4]),
-                       b = rnorm(5000, lr_pars$dt$b_est[4], lr_pars$dt$b_se[4]))
-    } else if(idx == 1) {
-      df <- "None"
-    } else if(idx == 2) {
-      req(!is.na(mlr_params$df$beta1[1]))
-      df <- data.frame(m = rnorm(5000, mlr_params$df$beta1[1], mlr_params$df$beta1_se[1]),
-                       b = rnorm(5000, mlr_params$df$beta2[1], mlr_params$df$beta2_se[1]))
-    } else if(idx == 4) {
-      req(!is.na(mlr_params$df$beta1[2]))
-      df <- data.frame(beta1 = rnorm(5000, mlr_params$df$beta1[2], mlr_params$df$beta1_se[2]),
-                       beta2 = rnorm(5000, mlr_params$df$beta2[2], mlr_params$df$beta2_se[2]),
-                       beta3 = rnorm(5000, mlr_params$df$beta3[2], mlr_params$df$beta3_se[2]))
-    }
-    param_dist3b$dist[[idx]] <- df
-  })
-
-  output$param_dist3b <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab3_rows_selected != "", "Please select a model in the table.")
-    )
-    idx <- input$mod_selec_tab3_rows_selected
-
-    if(idx == 1) {
-      validate(
-        need(param_dist3b$dist[[idx]] != "None", "Uh oh! Looks like the model you selected has no parameters, but you can still generate a forecast with it below.")
-      )
-    }
-
-    validate(
-      need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameters'.")
-    )
-
-    mlt <- reshape::melt(param_dist3b$dist[[idx]])
-
-    ggplot(mlt) +
-      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
-      facet_wrap(~variable, nrow = 1, scales = "free_x") +
-      # scale_fill_manual(values = l.cols[idx]) +
-      theme_bw(base_size = 16)
-
-  })
 
   #** Run Parameter UC ensemble ----
   wtemp_fc3b <- reactiveValues(mlt = NULL, dist = NULL)
