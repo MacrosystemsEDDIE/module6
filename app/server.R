@@ -1730,7 +1730,7 @@ shinyServer(function(input, output, session) {
     df <- na.exclude(df)
     colnames(df)[2:3] <- c("airt", "wtemp")
     df <- df %>%
-      filter(year(Date) == 2019)
+      filter(year(Date) %in% c(2019,2020))
     fit <- lm(df$wtemp ~ df$airt)
     out <- summary(fit)
     

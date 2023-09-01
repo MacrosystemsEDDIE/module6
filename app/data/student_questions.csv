@@ -30,10 +30,10 @@ q22,"Briefly explain, in your own words, how the residuals of a model can be use
 q23,Define 'ensemble forecast' in your own words.,Activity B: Objective 8
 q24,Examine the plot of process uncertainty distributions on the right. Which model do you think has the smallest amount of process uncertainty? Explain your reasoning.,Activity B: Objective 8
 q25,Examine the forecast plot to the right. How does uncertainty change as the forecast goes farther into the future?,Activity B: Objective 9
-q26,Describe one way that you think process uncertainty in a forecast could be reduced.,Activity B: Objective 9
-q27,How do the parameter values of the models fit to data from Year One and Year Two compare? Why do you think this might be?,Activity B: Summary
+q26,"You have learned that process uncertainty arises when our models do not perfectly represent what is occurring in the real world. Knowing this, describe one way that you think process uncertainty in our water temperature forecasts could be reduced.",Activity B: Objective 9
+q27,How do the parameter values of the models fit to one year vs. two years of data compare? Why do you think this might be?,Activity B: Summary
 q28,Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Summary
-q29,Describe one way that you think parameter uncertainty in a forecast could be reduced.,Activity B: Summary
+q29,"You have learned that parameter uncertainty arises when we do not have enough data or when our data do not accurately represent the true relationship between environmental variables. Knowing this, describe one way that you think parameter uncertainty in our water temperature forecasts could be reduced.",Activity B: Summary
 q30,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,Activity C: Objective 10
 q31,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,Activity C: Objective 10
 q32,"With your partner, compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",Activity C: Objective 10

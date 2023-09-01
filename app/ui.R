@@ -973,7 +973,7 @@ ui <- function(req) {
                                                       div("$$wtemp_{t+1} =  \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1}$$"),
                                                       p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W):")),
                                                       div("$$wtemp_{t+1} = \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + W_t$$"),
-                                                      p("Scroll through the slides to the right to learn how",tags$b(" W")," is calculated and accounted for in a forecast.")
+                                                      h4(tags$em("Scroll through the slides to the right to learn how",tags$b(" W")," is calculated and accounted for in a forecast."))
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1096,7 +1096,8 @@ ui <- function(req) {
                                                       p(id = "txt_j", "With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model."),
                                                       p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters."),
                                                       p(id = "txt_j", "There is often the possibility that different parameter sets can yield similarly good model fits during calibration."),
-                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty.")
+                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty."),
+                                                      h4(tags$em("Scroll through the slides to the right for a visual explanation of parameter uncertainty."))
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
@@ -1109,10 +1110,10 @@ ui <- function(req) {
                                              fluidRow(
                                                column(4,
                                                       h4("Uncertainty in Parameters"),
-                                                      p(id = "txt_j", "To illustrate the uncertainty associated with model parameters, we will fit linear regression models to water and air temperature data collected from your focal lake in", tags$b("two different years.")),
+                                                      p(id = "txt_j", "To illustrate the uncertainty associated with model parameters, we will fit linear regression models to water and air temperature data collected from your focal lake over", tags$b("either one or two years.")),
                                                       p("Click the button below to fit a linear regression model to the first year of air and water temperature data. This is the same linear regression model that you fit in Objective 3."),
                                                       actionButton("fit_model_year_1","Fit model to Year One data"),
-                                                      p("Observe the parameter values of the model fit to Year One data. Now, click the button below to fit a model based on a second year of data collected at your site."),
+                                                      p("Observe the parameter values of the model fit to the first year of data. Now, a year has passed and you have collected an additional year of data at your site. Click the button below to fit a model using two years of data."),
                                                       actionButton("fit_model_year_2","Fit model to Year Two data"),
                                                       DTOutput("param_uc_example_table")
                                                       ),
