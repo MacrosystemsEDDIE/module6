@@ -1064,7 +1064,8 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Question"),
-                                                                   p(tags$b(quest["q25", 1]))
+                                                                   p(tags$b(quest["q25", 1])),
+                                                                   p(tags$b(quest["q26", 1]))
                                                             )
                                                           )
                                                       )
@@ -1108,53 +1109,54 @@ ui <- function(req) {
                                              fluidRow(
                                                column(4,
                                                       h4("Uncertainty in Parameters"),
-                                                      p(id = "txt_j", "To illustrate how there is uncertainty associated with model parameters, consider the following example, we will fit two models to your focal lake using two years of water and air temperature data."),
-                                                      p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models, from which we will draw samples for forecasting."),
+                                                      p(id = "txt_j", "To illustrate the uncertainty associated with model parameters, we will fit linear regression models to water and air temperature data collected from your focal lake in", tags$b("two different years.")),
+                                                      p("Click the button below to fit a linear regression model to the first year of air and water temperature data. This is the same linear regression model that you fit in Objective 3."),
                                                       actionButton("fit_model_year_1","Fit model to Year One data"),
+                                                      p("Observe the parameter values of the model fit to Year One data. Now, click the button below to fit a model based on a second year of data collected at your site."),
                                                       actionButton("fit_model_year_2","Fit model to Year Two data"),
                                                       DTOutput("param_uc_example_table")
                                                       ),
-                                               column(4,
+                                               column(8,
+                                               column(6,
                                                       h4("Model fit to Year One data"),
                                                       plotlyOutput("model_fit_year_1")
                                                       ),
-                                               column(4,
+                                               column(6,
                                                       h4("Model fit to Year Two data"),
                                                       plotlyOutput("model_fit_year_2")
-                                               )
                                                ),
+                                               box(id = "box10", width = 12, status = "primary",
+                                                   solidHeader = TRUE,
+                                                   fluidRow(
+                                                     column(10, offset = 1,
+                                                            h3("Question"),
+                                                            p(tags$b(quest["q27", 1]))
+                                                     )
+                                                   )
+                                               )
+                                               )
+                                             ),
+                                             hr(),
                                              fluidRow(
                                                column(6,
                                                       h4("Generate Parameter Distributions"),
-                                                      p(id = "txt_j", "We will generate parameter distributions for each of our models and sample these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
+                                                      p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models. We will then draw 100 samples from these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
                                                       p(id = "txt_j", "Select a model from the table below and then generate parameter distributions and run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
+                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table.")
+                                               ),
+                                               column(6,
                                                       DTOutput("mod_selec_tab3"),
                                                       br(),
                                                       actionButton("gen_params3b", "Generate parameters"),
                                                       actionButton("run_wtemp_fc3b", "Run forecast"),
-                                                      p(id = "txt_j", "We will use 100 parameter sets in the forecast ensemble. These will be sampled from the distributions generated above.")
-                                               ),
+                                               )
+                                             ),
+                                             fluidRow(
                                                column(6,
                                                       h4("Parameter Distributions"),
                                                       wellPanel(
                                                         plotOutput("param_dist3b")
                                                       )
-                                               )
-                                             ),
-                                             fluidRow(
-                                               column(6,
-                                                      h4("Forecast with Parameter Uncertainty"),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[24], label = quest[qid[24], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[25], label = quest[qid[25], ], width = "90%")
-                                                                   )
-                                                            )
-                                                          )
                                                       ),
                                                column(6,
                                                       h4("Water Temperature Forecasts"),
@@ -1172,6 +1174,19 @@ ui <- function(req) {
                                                                        )
                                                       )
                                                ),
+                                             hr(),
+                                             fluidRow(
+                                               box(id = "box2", width = 12, status = "primary",
+                                                   solidHeader = TRUE,
+                                                   fluidRow(
+                                                     column(10, offset = 1,
+                                                            h3("Questions"),
+                                                            p(tags$b(quest["q28", 1])),
+                                                            p(tags$b(quest["q29", 1]))
+                                                     )
+                                                   )
+                                               )
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(5, offset = 1,
