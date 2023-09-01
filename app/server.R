@@ -1778,6 +1778,16 @@ shinyServer(function(input, output, session) {
                              ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("Year 1 data","Year 2 data"),
                              server = FALSE, escape = FALSE)
   
+  # model selection table
+  output$mod_selec_tab3 <- renderDT({
+    mod_selec_tab$dt[, c(1, 5)]
+  }, selection = "single",
+  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                 columnDefs = list(list(width = '10%', targets = "_all")),
+                 scrollX = TRUE),
+  colnames = c("Model", ""), rownames = mod_names,
+  server = FALSE, escape = FALSE)
+  
   # create reactive value to hold parameter distributions
   param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)))
   
@@ -1788,13 +1798,13 @@ shinyServer(function(input, output, session) {
     idx <- input$mod_selec_tab3_rows_selected
     
     if(idx == 3) {
-      df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[1], lr_pars$dt$m_se[1]),
-                       b = rnorm(5000, lr_pars$dt$b_est[1], lr_pars$dt$b_se[1]))
+      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
     } else if(idx == 1) {
       df <- "None"
     } else if(idx == 2) {
-      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
-                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
+      df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[1], lr_pars$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars$dt$b_est[1], lr_pars$dt$b_se[1]))
     } else if(idx == 4) {
       df <- data.frame(beta0 = rnorm(5000, mlr_pars$dt$b0_est[1], mlr_pars$dt$b0_se[1]),
                        beta1 = rnorm(5000, mlr_pars$dt$b1_est[1], mlr_pars$dt$b1_se[1]),
@@ -1831,6 +1841,140 @@ shinyServer(function(input, output, session) {
       facet_wrap(~variable, nrow = 1, scales = "free_x") +
       theme_bw(base_size = 16)
     
+  })
+  
+  # create reactive value to hold forecast
+  wtemp_fc3b <- reactiveValues(mlt = NULL, dist = NULL)
+  
+  # this code will run when user clicks 'Run forecast'
+  observeEvent(input$run_wtemp_fc3b, {
+
+    idx <- input$mod_selec_tab3_rows_selected
+
+    pars <- param_dist3b$dist[[idx]]
+    if(idx != 1) {
+      pars <- pars[sample(1:nrow(pars), size = 100), ]
+    }
+    
+    df <- airt1_fc$df
+    colnames(df)[2] <- "airt"
+    
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
+    
+    mat <- matrix(NA, 8, 100)
+    mat[1, ] <- dat$wtemp[which(dat$Date == fc_date)]
+    df <- df[(df$Date >= fc_date), ]
+    for(mem in 2:nrow(mat)) {
+      
+      if(idx == 3) {
+        mat[mem, ] <- df$airt[mem] * pars$m + pars$b
+      } else if(idx == 1) {
+        mat[mem, ] <- mat[mem-1, ]
+      } else if(idx == 2) {
+        mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
+      } else if(idx == 4) {
+        mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta0
+        
+      }
+    }
+    
+    # Calculate distributions
+    dat <- apply(mat, 1, function(x){
+      quantile(x, c(0.05, 0.5, 0.95))
+    })
+    dat <- as.data.frame(t(dat))
+    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    dat$Level <- as.character(idx)
+    wtemp_fc_out3b$dist[[idx]] <- dat
+    
+    df2 <- as.data.frame(mat)
+    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    mlt <- reshape::melt(df2, id.vars = "Date")
+    mlt$Level <- as.character(idx)
+    wtemp_fc_out3b$mlt[[idx]] <- mlt
+    
+  })
+  
+  # code to render plot
+  output$wtemp_fc3b <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab3_rows_selected != "",
+           message = "Please select a model in the table.")
+    )
+    
+    idx <- input$mod_selec_tab3_rows_selected
+    
+    if(idx != 1) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameter distributions'.")
+      )
+    }
+    
+    validate(
+      need(any(!is.na(wtemp_fc_out3b$mlt)),
+           message = "Click 'Run forecast'.")
+    )
+    
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12)
+    
+    if(input$plot_type3b == "Line") {
+      if(any(!is.na(wtemp_fc_out3b$mlt))) {
+        sub_lst <- wtemp_fc_out3b$mlt[!is.null(wtemp_fc_out3b$mlt)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+        
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
+      }
+    } else if(input$plot_type3b == "Distribution") {
+      if(any(!is.na(wtemp_fc_out3b$dist))) {
+        sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+        
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level))
+      }
+    }
+    
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    
+    return(gp)
   })
   
   
@@ -2167,16 +2311,6 @@ shinyServer(function(input, output, session) {
   wtemp_fc_data5 <- reactiveValues(lst = NULL)
 
 
-  #  Parameter Uncertainty
-  output$mod_selec_tab3 <- renderDT({
-    mod_selec_tab$dt[, c(1, 5)]
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
-  server = FALSE, escape = FALSE)
-
   # For IC Uncertainty
   output$mod_selec_tab4 <- renderDT({
     validate(
@@ -2482,151 +2616,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #** Run Parameter UC ensemble ----
-  wtemp_fc3b <- reactiveValues(mlt = NULL, dist = NULL)
-  observeEvent(input$run_wtemp_fc3b, {
-    # NEEDS CHECKS
 
-    req(input$mod_selec_tab3_rows_selected != "")
-    idx <- input$mod_selec_tab3_rows_selected
-
-    req(!is.na(param_dist3b$dist[[idx]]))
-
-    pars <- param_dist3b$dist[[idx]]
-    if(idx != 1) {
-      pars <- pars[sample(1:nrow(pars), size = 100), ]
-    }
-
-    df <- airt1_fc$df
-    colnames(df)[2] <- "airt"
-
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
-
-    mat <- matrix(NA, 8, 100)
-    mat[1, ] <- dat$wtemp[which(dat$Date == fc_date)]
-    df <- df[(df$Date >= fc_date), ]
-    for(mem in 2:nrow(mat)) {
-
-      if(idx == 3) {
-        mat[mem, ] <- df$airt[mem] * pars$m + pars$b
-      } else if(idx == 1) {
-        mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 2) {
-        mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
-      } else if(idx == 4) {
-        mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta3
-        
-      }
-    }
-
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out3b$dist[[idx]] <- dat
-
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out3b$mlt[[idx]] <- mlt
-
-    # wtemp_fc_out3b$lst[[idx]] <- df[, c("Date", "forecast")]
-  })
-
-  #** Plot - Parameter UC ----
-  output$wtemp_fc3b <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab3_rows_selected != "",
-           message = "Please select a model in the table.")
-    )
-
-    idx <- input$mod_selec_tab3_rows_selected
-
-    if(idx != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameters'.")
-      )
-    }
-
-    validate(
-      need(any(!is.na(wtemp_fc_out3b$mlt)),
-           message = "Click 'Run forecast'.")
-    )
-
-    # if(any(!is.na(wtemp_fc_out3b$lst))) {
-    #   sub_lst <- wtemp_fc_out3b$lst[!is.na(wtemp_fc_out3b$lst)]
-    #   mlt <- reshape::melt(sub_lst, id.vars = "Date")
-    #   print(head(mlt))
-    #   colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-    #   mlt$Label <- as.character(mlt$Label)
-    # }
-
-    p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
-
-    if(input$plot_type3b == "Line") {
-      if(any(!is.na(wtemp_fc_out3b$mlt))) {
-        sub_lst <- wtemp_fc_out3b$mlt[!is.null(wtemp_fc_out3b$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
-      }
-    } else if(input$plot_type3b == "Distribution") {
-      if(any(!is.na(wtemp_fc_out3b$dist))) {
-        sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level))
-      }
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-
-    return(gp)
-  })
 
   #* Initial Condition Uncertainty ----
   ic_dist <- reactiveValues(df = NULL)
