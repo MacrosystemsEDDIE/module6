@@ -1379,9 +1379,9 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[29], label = quest[qid[29], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[30], label = quest[qid[30], ], width = "90%")
-                                                                   )
+                                                                   p(tags$b(quest["q34", 1])),
+                                                                   p(tags$b(quest["q35", 1]))
+                                                            )
                                                             )
                                                           )
                                                       )
@@ -1390,78 +1390,10 @@ ui <- function(req) {
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will summarize the key sources of uncertainty in our forecasts and discuss them as a group.")
+                                                      p("In Activity C, we will compare the contributions of different sources of uncertainty to total forecast uncertainty for the different models.")
                                                       )
                                                )
                                              ),
-                                    #* Activity B - Summary ====
-                                    tabPanel(title = "Summary", value = "obj11",
-                                             fluidRow(
-                                               column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Summary"),
-                                                                p(id = "txt_j", module_text["act_B_summ", ]),
-                                                                p(id = "txt_j", "Remember, the Shiny app will disconnect if you leave it idle for 10 minutes, so make sure to download your '.eddie' file at the bottom of the page to save your progress.")
-                                                                )
-                                               )
-                                             ),
-                                               fluidRow(
-                                                 column(5, 
-                                                      h4("Discussion Questions"),
-                                                      p(id = "txt_j", tags$em("Use the figures below to answer the questions.")),
-                                                      tags$line()
-                                                 )
-                                               ),
-                                             fluidRow(
-                                               column(4,
-                                                      tags$ul(
-                                                        textAreaInput2(inputId = qid[31], label = quest[qid[31], ], width = "90%")
-                                                      )
-                                               ),
-                                               column(4,
-                                                      tags$ul(
-                                                        textAreaInput2(inputId = qid[32], label = quest[qid[32], ], width = "90%")
-                                                      )
-                                               ),
-                                               column(4,
-                                                      tags$ul(
-                                                        textAreaInput2(inputId = qid[33], label = quest[qid[33], ], width = "90%")
-                                                        )
-                                                      )
-                                               ),
-                                             fluidRow(
-                                               column(6,
-                                                      h3("Process Uncertainty"),
-                                                      wellPanel(
-                                                        plotOutput("proc_uc_summ")
-                                                        )
-                                                      ),
-                                               column(6,
-                                                      h3("Parameter Uncertainty"),
-                                                      wellPanel(
-                                                        plotOutput("param_uc_summ")
-                                                        )
-                                                      ),
-                                               column(6,
-                                                      h3("Initial Conditions Uncertainty"),
-                                                      wellPanel(
-                                                        plotOutput("ic_uc_summ")
-                                                        )
-                                                      ),
-                                               column(6,
-                                                      h3("Driver Uncertainty"),
-                                                      wellPanel(
-                                                        plotOutput("driver_uc_summ")
-                                                        )
-                                                      )
-                                             ),
-                                             fluidRow(
-                                               column(12,
-                                                      h2("Completed Activity B!"),
-                                                      p(id = "txt_j", "This is the end of Activity B. If you have been inputting your answers into the app, it is recommended to return to the 'Introduction' tab and generate the final report before completing Activity C. Otherwise you could lose your progress.")
-                                                      )
-                                               )
-                                             )
                                     )
                         ),
                # 6. Activity C ----

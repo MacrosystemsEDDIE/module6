@@ -38,4 +38,5 @@ q30,What initial conditions from your chosen lake site are required to run the f
 q31,One of the four models we are using for forecasting does not require any initial conditions. Which one is it? Explain how you know.,Activity C: Objective 10
 q32,"Which model had the least initial conditions uncertainty, and why?",Activity C: Objective 10
 q33,"You have learned that initial conditions uncertainty arises from observation error and missing observations. Knowing this, describe one way that you think initial conditions uncertainty in our water temperature forecasts could be reduced.",Activity C: Objective 11
-q34,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,Activity C: Objective 11
+q34,Why do only two of the models exhibit driver uncertainty in their water temperature forecasts?,Activity C: Objective 11
+q35,"You have learned that driver uncertainty arises because we cannot perfectly know what the future values of our model inputs will be. Knowing this, describe one way that you think driver uncertainty in our water temperature forecasts could be reduced.",
