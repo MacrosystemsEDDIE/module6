@@ -1084,7 +1084,7 @@ ui <- function(req) {
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 6 - Parameter Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_07", ])
+                                                                p(id = "txt_j", module_text["obj_06", ])
                                                       )
                                                )
                                              ),
@@ -1198,21 +1198,29 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
-                                    #* Objective 8 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Initial Conditions Uncertainty", value = "obj9",
+                                    #* Objective 7 - Initial Conditions Uncertainty ====
+                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj9",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 8 - Initial Conditions Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_08", ])
+                                                                h3("Objective 7 - Initial Conditions Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_07", ])
                                                                 )
                                                       )
                                                ),
                                              fluidRow(
                                                column(4,
-                                                      h3("Initial Condition Uncertainty"),
-                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem are not precisely known or because the calculations cannot be performed with the precise initial conditions."),
-                                                      p(id = "txt_j", "Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements.")
+                                                      h3("Initial Conditions Uncertainty"),
+                                                      p(tags$b("Initial conditions")," are the starting conditions used by a model. For example, in our persistence model:"),
+                                                      wellPanel(
+                                                        h4("Persistence model (Pers):"),
+                                                        div("$$wtemp_{t+1} = wtemp_{t}$$"),
+                                                        p("where t = today and t+1 = tomorrow")
+                                                      ),
+                                                      p("the initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature."),
+                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem are not precisely known."),
+                                                      p(id = "txt_j", "Even though we have daily measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements."),
+                                                      h4(tags$em("Scroll through the slides to the right to understand how initial conditions uncertainty is calculated and accounted for in a forecast."))
                                                ),
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
