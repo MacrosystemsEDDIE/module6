@@ -1503,6 +1503,9 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  # create reactive value for data needed to run process uncertainty forecast
+  wtemp_fc_data2 <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
+  
   # create reactive value for output of process uncertainty forecast
   wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
@@ -1636,7 +1639,8 @@ shinyServer(function(input, output, session) {
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))+
+      labs(color = NULL, fill = NULL)
     
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -1960,7 +1964,8 @@ shinyServer(function(input, output, session) {
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
     
     if(input$plot_type3b == "Line") {
       if(any(!is.na(wtemp_fc_out3b$mlt))) {
@@ -1975,7 +1980,8 @@ shinyServer(function(input, output, session) {
         mlt$Level <- factor(mlt$Level, levels = mod_names)
         
         p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
       }
     } else if(input$plot_type3b == "Distribution") {
       if(any(!is.na(wtemp_fc_out3b$dist))) {
@@ -1991,7 +1997,9 @@ shinyServer(function(input, output, session) {
         
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level))
+          geom_line(data = mlt, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
+        
       }
     }
     
@@ -2000,7 +2008,8 @@ shinyServer(function(input, output, session) {
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
     
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -2044,7 +2053,7 @@ shinyServer(function(input, output, session) {
     "Forecast complete!"
   })
   
-  
+  # end Objective 6
   
   ## Objective 7 - Initial Conditions Uncertainty ----
   
@@ -2243,7 +2252,8 @@ shinyServer(function(input, output, session) {
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
     
     if(input$plot_type4 == "Line") {
       if(any(!is.na(wtemp_fc_out4$mlt))) {
@@ -2258,7 +2268,8 @@ shinyServer(function(input, output, session) {
         mlt$Level <- factor(mlt$Level, levels = mod_names)
         
         p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
       }
     } else if(input$plot_type4 == "Distribution") {
       if(any(!is.na(wtemp_fc_out4$dist))) {
@@ -2274,7 +2285,8 @@ shinyServer(function(input, output, session) {
         
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level))
+          geom_line(data = mlt, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
       }
     }
     
@@ -2283,7 +2295,8 @@ shinyServer(function(input, output, session) {
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
     
     gp <- ggplotly(p, dynamicTicks = TRUE)
     
@@ -2322,14 +2335,399 @@ shinyServer(function(input, output, session) {
     "Forecast complete!"
   })
   
-  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
+  # end Objective 7
   
- 
+  #### Objective 8 - Driver Uncertainty
   
   # Slickr Driver UC slides
   output$driver_uc_slides <- renderSlickR({
     slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
+  
+  # create a reactive value to hold the ensemble air temperature forecast
+  noaa_df <- reactiveValues(airt = NULL, swr = NULL)
+  
+  # this code will run when the user clicks "Load forecast"
+  observeEvent(input$load_noaa_at, {
+    
+    req(input$table01_rows_selected != "")
+    
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = paste0("Loading NOAA forecast data"),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished loading.", value = 0.1)
+    
+    fpath <- file.path("data", "NOAAGEFS_1hr", siteID$lab)
+    fc_date <- list.files(fpath)[1]
+    fpath2 <- file.path(fpath, fc_date[1], "00")
+    fils <- list.files(fpath2, full.names = TRUE)
+    fils <- fils[-c(grep("ens00", fils))]
+    fid <- ncdf4::nc_open(file.path(fils[1]))
+    vars <- fid$var # Extract variable names for selection
+    fc_vars <- names(vars)[c(1, 5)] # Extract air temp
+    membs <- length(fils)
+    ncdf4::nc_close(fid)
+    
+    out <- lapply(fc_date, function(dat) {
+      idx <- which(fc_date == dat)
+      
+      fpath2 <- file.path(fpath, dat, "00")
+      fils <- list.files(fpath2)
+      fils <- fils[-c(grep("ens00", fils))]
+      
+      for( i in seq_len(length(fils))) {
+        
+        fid <- ncdf4::nc_open(file.path("data", "NOAAGEFS_1hr", siteID$lab, dat,
+                                        "00", fils[i]))
+        tim = ncvar_get(fid, "time")
+        tunits = ncatt_get(fid, "time")
+        lnam = tunits$long_name
+        tustr <- strsplit(tunits$units, " ")
+        step = tustr[[1]][1]
+        tdstr <- strsplit(unlist(tustr)[3], "-")
+        tmonth <- as.integer(unlist(tdstr)[2])
+        tday <- as.integer(unlist(tdstr)[3])
+        tyear <- as.integer(unlist(tdstr)[1])
+        tdstr <- strsplit(unlist(tustr)[4], ":")
+        thour <- as.integer(unlist(tdstr)[1])
+        tmin <- as.integer(unlist(tdstr)[2])
+        origin <- as.POSIXct(paste0(tyear, "-", tmonth,
+                                    "-", tday, " ", thour, ":", tmin),
+                             format = "%Y-%m-%d %H:%M", tz = "UTC")
+        if (step == "hours") {
+          tim <- tim * 60 * 60
+        }
+        if (step == "minutes") {
+          tim <- tim * 60
+        }
+        time = as.POSIXct(tim, origin = origin, tz = "UTC")
+        var_list <- lapply(fc_vars, function(x) {
+          if(x == "air_temperature") {
+            data.frame(time = time, value = (ncdf4::ncvar_get(fid, x) -  273.15))
+          } else {
+            data.frame(time = time, value = (ncdf4::ncvar_get(fid, x)))
+          }
+        })
+        
+        ncdf4::nc_close(fid)
+        names(var_list) <- fc_vars
+        
+        mlt1 <- reshape::melt(var_list, id.vars = "time")
+        mlt1 <- mlt1[, c("time", "L1", "value")]
+        
+        # df <- get_vari(file.path("data", fils[i]), input$fc_var, print = F)
+        cnam <- paste0("mem", formatC(i, width = 2, format = "d", flag = "0"))
+        if(i == 1) {
+          df2 <- mlt1
+          colnames(df2)[3] <- cnam
+        } else {
+          df2 <- merge(df2, mlt1, by = c(1,2))
+          colnames(df2)[ncol(df2)] <- cnam
+        }
+        
+      }
+      progress$set(value = i/length(fils))
+      return(df2)
+    })
+    
+    names(out) <- fc_date
+    # out$`2020-09-25`$L1 <- "Air temperature"
+    idx <- which(met_pars$Site == siteID$lab)
+    
+    noaa_df$airt <- reshape::melt(out[[1]][out[[1]]$L1 == "air_temperature", ], id.vars = c("time", "L1"))
+    noaa_df$swr <- reshape::melt(out[[1]][out[[1]]$L1 == "surface_downwelling_shortwave_flux_in_air", ], id.vars = c("time", "L1"))
+    noaa_df$swt <- noaa_df$airt
+    noaa_df$swt$L1 <- "surface_water_temperature"
+    noaa_df$swt$value <- met_pars$airt_m[idx] * noaa_df$swt$value + met_pars$airt_b[idx]
+    noaa_df$upar <- noaa_df$swr
+    noaa_df$upar$L1 <- "underwater_photosynthetically_active_radiation"
+    noaa_df$upar$value <- met_pars$swr_m[idx] * noaa_df$upar$value + met_pars$swr_b[idx]
+    
+    mlt <- noaa_df$airt
+    mlt$Date <- as.Date(mlt$time)
+    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+    
+    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+    wid <- as.data.frame(wid)
+    
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
+                      airt = airt_swt$df$airt,
+                      wtemp_yday = NA,
+                      airt_yday = NA)
+    
+    dat$wtemp_yday[-c(1:1)] <- dat$wtemp[-c((nrow(dat)+1-1):nrow(dat))]
+    dat$airt_yday[-c(1:1)] <- dat$airt[-c((nrow(dat)+1-1):nrow(dat))]
+    
+    lag_date <- (as.Date(fc_date) + 1)
+    mn_date <- (as.Date(fc_date) + 1)
+    
+    wtemp_fc_data5$lst <- lapply(1:30, function(x) {
+      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+      dat$wtemp[dat$Date > fc_date] <- NA
+      dat$forecast <- NA
+      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
+      dat$wtemp_yday[dat$Date > lag_date] <- NA
+      dat$airt_yday[dat$Date > mn_date] <- NA
+      
+      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+      df <- merge(dat, df, by = "Date", all.y = TRUE)
+    })
+    
+  })
+  
+  # this text lets the user know the forecast has loaded
+  output$noaa_at_loaded <- renderText({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
+    )
+    return(paste0("Forecast loaded for ", siteID$lab))
+  })
+  
+  # create output object for NOAA ensemble air temperature forecast plot
+  output$airt_fc5 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
+    )
+    
+    mlt <- noaa_df$airt
+    
+    mlt$Date <- as.Date(mlt$time)
+    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+    mlt$time <- as.POSIXct(mlt$Date)
+    fut_offset <- lubridate::days(6) 
+    mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
+    
+    
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp. - Observed")) +
+      geom_line(data = mlt, aes(Date, value, group = variable, color = "Air temp. - Forecast"), alpha = 0.6) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      scale_color_manual(values = c("Air temp. - Observed" = cols[1], "Air temp. - Forecast" = "gray")) +
+      ylab("Temperature (\u00B0C)") +
+      labs(color = NULL) +
+      theme_bw(base_size = 12)
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    
+    return(gp)
+  })
+  
+  # model selection table for driver uncertainty forecasts
+  output$mod_selec_tab5 <- renderDT({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    mod_selec_tab$dt[, c(1, 5)]
+  }, selection = "single",
+  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                 columnDefs = list(list(width = '10%', targets = "_all")),
+                 scrollX = TRUE),
+  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
+  server = FALSE, escape = FALSE)
+  
+  # disable run forecast button if no model selected in table
+  observe({
+    if(is.null(input$mod_selec_tab5_rows_selected)) {
+      shinyjs::disable("run_wtemp_fc5")
+    } else {
+      shinyjs::enable("run_wtemp_fc5")
+    }
+  })
+  
+  # create reactive value to hold driver uncertainty forecast output
+  wtemp_fc_out5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
+  
+  # this code will run when user clicks "Run forecast"
+  observeEvent(input$run_wtemp_fc5, {
+    
+    req(input$table01_rows_selected != "")
+    
+    mlt <- noaa_df$airt
+    mlt$Date <- as.Date(mlt$time)
+    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+    
+    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+    wid <- as.data.frame(wid)
+    
+    idx <- input$mod_selec_tab5_rows_selected
+    
+    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
+                      airt = airt_swt$df$airt,
+                      wtemp_yday = NA,
+                      airt_yday = NA)
+    
+    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    
+    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
+    mn_date <- (as.Date(fc_date) + 1)
+    
+    df <- wtemp_fc_data5$lst[[1]]
+    
+    mat <- matrix(NA, 8, 30)
+    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+    df <- df[(df$Date >= fc_date), ]
+    idx <- input$mod_selec_tab5_rows_selected
+    driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
+    
+    for(mem in 2:nrow(mat)) {
+      if(idx == 1) {
+        mat[mem, ] <- mat[mem-1, ]
+      } else if(idx == 2) {
+        mat[mem, ] <- mat[mem-1, ] * lr_eqn$dt$m[1] + lr_eqn$dt$b[1]
+      } else if(idx == 3) {
+        mat[mem, ] <- driv_mat[mem, ] * lr_eqn1$dt$m[1] + lr_eqn1$dt$b[1]
+      } else if(idx == 4) {
+        mat[mem, ] <- mat[mem-1, ] * mlr_pars$dt$b1_est[1] + driv_mat[mem, ] * mlr_pars$dt$b2_est[1] + mlr_pars$dt$b0_est[1]
+      }
+    }
+    
+    # Calculate distributions
+    dat <- apply(mat, 1, function(x){
+      quantile(x, c(0.05, 0.5, 0.95))
+    })
+    dat <- as.data.frame(t(dat))
+    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    dat$Level <- as.character(idx)
+    wtemp_fc_out5$dist[[idx]] <- dat
+    
+    df2 <- as.data.frame(mat)
+    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+    mlt <- reshape::melt(df2, id.vars = "Date")
+    mlt$Level <- as.character(idx)
+    wtemp_fc_out5$mlt[[idx]] <- mlt
+    
+    wtemp_fc_out5$lst[[idx]] <- df[, c("Date", "forecast")]
+  })
+  
+  # create output object for driver uncertainty forecast plot
+  output$wtemp_fc5 <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(any(!is.na(wtemp_fc_out5$mlt)),
+           message = "Click 'Run forecast'.")
+    )
+    
+    if(any(!is.na(wtemp_fc_out5$lst))) {
+      sub_lst <- wtemp_fc_out5$lst[!is.na(wtemp_fc_out5$lst)]
+      mlt <- reshape::melt(sub_lst, id.vars = "Date")
+      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
+      mlt$Label <- as.character(mlt$Label)
+    }
+    
+    p <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
+    
+    if(input$plot_type5 == "Line") {
+      if(any(!is.na(wtemp_fc_out5$mlt))) {
+        sub_lst <- wtemp_fc_out5$mlt[!is.null(wtemp_fc_out5$mlt)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+        
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
+      }
+    } else if(input$plot_type5 == "Distribution") {
+      if(any(!is.na(wtemp_fc_out5$dist))) {
+        sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
+        mlt <- do.call(rbind, sub_lst)
+        mlt <- na.exclude(mlt)
+        for(num in 1:4) {
+          if(num %in% mlt$Level) {
+            mlt$Level[mlt$Level == num] <- mod_names[num]
+          }
+        }
+        mlt$Level <- factor(mlt$Level, levels = mod_names)
+        
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
+      }
+    }
+    
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
+  
+  # this shows the equation of the model you are running a forecast for
+  output$sel_mod5 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(input$mod_selec_tab5_rows_selected != "",
+           message = "")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
+    )
+  })
+  
+  # this text lets you know when the forecast from the current model is complete
+  output$txt_fc_out5 <- renderText({
+    validate(
+      need(!is.null(input$mod_selec_tab5_rows_selected), "Select a model in the table.")
+    )
+    validate(
+      need(!is.na(wtemp_fc_out5$mlt[[input$mod_selec_tab5_rows_selected]]), "Click 'Run forecast'")
+    )
+    "Forecast complete!"
+  })
+  
+  # end Objective 8
+  
+  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
   
   observeEvent(input$lr_DT2_rows_selected, {
     req(sum(!is.na(lr_pars$dt$m_est)) > 0)
@@ -2563,20 +2961,7 @@ shinyServer(function(input, output, session) {
 
   
   
-  # Driver forecast UC
-  output$sel_mod5 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab5_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
-    )
-  })
+  
   
   # end model selection tables
   
@@ -2615,22 +3000,6 @@ shinyServer(function(input, output, session) {
   # Driver Uncertainty
   wtemp_fc_data5 <- reactiveValues(lst = NULL)
 
-
-
-  # For Driver Uncertainty
-  output$mod_selec_tab5 <- renderDT({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    mod_selec_tab$dt[, c(1, 5)]
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
-  server = FALSE, escape = FALSE)
-
   wtemp_fc_out1 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   observe({
     if(is.null(input$mod_selec_tab_rows_selected)) {
@@ -2652,17 +3021,6 @@ shinyServer(function(input, output, session) {
   })
 
 
-
-  # Driver UC
-  wtemp_fc_out5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
-  observe({
-    if(is.null(input$mod_selec_tab5_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc5")
-    } else {
-      shinyjs::enable("run_wtemp_fc5")
-    }
-  })
-
   output$txt_fc_out <- renderText({
     validate(
       need(!is.null(input$mod_selec_tab_rows_selected), "Select a model in the table.")
@@ -2673,17 +3031,6 @@ shinyServer(function(input, output, session) {
     "Forecast complete!"
   })
 
-
-  # Driver UC Forecast
-  output$txt_fc_out5 <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab5_rows_selected), "Select a model in the table.")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out5$mlt[[input$mod_selec_tab5_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
 
   observeEvent(input$run_wtemp_fc1, {
     req(input$mod_selec_tab_rows_selected != "")
@@ -2865,197 +3212,6 @@ shinyServer(function(input, output, session) {
   })
 
 
-
-
-
-  
-
-
-  #* Driver Uncertainty ----
-  #** Plot - FC NOAA Air temperature ----
-  output$airt_fc5 <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
-    )
-
-    mlt <- noaa_df$airt
-
-    mlt$Date <- as.Date(mlt$time)
-    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-    mlt <- mlt[mlt$Date <= "2020-10-02", ]
-    mlt$time <- as.POSIXct(mlt$Date)
-    fut_offset <- lubridate::days(6) 
-    mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
-    
-
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp. - Observed")) +
-      geom_line(data = mlt, aes(Date, value, group = variable, color = "Air temp. - Forecast"), alpha = 0.6) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      scale_color_manual(values = c("Air temp. - Observed" = cols[1], "Air temp. - Forecast" = "gray")) +
-      ylab("Temperature (\u00B0C)") +
-      labs(color = NULL) +
-      theme_bw(base_size = 12)
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-
-    return(gp)
-  })
-
-  #** Run forecast - Driver UC ----
-  wtemp_fc5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)))
-  # Run forecast WITH forecasted & Driver UC air temperature
-  observeEvent(input$run_wtemp_fc5, {
-
-    req(input$table01_rows_selected != "")
-
-    mlt <- noaa_df$airt
-    mlt$Date <- as.Date(mlt$time)
-    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-    mlt <- mlt[mlt$Date <= "2020-10-02", ]
-
-    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
-    wid <- as.data.frame(wid)
-
-
-    idx <- input$mod_selec_tab5_rows_selected
-
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
-
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
-
-    df <- wtemp_fc_data5$lst[[1]]
-
-    mat <- matrix(NA, 8, 30)
-    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-    df <- df[(df$Date >= fc_date), ]
-    idx <- input$mod_selec_tab5_rows_selected
-    driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
-    for(mem in 2:nrow(mat)) {
-      if(idx == 1) {
-        mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 2) {
-        coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
-        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + coeffs[2]
-      } else if(idx == 3) {
-        mat[mem, ] <- driv_mat[mem, ] * lr_pars$dt$m_est[4] + lr_pars$dt$b_est[4]
-      } else if(idx == 4) {
-        coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
-        mat[mem, ] <- mat[mem-1, ] * coeffs[1] + driv_mat[mem, ] * coeffs[2] + coeffs[3]
-      }
-    }
-
-
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out5$dist[[idx]] <- dat
-
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out5$mlt[[idx]] <- mlt
-
-    wtemp_fc_out5$lst[[idx]] <- df[, c("Date", "forecast")]
-  })
-
-  #** Plot - Forecast Driver UC ----
-  output$wtemp_fc5 <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(any(!is.na(wtemp_fc_out5$mlt)),
-           message = "Click 'Run forecast'.")
-    )
-
-    if(any(!is.na(wtemp_fc_out5$lst))) {
-      sub_lst <- wtemp_fc_out5$lst[!is.na(wtemp_fc_out5$lst)]
-      mlt <- reshape::melt(sub_lst, id.vars = "Date")
-      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      mlt$Label <- as.character(mlt$Label)
-    }
-
-    p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
-
-    if(input$plot_type5 == "Line") {
-      if(any(!is.na(wtemp_fc_out5$mlt))) {
-        sub_lst <- wtemp_fc_out5$mlt[!is.null(wtemp_fc_out5$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)
-      }
-    } else if(input$plot_type5 == "Distribution") {
-      if(any(!is.na(wtemp_fc_out5$dist))) {
-        sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level))
-      }
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    return(gp)
-  })
 
   #* Summary Plots ----
   #** Process Uncertainty Summary ----
@@ -4012,148 +4168,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  #** Load NOAA airT ----
-  noaa_df <- reactiveValues(airt = NULL, swr = NULL)
-  observeEvent(input$load_noaa_at, {
 
-    req(input$table01_rows_selected != "")
-
-    progress <- shiny::Progress$new()
-    on.exit(progress$close())
-    progress$set(message = paste0("Loading NOAA forecast data"),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished loading.", value = 0.1)
-
-    fpath <- file.path("data", "NOAAGEFS_1hr", siteID$lab)
-    fc_date <- list.files(fpath)[1]
-    fpath2 <- file.path(fpath, fc_date[1], "00")
-    fils <- list.files(fpath2, full.names = TRUE)
-    fils <- fils[-c(grep("ens00", fils))]
-    fid <- ncdf4::nc_open(file.path(fils[1]))
-    vars <- fid$var # Extract variable names for selection
-    fc_vars <- names(vars)[c(1, 5)] # Extract air temp
-    membs <- length(fils)
-    ncdf4::nc_close(fid)
-
-    out <- lapply(fc_date, function(dat) {
-      idx <- which(fc_date == dat)
-
-      fpath2 <- file.path(fpath, dat, "00")
-      fils <- list.files(fpath2)
-      fils <- fils[-c(grep("ens00", fils))]
-
-      for( i in seq_len(length(fils))) {
-
-        fid <- ncdf4::nc_open(file.path("data", "NOAAGEFS_1hr", siteID$lab, dat,
-                                        "00", fils[i]))
-        tim = ncvar_get(fid, "time")
-        tunits = ncatt_get(fid, "time")
-        lnam = tunits$long_name
-        tustr <- strsplit(tunits$units, " ")
-        step = tustr[[1]][1]
-        tdstr <- strsplit(unlist(tustr)[3], "-")
-        tmonth <- as.integer(unlist(tdstr)[2])
-        tday <- as.integer(unlist(tdstr)[3])
-        tyear <- as.integer(unlist(tdstr)[1])
-        tdstr <- strsplit(unlist(tustr)[4], ":")
-        thour <- as.integer(unlist(tdstr)[1])
-        tmin <- as.integer(unlist(tdstr)[2])
-        origin <- as.POSIXct(paste0(tyear, "-", tmonth,
-                                    "-", tday, " ", thour, ":", tmin),
-                             format = "%Y-%m-%d %H:%M", tz = "UTC")
-        if (step == "hours") {
-          tim <- tim * 60 * 60
-        }
-        if (step == "minutes") {
-          tim <- tim * 60
-        }
-        time = as.POSIXct(tim, origin = origin, tz = "UTC")
-        var_list <- lapply(fc_vars, function(x) {
-          if(x == "air_temperature") {
-            data.frame(time = time, value = (ncdf4::ncvar_get(fid, x) -  273.15))
-          } else {
-            data.frame(time = time, value = (ncdf4::ncvar_get(fid, x)))
-          }
-        })
-
-        ncdf4::nc_close(fid)
-        names(var_list) <- fc_vars
-
-        mlt1 <- reshape::melt(var_list, id.vars = "time")
-        mlt1 <- mlt1[, c("time", "L1", "value")]
-
-        # df <- get_vari(file.path("data", fils[i]), input$fc_var, print = F)
-        cnam <- paste0("mem", formatC(i, width = 2, format = "d", flag = "0"))
-        if(i == 1) {
-          df2 <- mlt1
-          colnames(df2)[3] <- cnam
-        } else {
-          df2 <- merge(df2, mlt1, by = c(1,2))
-          colnames(df2)[ncol(df2)] <- cnam
-        }
-
-      }
-      progress$set(value = i/length(fils))
-      return(df2)
-    })
-
-    names(out) <- fc_date
-    # out$`2020-09-25`$L1 <- "Air temperature"
-    idx <- which(met_pars$Site == siteID$lab)
-
-    noaa_df$airt <- reshape::melt(out[[1]][out[[1]]$L1 == "air_temperature", ], id.vars = c("time", "L1"))
-    noaa_df$swr <- reshape::melt(out[[1]][out[[1]]$L1 == "surface_downwelling_shortwave_flux_in_air", ], id.vars = c("time", "L1"))
-    noaa_df$swt <- noaa_df$airt
-    noaa_df$swt$L1 <- "surface_water_temperature"
-    noaa_df$swt$value <- met_pars$airt_m[idx] * noaa_df$swt$value + met_pars$airt_b[idx]
-    noaa_df$upar <- noaa_df$swr
-    noaa_df$upar$L1 <- "underwater_photosynthetically_active_radiation"
-    noaa_df$upar$value <- met_pars$swr_m[idx] * noaa_df$upar$value + met_pars$swr_b[idx]
-
-    mlt <- noaa_df$airt
-    mlt$Date <- as.Date(mlt$time)
-    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-    mlt <- mlt[mlt$Date <= "2020-10-02", ]
-
-    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
-    wid <- as.data.frame(wid)
-
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
-
-    dat$wtemp_yday[-c(1:1)] <- dat$wtemp[-c((nrow(dat)+1-1):nrow(dat))]
-    dat$airt_yday[-c(1:1)] <- dat$airt[-c((nrow(dat)+1-1):nrow(dat))]
-
-    lag_date <- (as.Date(fc_date) + 1)
-    mn_date <- (as.Date(fc_date) + 1)
-
-    wtemp_fc_data5$lst <- lapply(1:30, function(x) {
-      dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-      dat$wtemp[dat$Date > fc_date] <- NA
-      dat$forecast <- NA
-      dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-      dat$airt[dat$Date > fc_date] <- wid[2:8, x+2]
-      dat$wtemp_yday[dat$Date > lag_date] <- NA
-      dat$airt_yday[dat$Date > mn_date] <- NA
-
-      df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-      df <- merge(dat, df, by = "Date", all.y = TRUE)
-    })
-
-  })
-
-  output$noaa_at_loaded <- renderText({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
-    )
-    return(paste0("Forecast loaded for ", siteID$lab))
-  })
 
   #** NOAA Air temperature plot ----
   output$noaa_at_plot <- renderPlotly({

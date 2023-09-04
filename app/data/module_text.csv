@@ -29,7 +29,7 @@ obj_04,Generate multiple forecasts of water temperature.
 obj_05,Explore how process uncertainty affects the different models when forecasting water temperature.
 obj_06,Explore how parameter uncertainty affects the different models when forecasting water temperature.
 obj_07,Explore how initial conditions uncertainty affects the different models when forecasting water temperature.
-obj_08,Explore how initial conditions uncertainty affects the different models when forecasting water temperature.
+obj_08,Explore how driver uncertainty affects the different models when forecasting water temperature.
 obj_09,Explore how driver uncertainty affects the different models when forecasting water temperature.
 obj_10,Generate forecasts of water temperature with total forecast uncertainty and quantify the uncertainty at each forecast horizon and its source.
 obj_11,As a water resource manager you will use forecasts to make decisions about water releases from a reservoir. With your partner you will explore how forecast uncertainty affects your decisions.

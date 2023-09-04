@@ -1305,13 +1305,13 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
-                                    #* Objective 9 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 9 - Driver Uncertainty", value = "obj10",
+                                    #* Objective 8 - Driver Uncertainty ====
+                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj10",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 9 - Driver Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_09", ])
+                                                                h3("Objective 8 - Driver Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_08", ])
                                                       )
                                                )
                                              ),
@@ -1329,6 +1329,7 @@ ui <- function(req) {
                                                         )
                                                       )
                                                ),
+                                             hr(),
                                              fluidRow(
                                                column(6,
                                                       h4("NOAA Forecast data"),
@@ -1346,7 +1347,7 @@ ui <- function(req) {
                                                       )
                                                       )
                                                ),
-                                             
+                                             hr(),
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Driver Data Uncertainty"),
@@ -1370,7 +1371,7 @@ ui <- function(req) {
                                                       )
                                                )
                                              ),
-
+                                             hr(),
                                              fluidRow(
                                                column(10, offset = 1,
                                                       box(id = "box2", width = 12, status = "primary",
