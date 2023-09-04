@@ -1112,18 +1112,18 @@ ui <- function(req) {
                                                       h4("Uncertainty in Parameters"),
                                                       p(id = "txt_j", "To illustrate the uncertainty associated with model parameters, we will fit linear regression models to water and air temperature data collected from your focal lake over", tags$b("either one or two years.")),
                                                       p("Click the button below to fit a linear regression model to the first year of air and water temperature data. This is the same linear regression model that you fit in Objective 3."),
-                                                      actionButton("fit_model_year_1","Fit model to Year One data"),
-                                                      p("Observe the parameter values of the model fit to the first year of data. Now, a year has passed and you have collected an additional year of data at your site. Click the button below to fit a model using two years of data."),
-                                                      actionButton("fit_model_year_2","Fit model to Year Two data"),
+                                                      actionButton("fit_model_year_1","Fit model to one year of data"),
+                                                      p("Observe the parameter values of the model fit to the first year of data. Now, imagine another year has passed and you have collected an additional year of data at your site. Click the button below to fit a model using two years of data."),
+                                                      actionButton("fit_model_year_2","Fit model to two years of data"),
                                                       DTOutput("param_uc_example_table")
                                                       ),
                                                column(8,
                                                column(6,
-                                                      h4("Model fit to Year One data"),
+                                                      h4("Model fit to one year of data"),
                                                       plotlyOutput("model_fit_year_1")
                                                       ),
                                                column(6,
-                                                      h4("Model fit to Year Two data"),
+                                                      h4("Model fit to two years of data"),
                                                       plotlyOutput("model_fit_year_2")
                                                ),
                                                fluidRow(

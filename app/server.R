@@ -1684,7 +1684,7 @@ shinyServer(function(input, output, session) {
     slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
   
-  # plot model fit from Objective 3 ("Year One" data)
+  # plot model fit from Objective 3 (one year of data)
   output$model_fit_year_1 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1696,7 +1696,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$fit_model_year_1 > 0,
-           message = "Click 'Fit model to Year One data'.")
+           message = "Click 'Fit model to one year of data'.")
     )
     airt_swt_plot_lines$main 
   })
@@ -1754,7 +1754,7 @@ shinyServer(function(input, output, session) {
     airt_swt_plot_year2$main <- p
   })
   
-  # output object for plot model fit from Objective 3 ("Year Two" data)
+  # output object for plot model fit from Objective 3 (two years of data)
   output$model_fit_year_2 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1766,7 +1766,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$fit_model_year_2 > 0,
-           message = "Click 'Fit model to Year One data'.")
+           message = "Click 'Fit model to one year of data'.")
     )
     airt_swt_plot_year2$main 
   })
@@ -1775,7 +1775,7 @@ shinyServer(function(input, output, session) {
   output$param_uc_example_table <- renderDT(param_uc_example_table$df, selection = "none",
                              options = list(searching = FALSE, paging = FALSE, ordering= FALSE, dom = "t", autoWidth = TRUE,
                                             columnDefs = list(list(width = '100%', targets = "_all")), scrollX = TRUE
-                             ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("Year 1 data","Year 2 data"),
+                             ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("1 year model","2 year model"),
                              server = FALSE, escape = FALSE)
   
   # model selection table
