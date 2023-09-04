@@ -1218,7 +1218,7 @@ ui <- function(req) {
                                                         p("where t = today and t+1 = tomorrow")
                                                       ),
                                                       p("the initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature."),
-                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem are not precisely known."),
+                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem - in our case, ",tags$b("lake water temperature"), " - are not precisely known."),
                                                       p(id = "txt_j", "Even though we have daily measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements."),
                                                       h4(tags$em("Scroll through the slides to the right to understand how initial conditions uncertainty is calculated and accounted for in a forecast."))
                                                ),
@@ -1226,7 +1226,18 @@ ui <- function(req) {
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
                                                         slickROutput("ic_uc_slides", width = "640px", height = "360px")
-                                                        )
+                                                        ),
+                                                      box(id = "box10", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   h4("Hint: Read through the slides above before attempting to answer these questions!"),
+                                                                   p(tags$b(quest["q30", 1])),
+                                                                   p(tags$b(quest["q31", 1]))
+                                                                   )
+                                                          )
+                                                      )
                                                       )
                                                ),
                                              hr(),
@@ -1235,7 +1246,6 @@ ui <- function(req) {
                                                       h4("Generate Initial Condition Distribution"),
                                                       p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions."),
                                                       p(id = "txt_j", "Use the slider below to adjust the standard deviation and then generate a normal distribution around the initial condition."),
-                                                      sliderInput("ic_uc", "Standard deviation", min = 0.05, max = 0.5, value = 0.1, step = 0.05),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
                                                column(4,
@@ -1251,6 +1261,7 @@ ui <- function(req) {
                                                         )
                                                       )
                                              ),
+                                             hr(),
                                              fluidRow(
                                                column(6,
                                                       h4("Forecast with Initial Conditions Uncertainty"),
@@ -1259,7 +1270,6 @@ ui <- function(req) {
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab4"),
                                                       br(),
-                                                      # actionButton("load_driv4", "Load driver data"),
                                                       actionButton("run_wtemp_fc4", "Run forecast"),
                                                       br(),
                                                       p(id = "txt_j", "We will use 100 different initial condtions in the forecast ensemble. These will be sampled from the distribution generated above."),
@@ -1269,9 +1279,8 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[26], label = quest[qid[26], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[27], label = quest[qid[27], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[28], label = quest[qid[28], ], width = "90%")
+                                                                   p(tags$b(quest["q32", 1])),
+                                                                   p(tags$b(quest["q33", 1]))
                                                                    )
                                                             )
                                                           )

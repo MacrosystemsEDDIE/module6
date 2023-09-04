@@ -34,8 +34,8 @@ q26,"You have learned that process uncertainty arises when our models do not per
 q27,How do the parameter values of the models fit to one year vs. two years of data compare? Why do you think this might be?,Activity B: Summary
 q28,Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Summary
 q29,"You have learned that parameter uncertainty arises when we do not have enough data or when our data do not accurately represent the true relationship between environmental variables. Knowing this, describe one way that you think parameter uncertainty in our water temperature forecasts could be reduced.",Activity B: Summary
-q30,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,Activity C: Objective 10
-q31,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,Activity C: Objective 10
-q32,"With your partner, compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",Activity C: Objective 10
-q33,Did the uncertainty visualization affect your decision? How?,Activity C: Objective 11
+q30,What initial conditions from your chosen lake site are required to run the forecast models we are using today?,Activity C: Objective 10
+q31,One of the four models we are using for forecasting does not require any initial conditions. Which one is it? Explain how you know.,Activity C: Objective 10
+q32,"Which model had the least initial conditions uncertainty, and why?",Activity C: Objective 10
+q33,"You have learned that initial conditions uncertainty arises from observation error and missing observations. Knowing this, describe one way that you think initial conditions uncertainty in our water temperature forecasts could be reduced.",Activity C: Objective 11
 q34,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,Activity C: Objective 11
