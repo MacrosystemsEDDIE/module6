@@ -1210,6 +1210,7 @@ shinyServer(function(input, output, session) {
       geom_line(data = airt1_fc$df, aes(Date, value, color = "Air temp. - Forecast")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
+      labs(color = NULL)+
       theme_bw(base_size = 12)
     
     return(ggplotly(p, dynamicTicks = TRUE))
@@ -2887,46 +2888,18 @@ shinyServer(function(input, output, session) {
     mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
     mlt <- mlt[mlt$Date <= "2020-10-02", ]
     mlt$time <- as.POSIXct(mlt$Date)
-    fut_offset <- lubridate::days(6) #+ lubridate::hours(19)
+    fut_offset <- lubridate::days(6) 
+    mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
+    
 
     p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      # geom_line(data = airt1_fc$df, aes(Date, value, color = "Air temp. - Forecast")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp. - Observed")) +
+      geom_line(data = mlt, aes(Date, value, group = variable, color = "Air temp. - Forecast"), alpha = 0.6) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      scale_color_manual(values = c("Air temp. - Observed" = cols[1], "Air temp. - Forecast" = "gray")) +
       ylab("Temperature (\u00B0C)") +
+      labs(color = NULL) +
       theme_bw(base_size = 12)
-
-    if(input$plot_type5 == "Line") {
-
-      mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
-      p <- p +
-        geom_line(data = mlt, aes(Date, value, group = variable), color = "gray", alpha = 0.6)
-    } else if(input$plot_type5 == "Distribution") {
-      validate(
-        need(input$noaa_n_mems > 2, "Need more than 2 members to create a distribution.")
-      )
-
-      wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
-      wid <- wid[, 1:(input$noaa_n_mems + 2)]
-      df <- apply(wid[, -c(1, 2)], 1, function(x){
-        quantile(x, c(0.05, 0.5, 0.875, 0.95))
-      })
-      df <- as.data.frame(t(df))
-      colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
-      df$Date <- wid$Date
-      p <- p +
-        geom_ribbon(data = df, aes(Date, ymin = p5, ymax = p95), fill = l.cols[2], alpha = 0.3)+
-        # geom_ribbon(data = df, aes(Date, ymin = p12.5, ymax = p87.5, fill = "75%"), alpha = 0.3)+
-        geom_line(data = df, aes(Date, p50, color = "Median"))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))
 
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -2970,11 +2943,11 @@ shinyServer(function(input, output, session) {
 
     df <- wtemp_fc_data5$lst[[1]]
 
-    mat <- matrix(NA, 8, input$noaa_n_mems)
+    mat <- matrix(NA, 8, 30)
     mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
     df <- df[(df$Date >= fc_date), ]
     idx <- input$mod_selec_tab5_rows_selected
-    driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
+    driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
     for(mem in 2:nrow(mat)) {
       if(idx == 1) {
         mat[mem, ] <- mat[mem-1, ]
@@ -3520,8 +3493,8 @@ shinyServer(function(input, output, session) {
       mat <- matrix(NA, 8, input$tot_fc_mem)
 
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-        tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
+        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        tmes <- ceiling(input$tot_fc_mem / 30)
         M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
         driv_mat <- M[, 1:input$tot_fc_mem]
       } else {
@@ -3776,8 +3749,8 @@ shinyServer(function(input, output, session) {
 
 
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:input$noaa_n_mems, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-        tmes <- ceiling(input$tot_fc_mem / input$noaa_n_mems)
+        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        tmes <- ceiling(input$tot_fc_mem / 30)
         M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
         driv_mat <- M[, 1:input$tot_fc_mem]
       } else {
@@ -4156,7 +4129,7 @@ shinyServer(function(input, output, session) {
     lag_date <- (as.Date(fc_date) + 1)
     mn_date <- (as.Date(fc_date) + 1)
 
-    wtemp_fc_data5$lst <- lapply(1:input$noaa_n_mems, function(x) {
+    wtemp_fc_data5$lst <- lapply(1:30, function(x) {
       dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
       dat$wtemp[dat$Date > fc_date] <- NA
       dat$forecast <- NA
@@ -4192,7 +4165,7 @@ shinyServer(function(input, output, session) {
       need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
     )
     validate(
-      need(is.numeric(input$noaa_n_mems), "Please input a number for 'Number of forecasts'")
+      need(is.numeric(30), "Please input a number for 'Number of forecasts'")
     )
     # validate(
     #   need(input$view_day0, "Please click 'Load observation'")
@@ -4232,10 +4205,10 @@ shinyServer(function(input, output, session) {
       ylims <- c(min(dat$value, na.rm = TRUE) - 1, max(dat$value, na.rm = TRUE) + 1)
     }
 
-    dat <- dat[dat$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
-    dat2 <- dat2[dat2$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
+    dat <- dat[dat$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
+    dat2 <- dat2[dat2$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
 
-    if(input$noaa_n_mems > 0 & input$view_day7) {
+    if(30 > 0 & input$view_day7) {
       cur_df <- data.frame(time = dat$time2, value = dat$value, variable = dat$variable, xend = dat2$time2, yend = dat2$value)
     }
 
@@ -4266,14 +4239,14 @@ shinyServer(function(input, output, session) {
                         color = "red", width = 12000, size = 2) # Error bars - Std. Dev
 
     }
-    if(input$view_ic & input$noaa_n_mems > 0) {
+    if(input$view_ic & 30 > 0) {
       p <- p +
         geom_point(data = dat, aes(time2, value), size = 2) + # Day 1
         # geom_ellipse(aes(x0 = (st$time[1] - 6000), y0 = st$mean[1], a = (2 * 6000), b = (2 * st$sd[1]), angle = 0))
         stat_ellipse(data = dat, aes(time2, value), na.rm = TRUE,
                      inherit.aes = FALSE, type = "norm")
     }
-    if(input$view_day7 & input$noaa_n_mems > 0) {
+    if(input$view_day7 & 30 > 0) {
       p <- p +
         geom_point(data = dat2, aes(time2, value), size = 2) + # Day 1
         stat_ellipse(data = dat2, aes(time2, value), na.rm = TRUE,
@@ -4282,28 +4255,28 @@ shinyServer(function(input, output, session) {
 
     if(!is.null(input$add_to_plot)) {
 
-      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Line") {
+      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Line") {
         p <- p +
           geom_segment(data = cur_df, aes(time, value, group = variable, xend = xend, yend = yend),
                        color = "gray", alpha = 0.6)
         # geom_curve(data = cur_df, aes(time, value, group = variable, xend = xend, yend = yend),
         #            curvature = -0.2) # Connecting curves
       }
-      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Forecast members") {
+      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Forecast members") {
 
-        mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:input$noaa_n_mems, width = 2, format = "d", flag = "0")), ]
+        mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
         p <- p +
           geom_line(data = mlt[mlt$time <= xlims[2], ], aes(time, value, group = variable),
                     color = "gray", alpha = 0.6)
       }
-      if(input$view_ic & input$noaa_n_mems > 0 & input$view_day7 & input$add_to_plot == "Forecast distribution") {
+      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Forecast distribution") {
 
         validate(
-          need(input$noaa_n_mems >= 2, "Number of members must be greater than 1.")
+          need(30 >= 2, "Number of members must be greater than 1.")
         )
 
         wid <- tidyr::pivot_wider(mlt, c(time, L1), names_from = variable, values_from = value)
-        wid <- wid[wid$time <= (mlt$time[1] + fut_offset), 1:(input$noaa_n_mems + 2)]
+        wid <- wid[wid$time <= (mlt$time[1] + fut_offset), 1:(30 + 2)]
         df <- apply(wid[, -c(1, 2)], 1, function(x){
           quantile(x, c(0.05, 0.5, 0.95))
         })

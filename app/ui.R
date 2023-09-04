@@ -1318,8 +1318,8 @@ ui <- function(req) {
                                              fluidRow(
                                                column(4,
                                                       h3("Driver Uncertainty"),
-                                                      p(id = "txt_j", tags$b("Driver uncertainty")," comes from inaccuracies in the forecasted variables used to drive the model."),
-                                                      p(id = "txt_j", "The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted air temperature to drive the model."),
+                                                      p(id = "txt_j", tags$b("Driver uncertainty")," comes from the forecasted variables needed as inputs to run a forecast model into the future. These input variables are referred to as ",tags$b("drivers,"), " hence ",tags$b("driver uncertainty.")),
+                                                      p(id = "txt_j", "Our driver variable is",tags$b("air temperature."), "To generate a forecast of future water temperature, some of our models require forecasted air temperature."),
                                                       p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
                                                       ),
                                                column(8,
@@ -1332,14 +1332,13 @@ ui <- function(req) {
                                              fluidRow(
                                                column(6,
                                                       h4("NOAA Forecast data"),
-                                                      p(id = "txt_j", "Here we will load in an air temperature forecast which has been generate from the ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA Global Ensemble Forecast System", target = "_blank"), " for the NEON site you chose in Activity A."),
+                                                      p(id = "txt_j", "Here we will load in an air temperature forecast which has been generated from the ", a(href = "https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-ensemble-forecast-system-gefs", "NOAA Global Ensemble Forecast System", target = "_blank"), " for the NEON site you chose in Activity A."),
                                                       img(src = "noaa_logo.jpg", height = "20%",
                                                           width = "20%", align = "right"),
                                                       p(id = "txt_j", "Load the NOAA ensemble forecast for air temperature below."),
                                                       actionButton("load_noaa_at", "Load forecast"),
                                                       verbatimTextOutput("noaa_at_loaded"),
-                                                      p(id = "txt_j", "You can adjust the number of ensemble members plotted below. These are what you will use to drive your model."),
-                                                      numericInput("noaa_n_mems", "Number of members (0-30)", 30, 1, 30)
+                                                      p("This ensemble has 30 members, allowing for a probabilistic representation of future air temperature at your lake site.")
                                                       ),
                                                column(6,
                                                       wellPanel(
