@@ -2727,6 +2727,627 @@ shinyServer(function(input, output, session) {
   
   # end Objective 8
   
+  #### Objective 9 - Quantifying Uncertainty
+  
+  # this code will run when the user selects a pair of models (A and B)
+  observeEvent(input$mod_selec_tot_fc, {
+    tot_fc_dataA$mlt <- NULL
+    tot_fc_dataA$dist <- NULL
+    tot_fc_dataA$mat <- NULL
+    tot_fc_dataA$lab <- NULL
+    
+    tot_fc_dataB$mlt <- NULL
+    tot_fc_dataB$dist <- NULL
+    tot_fc_dataB$mat <- NULL
+    tot_fc_dataB$lab <- NULL
+    
+    quantfcA$df <- NULL
+  })
+  
+  # output showing text of model A 
+  output$modA_txt <- renderText({
+    validate(
+      need(input$mod_selec_tot_fc != "", "")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "")
+    )
+    
+    if(input$mod_selec_tot_fc[1] == "Pers") {
+      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
+    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
+      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
+      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[1] == "Both") {
+      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
+    }
+    return(txt)
+  })
+  
+  # output showing equation of model A
+  output$modA_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    
+    if(input$mod_selec_tot_fc[1] == "Pers") {
+      eqn <- mod_selec_tab$dt[1, 1]
+    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
+      eqn <- mod_selec_tab$dt[2, 1]
+    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
+      eqn <- mod_selec_tab$dt[3, 1]
+    } else if (input$mod_selec_tot_fc[1] == "Both") {
+      eqn <- mod_selec_tab$dt[4, 1]
+    }
+    eqn <- gsub("[$$]+", "", eqn)
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+    
+    withMathJax(
+      div(eqn)
+    )
+  })
+  
+  # create reactive value for forecast output for Model A
+  tot_fc_dataA <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
+  
+  # create reactive value for partitioned uncertainty results
+  quantfcA <- reactiveValues(df = NULL)
+  
+  # this code will run when user pushes run forecast button for Model A
+  observeEvent(input$run_tot_fcA, {
+    
+    req(input$table01_rows_selected != "")
+    req(length(input$mod_selec_tot_fc) == 2)
+    
+    idx <- which(mod_names == input$mod_selec_tot_fc[1])
+    
+    req(!is.na(param_dist3b$dist[[idx]]))
+    req(!is.null(wtemp_fc_data5$lst))
+    
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = paste0("Forecasting water temperature"),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished loading.", value = 0.05)
+    
+    df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
+    tot_fc_dataA$lab <- input$mod_selec_tot_fc[1]
+    
+    for(fc_uncertA in uc_sources) {
+      
+      pidx <- which(uc_sources == fc_uncertA)
+      mat <- matrix(NA, 8, 500)
+      
+      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        tmes <- ceiling(500 / 30)
+        M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
+        driv_mat <- M[, 1:500]
+      } else {
+        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+      }
+      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        
+        idx <- sample(1:5000, 500)
+        
+        if(input$mod_selec_tot_fc[1] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = pars$beta1[idx],
+                               beta2 = pars$beta2[idx],
+                               beta0 = pars$beta0[idx])
+        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else {
+          params <- "NULL"
+        }
+      } else {
+        if(input$mod_selec_tot_fc[1] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = mean(pars$beta1),
+                               beta2 = mean(pars$beta2),
+                               beta0 = mean(pars$beta0))
+        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else {
+          params <- "NULL"
+        }
+      }
+      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        if(input$mod_selec_tot_fc[1] %in% c("Wtemp","Pers.","Both")){
+          mat[1, ] <- rnorm(500, df$wtemp[which(df$Date == fc_date)], sd = 0.1)
+        } else {
+          mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+        }
+      } else {
+        mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+      }
+      
+      for(mem in 2:nrow(mat)) {
+        
+        # Calculate process noise each time step
+        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+          if(input$mod_selec_tot_fc[1] == "Wtemp") {
+            Wt <- rnorm(500, 0, sigma_table$df[2,2])
+          } else if (input$mod_selec_tot_fc[1] == "Both") {
+            Wt <- rnorm(500, 0, sigma_table$df[4,2])
+          } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+            Wt <- rnorm(500, 0, sigma_table$df[3,2])
+          } else if(input$mod_selec_tot_fc[1] == "Pers.") {
+            Wt <- rnorm(500, 0, sigma_table$df[1,2])
+          }
+        } else {
+          Wt <- 0
+        }
+        
+        if(input$mod_selec_tot_fc[1] == "Atemp") {
+          mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[1] == "Pers") {
+          mat[mem, ] <- mat[mem-1, ] + Wt
+        } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
+          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[1] == "Both") {
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
+        }
+      }
+      
+      # Calculate distributions
+      tot_fc_dataA$mat <- mat
+      
+      if(fc_uncertA == "Total") {
+        dat <- apply(mat, 1, function(x) {
+          quantile(x, c(0.05, 0.5, 0.95))
+        })
+        dat <- as.data.frame(t(dat))
+        colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+        dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        tot_fc_dataA$dist <- dat
+        df2 <- as.data.frame(mat)
+        df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        mlt <- reshape::melt(df2, id.vars = "Date")
+        tot_fc_dataA$mlt <- mlt
+      }
+      
+      if(fc_uncertA != "Total") {
+        # Quantify UC
+        std <- apply(tot_fc_dataA$mat, 1, sd)
+        
+        df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                          sd = std, label = fc_uncertA)
+        
+        if(is.null(quantfcA$df)) {
+          quantfcA$df <- df2
+        } else {
+          # Overwrite previous Std Dev.
+          if((df2$label[1] %in% quantfcA$df$label)) {
+            idx <- which(quantfcA$df$label %in% df2$label[1])
+            quantfcA$df[idx, ] <- df2
+          } else {
+            quantfcA$df <- rbind(quantfcA$df, df2)
+          }
+        }
+      }
+      
+      progress$set(value = (pidx / length(uc_sources)))
+    }
+  })
+  
+  # create output for forecast with total uncertainty plot for Model A
+  output$tot_fc_uncertA <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    
+    idx <- which(mod_names == input$mod_selec_tot_fc[1])
+    sel_col <- cols[idx]
+    
+    if(idx != 1) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 6.")
+      )
+    }
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 8.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+    )
+    
+    dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
+    
+    
+    p <- ggplot() +
+      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
+      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12)
+    
+    if(input$plot_type_totA == "Line") {
+      if(!is.null(tot_fc_dataA$mlt)) {
+        
+        mlt <- tot_fc_dataA$mlt
+        
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
+      }
+    } else if(input$plot_type_totA == "Distribution") {
+      if(!is.null(tot_fc_dataA$dist)) {
+        mlt <- tot_fc_dataA$dist
+        
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50), color = sel_col)
+      }
+    }
+    
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
+  
+  
+  # create output for partitioned uncertainty plot for Model A
+  output$fc_quantA <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(quantfcA$df), "Click 'Run forecast' above.")
+    )
+    validate(
+      need(input$quant_ucA > 0, "Click 'Quantify uncertainty'")
+    )
+    
+    p <- ggplot() +
+      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+      ylab("Standard Deviation (\u00B0C)") +
+      scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
+                                   "Driver" = cols2[4], "Total" = cols2[5])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+      labs(fill = "Uncertainty") +
+      theme_bw(base_size = 12)
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    return(gp)
+  })
+  
+  # text describing Model B
+  output$modB_txt <- renderText({
+    validate(
+      need(input$mod_selec_tot_fc != "", "")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "")
+    )
+    
+    if(input$mod_selec_tot_fc[2] == "Pers") {
+      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
+    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
+      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
+    } else if (input$mod_selec_tot_fc[2] == "Both") {
+      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
+    }
+    return(txt)
+  })
+  
+  # equation output for Model B selected by user
+  output$modB_eqn <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    
+    if(input$mod_selec_tot_fc[2] == "Pers") {
+      eqn <- mod_selec_tab$dt[1, 1]
+    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+      eqn <- mod_selec_tab$dt[2, 1]
+    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
+      eqn <- mod_selec_tab$dt[3, 1]
+    } else if (input$mod_selec_tot_fc[2] == "Both") {
+      eqn <- mod_selec_tab$dt[4, 1]
+    }
+    
+    eqn <- gsub("[$$]+", "", eqn)
+    eqn <- paste0("$$", eqn, " + W_{t}$$")
+    
+    withMathJax(
+      div(eqn)
+    )
+  })
+  
+  # create reactive value for data needed for total uncertainty forecast for Model B
+  tot_fc_dataB <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
+  
+  # create reactive value to hold uncertainty partitioning results for Model B
+  quantfcB <- reactiveValues(df = NULL)
+  
+  # this code will run when user clicks "Run forecast" for Model B
+  observeEvent(input$run_tot_fcB, {
+    
+    req(input$table01_rows_selected != "")
+    req(!is.null(wtemp_fc_data5$lst))
+    req(!is.na(lr_pars$dt$m_est[4]))
+    
+    progress <- shiny::Progress$new()
+    on.exit(progress$close())
+    progress$set(message = paste0("Forecasting water temperature"),
+                 detail = "This may take a while. This window will disappear
+                     when it is finished loading.", value = 0.05)
+    
+    df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
+    
+    tot_fc_dataB$lab <- input$mod_selec_tot_fc[2]
+    
+    for(fc_uncertA in uc_sources) {
+      
+      mat <- matrix(NA, 8, 500)
+      pidx <- which(uc_sources == fc_uncertA)
+      
+      
+      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        tmes <- ceiling(500 / 30)
+        M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
+        driv_mat <- M[, 1:500]
+      } else {
+        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+      }
+      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        
+        idx <- sample(1:5000, 500)
+        
+        if(input$mod_selec_tot_fc[2] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = pars$beta1[idx],
+                               beta2 = pars$beta2[idx],
+                               beta0 = pars$beta0[idx])
+        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = pars$m[idx],
+                               b = pars$b[idx])
+        } else {
+          params <- "NULL"
+        }
+      } else {
+        if(input$mod_selec_tot_fc[2] == "Wtemp") {
+          pars <- param_dist3b$dist[[2]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
+          pars <- param_dist3b$dist[[4]]
+          params <- data.frame(beta1 = mean(pars$beta1),
+                               beta2 = mean(pars$beta2),
+                               beta0 = mean(pars$beta0))
+        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
+          pars <- param_dist3b$dist[[3]]
+          params <- data.frame(m = mean(pars$m),
+                               b = mean(pars$b))
+        } else {
+          params <- "NULL"
+        }
+      }
+      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+        if(input$mod_selec_tot_fc[2] %in% c("Wtemp","Both","Pers.")){
+          mat[1, ] <- rnorm(500, df$wtemp[which(df$Date == fc_date)], sd = 0.1)
+        } else {
+          mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+        }
+      } else {
+        mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+      }
+      
+      for(mem in 2:nrow(mat)) {
+        # Calculate process noise each step
+        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
+          if(input$mod_selec_tot_fc[1] == "Wtemp") {
+            Wt <- rnorm(500, 0, sigma_table$df[2,2])
+          } else if (input$mod_selec_tot_fc[1] == "Both") {
+            Wt <- rnorm(500, 0, sigma_table$df[4,2])
+          } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+            Wt <- rnorm(500, 0, sigma_table$df[3,2])
+          } else if(input$mod_selec_tot_fc[1] == "Pers.") {
+            Wt <- rnorm(500, 0, sigma_table$df[1,2])
+          }
+        } else {
+          Wt <- 0
+        }
+        
+        if(input$mod_selec_tot_fc[2] == "Atemp") {
+          mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[2] == "Pers") {
+          mat[mem, ] <- mat[mem-1, ] + Wt
+        } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
+          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
+        } else if (input$mod_selec_tot_fc[2] == "Both") {
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
+        }
+      }
+      
+      # Calculate distributions
+      tot_fc_dataB$mat <- mat
+      
+      if(fc_uncertA == "Total") {
+        dat <- apply(mat, 1, function(x) {
+          quantile(x, c(0.05, 0.5, 0.95))
+        })
+        dat <- as.data.frame(t(dat))
+        colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+        dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        tot_fc_dataB$dist <- dat
+        df2 <- as.data.frame(mat)
+        df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+        mlt <- reshape::melt(df2, id.vars = "Date")
+        tot_fc_dataB$mlt <- mlt
+      }
+      
+      if(fc_uncertA != "Total") {
+        # Quantify UC
+        std <- apply(tot_fc_dataB$mat, 1, sd)
+        
+        df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
+                          sd = std, label = fc_uncertA)
+        
+        if(is.null(quantfcB$df)) {
+          quantfcB$df <- df2
+        } else {
+          # Overwrite previous Std Dev.
+          if((df2$label[1] %in% quantfcB$df$label)) {
+            idx <- which(quantfcB$df$label %in% df2$label[1])
+            quantfcB$df[idx, ] <- df2
+          } else {
+            quantfcB$df <- rbind(quantfcB$df, df2)
+          }
+        }
+      }
+      progress$set(value = (pidx / length(uc_sources)))
+    }
+  })
+  
+  # create output object for total uncertainty forecast plot for Model B
+  output$tot_fc_uncertB <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    
+    idx <- which(mod_names == input$mod_selec_tot_fc[2])
+    sel_col <- cols[idx]
+    
+    if(idx != 1) {
+      validate(
+        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 6.")
+      )
+    }
+    validate(
+      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 8.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+    )
+    
+    dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
+    
+    p <- ggplot() +
+      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
+      ylab("Temperature (\u00B0C)") +
+      theme_bw(base_size = 12)
+    
+    if(input$plot_type_totB == "Line") {
+      if(!is.null(tot_fc_dataB$mlt)) {
+        
+        mlt <- tot_fc_dataB$mlt
+        
+        p <- p +
+          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
+      }
+    } else if(input$plot_type_totB == "Distribution") {
+      if(!is.null(tot_fc_dataB$dist)) {
+        mlt <- tot_fc_dataB$dist
+        
+        p <- p +
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50), color = sel_col)
+      }
+    }
+    
+    p <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
+    
+    
+    gp <- ggplotly(p, dynamicTicks = TRUE)
+    # Code to remove parentheses in plotly
+    for (i in 1:length(gp$x$data)){
+      if (!is.null(gp$x$data[[i]]$name)){
+        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
+      }
+    }
+    return(gp)
+  })
+  
+  # create plot output for partitioned uncertainty for Model B
+  output$fc_quantB <- renderPlotly({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(quantfcB$df), "Click 'Run forecast' above.")
+    )
+    validate(
+      need(input$quant_ucB > 0, "Click 'Quantify uncertainty'")
+    )
+    
+    p <- ggplot() +
+      geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+      ylab("Standard Deviation (\u00B0C)") +
+      scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
+                                   "Driver" = cols2[4], "Total" = cols2[5])) +
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+      labs(fill = "Uncertainty") +
+      theme_bw(base_size = 12)
+    
+    gp <- ggplotly(p) #, dynamicTicks = TRUE)
+    return(gp)
+  })
+  
+  # end Objective 9
+  
+  
+  
+  
   #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
   
   observeEvent(input$lr_DT2_rows_selected, {
@@ -3416,655 +4037,19 @@ shinyServer(function(input, output, session) {
   # Activity C ----
 
   # Activity C - model
-  output$modA_txt <- renderText({
-    validate(
-      need(input$mod_selec_tot_fc != "", "")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "")
-    )
+  
+  
 
-    if(input$mod_selec_tot_fc[1] == "Pers") {
-      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
-    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
-      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
-    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
-      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
-    } else if (input$mod_selec_tot_fc[1] == "Both") {
-      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
-    }
-    return(txt)
-  })
+  
 
-  output$modB_txt <- renderText({
-    validate(
-      need(input$mod_selec_tot_fc != "", "")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "")
-    )
+ 
 
-    if(input$mod_selec_tot_fc[2] == "Pers") {
-      txt <- "We will use the persistence model. This model predicts that tomorrow's water temperature will be the same as today."
-    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
-      txt <- "We will use the water temperature linear regression model. This model uses today's water temperature as a explanatory variable to predict tomorrow's water temperature."
-    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
-      txt <- "We will use the air temperature linear regression model. This model uses tomorrow's air temperature as a explanatory variable to predict tomorrow's water temperature."
-    } else if (input$mod_selec_tot_fc[2] == "Both") {
-      txt <- "We will use the multiple linear regression model with air and water temperature. This model uses today's water temperature and tomorrow's air temperature as explanatory variables in a multiple linear regression."
-    }
-    return(txt)
-  })
-
-  output$modA_eqn <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
-    )
-
-    if(input$mod_selec_tot_fc[1] == "Pers") {
-      eqn <- mod_selec_tab$dt[1, 1]
-    } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
-      eqn <- mod_selec_tab$dt[2, 1]
-    } else if (input$mod_selec_tot_fc[1] == "Atemp") {
-      eqn <- mod_selec_tab$dt[3, 1]
-    } else if (input$mod_selec_tot_fc[1] == "Both") {
-      eqn <- mod_selec_tab$dt[4, 1]
-    }
-    eqn <- gsub("[$$]+", "", eqn)
-    eqn <- paste0("$$", eqn, " + W_{t}$$")
-
-    withMathJax(
-      div(eqn)
-    )
-  })
-
-  output$modB_eqn <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
-    )
-
-    if(input$mod_selec_tot_fc[2] == "Pers") {
-      eqn <- mod_selec_tab$dt[1, 1]
-    } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
-      eqn <- mod_selec_tab$dt[2, 1]
-    } else if (input$mod_selec_tot_fc[2] == "Atemp") {
-      eqn <- mod_selec_tab$dt[3, 1]
-    } else if (input$mod_selec_tot_fc[2] == "Both") {
-      eqn <- mod_selec_tab$dt[4, 1]
-    }
-
-    eqn <- gsub("[$$]+", "", eqn)
-    eqn <- paste0("$$", eqn, " + W_{t}$$")
-
-    withMathJax(
-      div(eqn)
-    )
-  })
-
-  output$mod4_eqn <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.na(mlr$dt$Equation[2]),
-           message = "Complete Objective 5")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
-    )
-
-
-    eqn <- gsub("[$$]+", "", mlr$dt$Equation[2])
-    eqn <- paste0("$$", eqn, " + W_{t}$$")
-
-    withMathJax(
-      div(eqn)
-    )
-  })
+  
 
   # Uncertainty Partitioning ----
-  # reset plots when models are changed
-  observeEvent(input$mod_selec_tot_fc, {
-    tot_fc_dataA$mlt <- NULL
-    tot_fc_dataA$dist <- NULL
-    tot_fc_dataA$mat <- NULL
-    tot_fc_dataA$lab <- NULL
 
-    tot_fc_dataB$mlt <- NULL
-    tot_fc_dataB$dist <- NULL
-    tot_fc_dataB$mat <- NULL
-    tot_fc_dataB$lab <- NULL
 
-    quantfcA$df <- NULL
-  })
 
-  #** Plot - Total Forecast Uncertainty A ----
-  output$tot_fc_uncertA <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
-    )
-
-    idx <- which(mod_names == input$mod_selec_tot_fc[1])
-    sel_col <- cols[idx]
-
-    if(idx != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 7.")
-      )
-    }
-    validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 9.")
-    )
-    validate(
-      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
-    )
-
-    dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
-
-
-    p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
-      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
-
-    if(input$plot_type_totA == "Line") {
-      if(!is.null(tot_fc_dataA$mlt)) {
-
-        mlt <- tot_fc_dataA$mlt
-
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
-      }
-    } else if(input$plot_type_totA == "Distribution") {
-      if(!is.null(tot_fc_dataA$dist)) {
-        mlt <- tot_fc_dataA$dist
-
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50), color = sel_col)
-      }
-    }
-
-    # if(input$add_obs1) {
-    #   p <- p +
-    #     geom_point(data = wtemp_fc_data$fut, aes(Date, wtemp, color = "F Water temp."))
-    # }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    return(gp)
-  })
-
-  tot_fc_dataA <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
-  observeEvent(input$run_tot_fcA, {
-
-    req(input$table01_rows_selected != "")
-    req(length(input$mod_selec_tot_fc) == 2)
-
-    idx <- which(mod_names == input$mod_selec_tot_fc[1])
-
-    req(!is.na(param_dist3b$dist[[idx]]))
-    req(!is.null(wtemp_fc_data5$lst))
-
-    progress <- shiny::Progress$new()
-    on.exit(progress$close())
-    progress$set(message = paste0("Forecasting water temperature"),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished loading.", value = 0.05)
-
-    df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
-    tot_fc_dataA$lab <- input$mod_selec_tot_fc[1]
-
-    for(fc_uncertA in uc_sources) {
-
-      pidx <- which(uc_sources == fc_uncertA)
-      mat <- matrix(NA, 8, input$tot_fc_mem)
-
-      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-        tmes <- ceiling(input$tot_fc_mem / 30)
-        M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
-        driv_mat <- M[, 1:input$tot_fc_mem]
-      } else {
-        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-      }
-      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-
-        idx <- sample(1:5000, input$tot_fc_mem)
-
-        if(input$mod_selec_tot_fc[1] == "Wtemp") {
-          pars <- param_dist3b$dist[[2]]
-          params <- data.frame(m = pars$m[idx],
-                               b = pars$b[idx])
-        } else if (input$mod_selec_tot_fc[1] == "Both") {
-          pars <- param_dist3b$dist[[4]]
-          params <- data.frame(beta1 = pars$beta1[idx],
-                               beta2 = pars$beta2[idx],
-                               beta3 = pars$beta3[idx])
-        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
-          pars <- param_dist3b$dist[[3]]
-          params <- data.frame(m = pars$m[idx],
-                               b = pars$b[idx])
-        } else {
-          params <- "NULL"
-        }
-      } else {
-        if(input$mod_selec_tot_fc[1] == "Wtemp") {
-          pars <- param_dist3b$dist[[2]]
-          params <- data.frame(m = mean(pars$m),
-                               b = mean(pars$b))
-        } else if (input$mod_selec_tot_fc[1] == "Both") {
-          pars <- param_dist3b$dist[[4]]
-          params <- data.frame(beta1 = mean(pars$beta1),
-                               beta2 = mean(pars$beta2),
-                               beta3 = mean(pars$beta3))
-        } else if(input$mod_selec_tot_fc[1] == "Atemp") {
-          pars <- param_dist3b$dist[[3]]
-          params <- data.frame(m = mean(pars$m),
-                               b = mean(pars$b))
-        } else {
-          params <- "NULL"
-        }
-      }
-      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
-      } else {
-        mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-      }
-
-      for(mem in 2:nrow(mat)) {
-
-        # Calculate process noise each time step
-        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-          Wt <- rnorm(input$tot_fc_mem, 0, 0.2)
-        } else {
-          Wt <- 0
-        }
-
-        if(input$mod_selec_tot_fc[1] == "Atemp") {
-          mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc[1] == "Pers") {
-          mat[mem, ] <- mat[mem-1, ] + Wt
-        } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
-          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc[1] == "Both") {
-          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
-        }
-      }
-
-      # Calculate distributions
-      tot_fc_dataA$mat <- mat
-
-      if(fc_uncertA == "Total") {
-        dat <- apply(mat, 1, function(x) {
-          quantile(x, c(0.05, 0.5, 0.95))
-        })
-        dat <- as.data.frame(t(dat))
-        colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-        dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-        # dat$Level <- as.character(idx)
-        tot_fc_dataA$dist <- dat
-        df2 <- as.data.frame(mat)
-        df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-        mlt <- reshape::melt(df2, id.vars = "Date")
-        # mlt$Level <- as.character(idx)
-        tot_fc_dataA$mlt <- mlt
-      }
-
-      if(fc_uncertA != "Total") {
-        # Quantify UC
-        std <- apply(tot_fc_dataA$mat, 1, sd)
-
-        df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
-                          sd = std, label = fc_uncertA)
-
-        if(is.null(quantfcA$df)) {
-          quantfcA$df <- df2
-        } else {
-          # Overwrite previous Std Dev.
-          if((df2$label[1] %in% quantfcA$df$label)) {
-            idx <- which(quantfcA$df$label %in% df2$label[1])
-            quantfcA$df[idx, ] <- df2
-          } else {
-            quantfcA$df <- rbind(quantfcA$df, df2)
-          }
-        }
-      }
-
-      progress$set(value = (pidx / length(uc_sources)))
-    }
-  })
-
-  #* Quantify Forecast UC A ----
-  quantfcA <- reactiveValues(df = NULL)
-  observeEvent(input$quant_ucA, {
-    req(input$table01_rows_selected != "")
-
-    # std <- apply(tot_fc_dataA$mat, 1, sd)
-    #
-    # df <- data.frame(Date = tot_fc_dataA$dist$Date,
-    #                  sd = std, label = tot_fc_dataA$lab)
-    #
-    # if(is.null(quantfcA$df)) {
-    #   quantfcA$df <- df
-    # } else {
-    #   # Overwrite previous Std Dev.
-    #   if((df$label[1] %in% quantfcA$df$label)) {
-    #     idx <- which(quantfcA$df$label %in% df$label[1])
-    #     quantfcA$df[idx, ] <- df
-    #   } else {
-    #     quantfcA$df <- rbind(quantfcA$df, df)
-    #   }
-    # }
-  })
-
-  output$fc_quantA <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(quantfcA$df), "Click 'Run forecast' above.")
-    )
-    validate(
-      need(input$quant_ucA > 0, "Click 'Quantify uncertainty'")
-    )
-
-    p <- ggplot() +
-      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
-      ylab("Standard Deviation (\u00B0C)") +
-      scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
-                                   "Driver" = cols2[4], "Total" = cols2[5])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
-      labs(fill = "Uncertainty") +
-      theme_bw(base_size = 12)
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    return(gp)
-  })
-
-  # Uncertainty plots B
-  output$tot_fc_uncertB <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
-    )
-
-    idx <- which(mod_names == input$mod_selec_tot_fc[2])
-    sel_col <- cols[idx]
-
-    if(idx != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 7.")
-      )
-    }
-    validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 9.")
-    )
-    validate(
-      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
-    )
-
-    dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
-
-    p <- ggplot() +
-      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
-
-    if(input$plot_type_totB == "Line") {
-      if(!is.null(tot_fc_dataB$mlt)) {
-
-        mlt <- tot_fc_dataB$mlt
-
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
-      }
-    } else if(input$plot_type_totB == "Distribution") {
-      if(!is.null(tot_fc_dataB$dist)) {
-        mlt <- tot_fc_dataB$dist
-
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50), color = sel_col)
-      }
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
-
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    return(gp)
-  })
-
-  tot_fc_dataB <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
-  observeEvent(input$run_tot_fcB, {
-
-    req(input$table01_rows_selected != "")
-    req(!is.null(wtemp_fc_data5$lst))
-    req(!is.na(lr_pars$dt$m_est[4]))
-
-    progress <- shiny::Progress$new()
-    on.exit(progress$close())
-    progress$set(message = paste0("Forecasting water temperature"),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished loading.", value = 0.05)
-
-    df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
-
-    tot_fc_dataB$lab <- input$mod_selec_tot_fc[2]
-
-    for(fc_uncertA in uc_sources) {
-
-      mat <- matrix(NA, 8, input$tot_fc_mem)
-      pidx <- which(uc_sources == fc_uncertA)
-
-
-      if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-        tmes <- ceiling(input$tot_fc_mem / 30)
-        M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
-        driv_mat <- M[, 1:input$tot_fc_mem]
-      } else {
-        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
-      }
-      if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-
-        idx <- sample(1:5000, input$tot_fc_mem)
-
-        if(input$mod_selec_tot_fc[2] == "Wtemp") {
-          pars <- param_dist3b$dist[[2]]
-          params <- data.frame(m = pars$m[idx],
-                               b = pars$b[idx])
-        } else if (input$mod_selec_tot_fc[2] == "Both") {
-          pars <- param_dist3b$dist[[4]]
-          params <- data.frame(beta1 = pars$beta1[idx],
-                               beta2 = pars$beta2[idx],
-                               beta3 = pars$beta3[idx])
-        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
-          pars <- param_dist3b$dist[[3]]
-          params <- data.frame(m = pars$m[idx],
-                               b = pars$b[idx])
-        } else {
-          params <- "NULL"
-        }
-      } else {
-        if(input$mod_selec_tot_fc[2] == "Wtemp") {
-          pars <- param_dist3b$dist[[2]]
-          params <- data.frame(m = mean(pars$m),
-                               b = mean(pars$b))
-        } else if (input$mod_selec_tot_fc[2] == "Both") {
-          pars <- param_dist3b$dist[[4]]
-          params <- data.frame(beta1 = mean(pars$beta1),
-                               beta2 = mean(pars$beta2),
-                               beta3 = mean(pars$beta3))
-        } else if(input$mod_selec_tot_fc[2] == "Atemp") {
-          pars <- param_dist3b$dist[[3]]
-          params <- data.frame(m = mean(pars$m),
-                               b = mean(pars$b))
-        } else {
-          params <- "NULL"
-        }
-      }
-      if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        mat[1, ] <- rnorm(input$tot_fc_mem, df$wtemp[which(df$Date == fc_date)], sd = input$ic_uc)
-      } else {
-        mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-      }
-
-      for(mem in 2:nrow(mat)) {
-        # Calculate process noise each step
-        if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-          Wt <- rnorm(input$tot_fc_mem, 0, 0.2)
-        } else {
-          Wt <- 0
-        }
-
-        if(input$mod_selec_tot_fc[2] == "Atemp") {
-          mat[mem, ] <- params$m * driv_mat[mem, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc[2] == "Pers") {
-          mat[mem, ] <- mat[mem-1, ] + Wt
-        } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
-          mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
-        } else if (input$mod_selec_tot_fc[2] == "Both") {
-          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
-        }
-      }
-
-      # Calculate distributions
-      tot_fc_dataB$mat <- mat
-
-      if(fc_uncertA == "Total") {
-        dat <- apply(mat, 1, function(x) {
-          quantile(x, c(0.05, 0.5, 0.95))
-        })
-        dat <- as.data.frame(t(dat))
-        colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-        dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-        # dat$Level <- as.character(idx)
-        tot_fc_dataB$dist <- dat
-        df2 <- as.data.frame(mat)
-        df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-        mlt <- reshape::melt(df2, id.vars = "Date")
-        # mlt$Level <- as.character(idx)
-        tot_fc_dataB$mlt <- mlt
-      }
-
-      if(fc_uncertA != "Total") {
-        # Quantify UC
-        std <- apply(tot_fc_dataB$mat, 1, sd)
-
-        df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
-                          sd = std, label = fc_uncertA)
-
-        if(is.null(quantfcB$df)) {
-          quantfcB$df <- df2
-        } else {
-          # Overwrite previous Std Dev.
-          if((df2$label[1] %in% quantfcB$df$label)) {
-            idx <- which(quantfcB$df$label %in% df2$label[1])
-            quantfcB$df[idx, ] <- df2
-          } else {
-            quantfcB$df <- rbind(quantfcB$df, df2)
-          }
-        }
-      }
-      progress$set(value = (pidx / length(uc_sources)))
-    }
-  })
-
-  #* Quantify Forecast UC B ----
-  quantfcB <- reactiveValues(df = NULL)
-  observeEvent(input$quant_ucB, {
-    req(input$table01_rows_selected != "")
-
-    # std <- apply(tot_fc_dataB$mat, 1, sd)
-    #
-    # df <- data.frame(Date = tot_fc_dataB$dist$Date,
-    #                  sd = std, label = tot_fc_dataB$lab)
-    #
-    # if(is.null(quantfcB$df)) {
-    #   quantfcB$df <- df
-    # } else {
-    #   # Overwrite previous Std Dev.
-    #   if((df$label[1] %in% quantfcB$df$label)) {
-    #     idx <- which(quantfcB$df$label %in% df$label[1])
-    #     quantfcB$df[idx, ] <- df
-    #   } else {
-    #     quantfcB$df <- rbind(quantfcB$df, df)
-    #   }
-    # }
-    # print(quantfcB$df)
-  })
-
-  output$fc_quantB <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(quantfcB$df), "Click 'Run forecast' above.")
-    )
-    validate(
-      need(input$quant_ucB > 0, "Click 'Quantify uncertainty'")
-    )
-
-    p <- ggplot() +
-      geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
-      ylab("Standard Deviation (\u00B0C)") +
-      scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
-                                   "Driver" = cols2[4], "Total" = cols2[5])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
-      labs(fill = "Uncertainty") +
-      theme_bw(base_size = 12)
-
-    gp <- ggplotly(p) #, dynamicTicks = TRUE)
-    return(gp)
-  })
 
   #####
 

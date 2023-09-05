@@ -1422,10 +1422,11 @@ ui <- function(req) {
                                              fluidRow(
                                                column(4,
                                                       h3("Quantifying Uncertainty"),
-                                                      p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known."),
-                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will quantify the uncertainty at each forecast horizon."),
-                                                      p(id = "txt_j", "We will generate forecasts with two of the models including all of the sources of uncertainty. In practice, when you generate an ecological forecast, you will want to include and account for all sources of uncertainty."),
+                                                      p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty. In ecological forecasting, our goal with uncertainty quantification is to determine how likely certain outcomes are if some aspects of the ecosystem and ecological model are not exactly known."),
+                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will compare how much each source of uncertainty contributes to total forecast uncertainty at each forecast horizon and for different models."),
+                                                      p(id = "txt_j", "We will generate forecasts with two of the models including all sources of uncertainty. This will allow us to determine if some sources of uncertainty contribute more to the forecast depending on which model we choose."),
                                                       br(),
+                                                      wellPanel(
                                                       h3("Think, Pair, Share!"),
                                                       p(id = "txt_j", module_text["tps1", 1]),
                                                       selectizeInput("mod_selec_tot_fc", "Select two models for the next exercise:",
@@ -1435,10 +1436,11 @@ ui <- function(req) {
                                                                        placeholder = 'Please select a pair of models',
                                                                        onInitialize = I('function() { this.setValue(""); }'))
                                                       )
+                                                      )
                                                ),
-                                               column(6, align = "center", offset = 2,
-                                                      img(src = "tot_uc2.png", height = "60%",
-                                                          width = "60%", align = "center")
+                                               column(6, align = "center", offset = 1,
+                                                      img(src = "tot_uc2.png", height = "100%",
+                                                          width = "100%", align = "center")
                                                )
                                              ),
                                              hr(),
@@ -1452,7 +1454,6 @@ ui <- function(req) {
                                                       conditionalPanel("input.fc_uncertA == 'Total'",
                                                                        p(id = "txt_j", "Total uncertainty includes all four sources of uncertainty (Process, Parameter, Initial Conditions and Driver).")
                                                       ),
-                                                      sliderInput("tot_fc_mem", "Forecast members", min = 10, max = 1000, value = 100, step = 10),
                                                       actionButton("run_tot_fcA", "Run forecast"),
                                                       radioButtons("plot_type_totA", "Plot type", c("Line", "Distribution"),
                                                                    inline = TRUE),
@@ -1462,7 +1463,6 @@ ui <- function(req) {
                                                       h4("Water Temperature Forecast with Total Uncertainty: Model 1"),
                                                       wellPanel(
                                                         plotlyOutput("tot_fc_uncertA")
-                                                        # checkboxInput("add_obs1", "Add observations")
                                                       )
                                                )
                                              ),
@@ -1526,9 +1526,7 @@ ui <- function(req) {
                                                column(6,
                                                       h3("Which source of uncertainty is contributing the most?"),
                                                       p(id = "txt_j", "This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts."),
-                                                      # p("Here is a figure from a paper which partitioned out the different contributors of uncertainty to a forecast of water temperature."),
                                                       br()
-                                                      # h4("Q. How do you think you would be able to partition out the uncertainty?")
                                                ),
                                                column(4, offset = 1,
                                                       box(id = "box2", width = 12, status = "primary",
