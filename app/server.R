@@ -2042,7 +2042,7 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$mod_selec_tab3_rows_selected != "", "Select a model in the table.")
     )
-    if(input$mod_selec_tab3_rows_selected != 2) {
+    if(input$mod_selec_tab3_rows_selected != 1) {
       validate(
         need(!is.na(param_dist3b$dist[[input$mod_selec_tab3_rows_selected]]), "Click 'Generate parameter distributions'.")
       )
@@ -2346,6 +2346,9 @@ shinyServer(function(input, output, session) {
   
   # create a reactive value to hold the ensemble air temperature forecast
   noaa_df <- reactiveValues(airt = NULL, swr = NULL)
+  
+  # create a reactive value to hold the data needed for driver uncertainty forecast
+  wtemp_fc_data5 <- reactiveValues(lst = NULL)
   
   # this code will run when the user clicks "Load forecast"
   observeEvent(input$load_noaa_at, {
@@ -2806,7 +2809,6 @@ shinyServer(function(input, output, session) {
     
     idx <- which(mod_names == input$mod_selec_tot_fc[1])
     
-    req(!is.na(param_dist3b$dist[[idx]]))
     req(!is.null(wtemp_fc_data5$lst))
     
     progress <- shiny::Progress$new()
@@ -2870,7 +2872,7 @@ shinyServer(function(input, output, session) {
         }
       }
       if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        if(input$mod_selec_tot_fc[1] %in% c("Wtemp","Pers.","Both")){
+        if(input$mod_selec_tot_fc[1] %in% c("Wtemp","Pers","Both")){
           mat[1, ] <- rnorm(500, df$wtemp[which(df$Date == fc_date)], sd = 0.1)
         } else {
           mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
@@ -2889,7 +2891,7 @@ shinyServer(function(input, output, session) {
             Wt <- rnorm(500, 0, sigma_table$df[4,2])
           } else if(input$mod_selec_tot_fc[1] == "Atemp") {
             Wt <- rnorm(500, 0, sigma_table$df[3,2])
-          } else if(input$mod_selec_tot_fc[1] == "Pers.") {
+          } else if(input$mod_selec_tot_fc[1] == "Pers") {
             Wt <- rnorm(500, 0, sigma_table$df[1,2])
           }
         } else {
@@ -2903,7 +2905,7 @@ shinyServer(function(input, output, session) {
         } else if (input$mod_selec_tot_fc[1] == "Wtemp") {
           mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
         } else if (input$mod_selec_tot_fc[1] == "Both") {
-          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta0 + Wt
         }
       }
       
@@ -2977,7 +2979,6 @@ shinyServer(function(input, output, session) {
     
     
     p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
       geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
@@ -3105,8 +3106,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$run_tot_fcB, {
     
     req(input$table01_rows_selected != "")
-    req(!is.null(wtemp_fc_data5$lst))
-    req(!is.na(lr_pars$dt$m_est[4]))
     
     progress <- shiny::Progress$new()
     on.exit(progress$close())
@@ -3171,7 +3170,7 @@ shinyServer(function(input, output, session) {
         }
       }
       if("Initial Conditions" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        if(input$mod_selec_tot_fc[2] %in% c("Wtemp","Both","Pers.")){
+        if(input$mod_selec_tot_fc[2] %in% c("Wtemp","Both","Pers")){
           mat[1, ] <- rnorm(500, df$wtemp[which(df$Date == fc_date)], sd = 0.1)
         } else {
           mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
@@ -3183,13 +3182,13 @@ shinyServer(function(input, output, session) {
       for(mem in 2:nrow(mat)) {
         # Calculate process noise each step
         if("Process" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-          if(input$mod_selec_tot_fc[1] == "Wtemp") {
+          if(input$mod_selec_tot_fc[2] == "Wtemp") {
             Wt <- rnorm(500, 0, sigma_table$df[2,2])
-          } else if (input$mod_selec_tot_fc[1] == "Both") {
+          } else if (input$mod_selec_tot_fc[2] == "Both") {
             Wt <- rnorm(500, 0, sigma_table$df[4,2])
-          } else if(input$mod_selec_tot_fc[1] == "Atemp") {
+          } else if(input$mod_selec_tot_fc[2] == "Atemp") {
             Wt <- rnorm(500, 0, sigma_table$df[3,2])
-          } else if(input$mod_selec_tot_fc[1] == "Pers.") {
+          } else if(input$mod_selec_tot_fc[2] == "Pers") {
             Wt <- rnorm(500, 0, sigma_table$df[1,2])
           }
         } else {
@@ -3203,7 +3202,7 @@ shinyServer(function(input, output, session) {
         } else if (input$mod_selec_tot_fc[2] == "Wtemp") {
           mat[mem, ] <- params$m * mat[mem-1, ] + params$b + Wt
         } else if (input$mod_selec_tot_fc[2] == "Both") {
-          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta3 + Wt
+          mat[mem, ] <- mat[mem-1, ] * params$beta1 + driv_mat[mem, ] * params$beta2 + params$beta0 + Wt
         }
       }
       
