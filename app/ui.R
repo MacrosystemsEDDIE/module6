@@ -1548,13 +1548,13 @@ ui <- function(req) {
                                                )
                                              )
                                              ),
-                                    #* Objective 11 - Management Scenario ====
-                                    tabPanel(title = "Objective 11 - Management Scenario", value = "obj13",
+                                    #* Objective 10 - Management Scenario ====
+                                    tabPanel(title = "Objective 10 - Management Scenario", value = "obj13",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 11 - Management Scenario"),
-                                                                p(id = "txt_j", module_text["obj_11", ])
+                                                                h3("Objective 10 - Management Scenario"),
+                                                                p(id = "txt_j", module_text["obj_10", ])
                                                                 )
                                                       ),
                                                column(4,
@@ -1568,11 +1568,10 @@ ui <- function(req) {
                                                       p("")
                                                       ),
                                                column(8, align = "center",
-                                                      img(src = "salmon_underwater_dam.jpg", height = "60%",
-                                                          width = "60%", align = "center"),
+                                                      img(src = "salmon_underwater_dam.jpg", height = "100%",
+                                                          width = "100%", align = "center"),
                                                       br(),
                                                       a("Image source", href = "http://www.hatchmag.com/sites/default/files/styles/extra-large/public/field/image/pinksalmon-elwha.jpg", target = "_blank")
-                                                      # h2("Image of Water Resource manager & SALMON")
                                                      )
                                                ),
                                              hr(),
@@ -1643,49 +1642,76 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[37], label = quest[qid[37], ], width = "90%"),
-                                                                   textAreaInput2(inputId = qid[38], label = quest[qid[38], ], width = "90%")
-                                                                   )
+                                                                   p(tags$b(quest["q39", 1])),
+                                                                   p(tags$b(quest["q40", 1]))
+                                                            )
                                                             )
                                                           )
                                                       )
+                                               ),
+                                             hr(),
+                                             fluidRow(
+                                               column(4, offset = 1,
+                                                      h2("Forecast Uncertainty"),
+                                                      p(module_text["fc_cycle_end", ])
+                                               ),
+                                               column(5, offset = 1,
+                                                      br(), br(), br(),
+                                                      img(src = "Schematic_Draft_v3.png", height = "80%",
+                                                          width = "80%", align = "left", alt = "A diagram showing a forecast with uncertainty.")
                                                )
                                              ),
-                                    #* Activity C - Summary ====
-                                    tabPanel(title = "Summary", value = "obj14",
+                                             hr(),
                                              fluidRow(
                                                column(12,
-                                                      wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Summary")
-                                                      )
-                                               )
-                                             ),
-                                             fluidRow(
-                                               column(4,
-                                                      h3("Completed Activity C!"),
-                                                      p(id = "txt_j", "This is the end of Activity C. Now you can generate your final report which will input all your answers and figures into a Microsoft Word document which you can download and submit to your instructor.")
-                                                      ),
-                                               column(4,
-                                                      h3("Generate Report"),
-                                                      p(id = "txt_j", "This will take the answers you have input into this app and generate a Microsoft Word document (.docx) with your answers which you can download and edit before submitting."),
-                                                      actionButton("generate2", "Generate Report (.docx)", icon = icon("file"), width = "190px", class = "btn-primary"
-                                                                   # id = "dl_btn", # This is the only button that shows up when the app is loaded
-                                                                   # style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
-                                                      ), br(), br(),
-                                                      tags$style(type="text/css", "#download2 {background-color:#579277;color: white}"),
-                                                      conditionalPanel(condition = "output.reportbuilt2", # This button appears after the report has been generated and is ready for download.
-                                                                       downloadButton("download2", "Download Report", width = "60px", style = "width:190px;"
-                                                                                      )
-                                                                       )
-
-                                                      ),
-                                               column(4,
-                                                      h3(tags$b("Questions to be completed:")),
-                                                      wellPanel(
-                                                        htmlOutput("check_list2")
+                                                      h2("Completed Module!"),
+                                                      p("Congratulations! This is the end of the module. Please check through the answers in your final report and be sure you have copy-pasted in all the required plots before you submit to your instructor."),
+                                                      p("Your instructor may ask you to prepare a short presentation of your forecasts with quantified uncertainty (Objective 9) to share with other students in the class. This will permit you to compare forecast uncertainty among lakes in different eco-regions."),
+                                                      p("You’ve now made forecasts with quantified uncertainty - well done! If you are interested in learning more about how forecasts are generated, updated, and used for decision-making, we encourage you to visit other Macrosystems EDDIE modules:"),
+                                                      fluidRow(
+                                                        column(10, align = "left",
+                                                               box(id = "box15", width = 12, status = "primary",
+                                                                   solidHeader = TRUE,
+                                                                   fluidRow(
+                                                                     column(10, offset = 1,
+                                                                            h3("Additional Macrosystems EDDIE Ecological Forecasting Modules")
+                                                                     )
+                                                                   ),
+                                                                   fluidRow(
+                                                                     column(3, offset = 1,
+                                                                            img(src = "mod5_viz_v2.png", height = "100%",
+                                                                                width = "100%", align = "left", alt = "A conceptual figure of the steps in the forecast cycle.")
+                                                                     ),
+                                                                     column(7, offset = 0,
+                                                                            p(style="text-align: justify;", tags$a(href = "https://macrosystemseddie.shinyapps.io/module5/", "Macrosystems EDDIE Module 5: Introduction to Ecological Forecasting:"),"This module will introduce students to the basic components of an ecological forecast; how a simple forecasting model is constructed; how changes to model inputs affect forecast uncertainty; and how productivity forecasts vary across ecoclimatic regions.")
+                                                                     )
+                                                                   ),
+                                                                   hr(),
+                                                                   fluidRow(
+                                                                     column(3, offset = 1,
+                                                                            img(src = "Mod7_conceptual_fig.png", height = "100%",
+                                                                                width = "100%", align = "left", alt = "A conceptual figure showing data from a lake buoy being used to update a forecast.")
+                                                                     ),
+                                                                     column(7, offset = 0,
+                                                                            p(style="text-align: justify;", tags$a(href = "https://macrosystemseddie.shinyapps.io/module7/", "Macrosystems EDDIE Module 7: Using Data to Improve Ecological Forecasts:"),"This module will introduce students to the concept of data assimilation within an ecological forecast; how data assimilation can be used to improve forecast accuracy; how the level of uncertainty and temporal frequency of observations affects forecast output; and how data assimilation can affect decision-making using ecological forecasts.")
+                                                                     )
+                                                                   ),
+                                                                   hr(),
+                                                                   fluidRow(
+                                                                     column(3, offset = 1,
+                                                                            img(src = "Mod8_conceptual_fig.png", height = "100%",
+                                                                                width = "100%", align = "left", alt = "A conceptual figure showing how forecasts can be visualized, communicated, and used for decision-making.")
+                                                                     ),
+                                                                     column(7, offset = 0,
+                                                                            p(style="text-align: justify;", tags$a(href = "https://macrosystemseddie.shinyapps.io/module8/", "Macrosystems EDDIE Module 8: Using Ecological Forecasts to Guide Decision Making:"),"This module will teach students the basic components of an ecological forecast; how to connect forecast visualizations to forecast user needs for aiding decision-making; and to create their own visualizations of probabilistic forecasts of ecological variables for a specific forecast user.")
+                                                                     )
+                                                                   ),
+                                                                   hr()
+                                                               )
                                                         )
                                                       )
                                                )
+                                             )
                                              )
                                     )
                         )

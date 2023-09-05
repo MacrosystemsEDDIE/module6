@@ -43,3 +43,5 @@ q35,"You have learned that driver uncertainty arises because we cannot perfectly
 q36,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,
 q37,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,
 q38,"Compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",
+q39,Did the uncertainty visualization affect your decision? How?,
+q40,Can you think of any potential risks when using a forecast without all soures of uncertainty included?,
