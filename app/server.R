@@ -41,6 +41,13 @@ shinyServer(function(input, output, session) {
   output$table01 <- DT::renderDT(
     neon_sites_df[, c(1:2)], selection = "single", options = list(stateSave = TRUE, dom = 't'), server = FALSE
   )
+  
+  observe({
+    if(input$row_num != "") {
+      dt_proxy <- dataTableProxy("table01")
+      selectRows(dt_proxy, input$row_num)
+    }
+  })
 
   # to keep track of previously selected row
   prev_row <- reactiveVal()
@@ -296,11 +303,7 @@ shinyServer(function(input, output, session) {
   })
 
   ### Objective 2 - View water temperature data ----
-
-  observe({
-    airt_swt$sel <- tryCatch(airt_swt$df[(selected$sel$pointNumber+1),,drop=FALSE] , error=function(e){NULL})
-  })
-
+  
   # Plot surface water temperature
   plot.airt_swt <- reactiveValues(main=NULL)
   
@@ -1230,7 +1233,19 @@ shinyServer(function(input, output, session) {
                  scrollX = TRUE),
   colnames = c("Model",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
+  
+  # create reactive value for data for deterministic forecasts
+  wtemp_fc_data1a <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
 
+  # create reactive value for output of deterministic forecasts
+  wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
+  observe({
+    if(is.null(input$mod_selec_tab1a_rows_selected)) {
+      shinyjs::disable("run_wtemp_fc1a")
+    } else {
+      shinyjs::enable("run_wtemp_fc1a")
+    }
+  })
   
   # code to run forecasts when students press action button
   observeEvent(input$run_wtemp_fc1a, {
@@ -3399,1758 +3414,8 @@ shinyServer(function(input, output, session) {
   # end Objective 10
   
   
+  #### Navigating Tabs ----
   
-  
-  
-  #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
-  
-  observeEvent(input$lr_DT2_rows_selected, {
-    req(sum(!is.na(lr_pars$dt$m_est)) > 0)
-    req(!is.na(lr_pars$dt$m_est[input$lr_DT2_rows_selected]))
-    
-    mb_samples$df <- NULL
-    
-    df <- data.frame("m_mn" = lr_pars$dt$m_est[input$lr_DT2_rows_selected],
-                     "m_sd" = lr_pars$dt$m_se[input$lr_DT2_rows_selected],
-                     "b_mn" = lr_pars$dt$b_est[input$lr_DT2_rows_selected],
-                     "b_sd" = lr_pars$dt$b_se[input$lr_DT2_rows_selected])
-    #updateSliderInput(session, "m_std", value = df[1, 2], max = round(max(1, (df[1, 2] + 0.5)), 2))
-    #updateSliderInput(session, "b_std", value = df[1, 4], max = round(max(1, (df[1, 4] + 0.5)), 2))
-    linr_stats$dt <- signif(df, 3)
-  })
-  
-  #** Generate distribution plots ----
-  lr_dist_plot <- reactiveValues(lst = as.list(rep(NA, 5)))
-  observeEvent(input$gen_lr_dist_plot, {
-    
-    req(!is.null(input$lr_DT2_rows_selected))
-    
-    df <- data.frame(m = rnorm(500, mean = linr_stats$dt[1, 1], sd = linr_stats$dt[1, 2]),
-                     b = rnorm(500, mean = linr_stats$dt[1, 3], sd = linr_stats$dt[1, 4]))
-    if(!is.null(input$lr_DT2_rows_selected)) {
-      if(input$lr_DT2_rows_selected != "") {
-        df$Frequency <- samp_freq[input$lr_DT2_rows_selected]
-        lr_dist_plot$lst[[input$lr_DT2_rows_selected]] <- df
-      }
-    } else {
-      df$Frequency <- "User input"
-      lr_dist_plot$lst[[5]] <- df
-    }
-    #linr_stats$dt$b_sd <- input$b_std
-    #linr_stats$dt$m_sd <- input$m_std
-  })
-  
-  # Reset samples
-  observeEvent(input$b_std, {
-    mb_samples$df <- NULL
-  })
-  observeEvent(input$m_std, {
-    mb_samples$df <- NULL
-  })
-  observeEvent(input$n_samp, {
-    mb_samples$df <- NULL
-  })
-  
-  lr_param_dist_plot <- reactiveValues(main = NULL)
-  
-  observeEvent(input$gen_lr_dist_plot, {
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
-    )
-    validate(
-      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
-    )
-    validate(
-      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
-    )
-    
-    lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
-    
-    mlt <- do.call(rbind, lst)
-    
-    y_max_m <- lapply(lst, function(x) {
-      dens_m <- density(x$m)
-      max(dens_m$y)
-    })
-    
-    ylims_m <- c(0, max(c(6, max(unlist(y_max_m), na.rm = TRUE))))
-    
-    y_max_b <- lapply(lst, function(x) {
-      dens_b <- density(x$b)
-      max(dens_b$y)
-    })
-    
-    ylims_b <- c(0, max(c(1.5, max(unlist(y_max_b), na.rm = TRUE))))
-    
-    # df <- data.frame(par = "Slope (m)", value = lr_dist_plot$m)
-    
-    xlims_m <- c(min(0, mlt$m), max(2, mlt$m))
-    xlims_b <- c(min(-2.5, mlt$b), max(10, mlt$b))
-    
-    # scales_y <- list()
-    
-    p1 <- ggplot() +
-      geom_density(data = mlt, aes(m, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_m, ylim = ylims_m) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Slope (m)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
-      theme_bw(base_size = 22)
-    
-    p2 <- ggplot() +
-      geom_density(data = mlt, aes(b, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_b, ylim = ylims_b) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Intercept (b)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4], "User input" = cols[5])) +
-      theme_bw(base_size = 22)
-    
-    lr_param_dist_plot$main <- ggpubr::ggarrange(p1, p2, nrow = 1, align = "h", common.legend = TRUE, legend = "bottom")
-  })
-  
-  output$lr_param_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$lr_DT2_rows_selected), "Select a row in the table to the left!")
-    )
-    validate(
-      need(input$gen_lr_dist_plot > 0, "Click 'Generate distributions!'")
-    )
-    validate(
-      need(any(!is.na(lr_dist_plot$lst)), "Click 'Generate distributions!'")
-    )
-    lr_param_dist_plot$main
-  })
-  
-  # Sample m and b for plotting
-  mb_samples <- reactiveValues(df = NULL)
-  lm_dist <- reactiveValues(df = NULL)
-  
-  
-  observeEvent(input$gen_lin_mods, {
-    req(!is.null(input$n_samp))
-    req(!is.na(linr_stats$dt$b_sd))
-    # req(!is.null(input$lr_DT2_rows_selected))
-    # req(input$lr_DT2_rows_selected != "")
-    # req(!is.null(lr_dist_plot$m))
-    # req(!is.null(lr_dist_plot$b))
-    updateRadioButtons(inputId = "plot_type1", selected = "Line")
-    
-    if(!is.null(input$lr_DT2_rows_selected)) {
-      if(input$lr_DT2_rows_selected != "") {
-        idx <- sample(1:nrow(lr_dist_plot$lst[[input$lr_DT2_rows_selected]]), input$n_samp)
-        mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$m[idx],
-                                           "b" = lr_dist_plot$lst[[input$lr_DT2_rows_selected]]$b[idx]), 3)
-      }
-    } else {
-      idx <- sample(1:nrow(lr_dist_plot$lst[[5]]), input$n_samp)
-      mb_samples$df <- signif(data.frame("m" = lr_dist_plot$lst[[5]]$m[idx],
-                                         "b" = lr_dist_plot$lst[[5]]$b[idx]), 3)
-    }
-    # Create summary data frame
-    x = c(-5, 35) # seq(-5, 35, 0.1)
-    y = apply(mb_samples$df, 1, function(y) y[1]* x + y[2])
-    
-    lm_dist$df <- data.frame(x = x,
-                             p5 = apply(y, 1, function(x) quantile(x, 0.05)),
-                             p125 = apply(y, 1, function(x) quantile(x, 0.125)),
-                             p875 = apply(y, 1, function(x) quantile(x, 0.875)),
-                             p95 = apply(y, 1, function(x) quantile(x, 0.95)),
-                             mean = apply(y, 1, function(x) mean(x)),
-                             median = apply(y, 1, function(x) median(x)))
-  })
-  
-  output$mb_samps <- renderDT(mb_samples$df, selection = "none",
-                              options = list(searching = FALSE, paging = TRUE, ordering= FALSE,
-                                             # dom = "t",
-                                             autoWidth = TRUE,
-                                             pageLength = 5
-                              ),
-                              colnames = c("Slope (m)", "Intercept (b)"),
-                              rownames = FALSE,
-                              server = FALSE, escape = FALSE)
-  
-  click_df <- reactiveValues(df = NULL)
-  observe({
-    req(!is.null(lm_dist$df))
-    pnts <- nearPoints(airt_swt$df, input$mod_err_plot_click)[, -1]
-    # class(pnts)
-    brsh <- brushedPoints(airt_swt$df, brush = input$mod_err_plot_brush)[, -1]
-    df <- rbind(pnts, brsh)
-    df <- round(df, 1)
-    # idx <- which(lm_dist$df$x %in% df$airt)
-    df$`Modelled Water Temp.` <- linr_stats$dt[1, 1] * df$airt + linr_stats$dt[1, 3]
-    colnames(df)[1:2] <- c("Air Temp.", "Observed Water Temp.")
-    df$Error <- df[, 3] - df[, 2]
-    click_df$df <- df
-    mean_err$val <- NULL
-  })
-  
-  #** Calculate mean error ----
-  mean_err <- reactiveValues(val = NULL)
-  observeEvent(input$calc_err, {
-    req(!is.null(click_df$df))
-    mean_err$val <- mean(click_df$df$Error, na.rm = TRUE)
-  })
-  
-  selected <- reactiveValues(sel = NULL)
-  
-  observeEvent(input$clear_sel1, {
-    airt_swt$sel <- NULL
-    selected$sel <- NULL
-  })
-  
-  #selected
-  observe({
-    # suppress warnings
-    storeWarn<- getOption("warn")
-    options(warn = -1)
-    selected$sel <- event_data(event = "plotly_selected", source = "ci_sel")
-    
-    #restore warnings, delayed so plot is completed
-    shinyjs::delay(expr =({
-      options(warn = storeWarn)
-    }) ,ms = 100)
-  })
-  
-  pct_msg <- reactiveValues(txt = NULL)
-  observeEvent(input$calc_pct, {
-    n_pnts = nrow(na.exclude(airt_swt$df))
-    insid <- n_pnts - (input$points_above + input$points_below)
-    pct_msg$txt <- paste0("Percentage points inside the CI: ", round((insid * 100 / n_pnts), 2), "%")
-  })
-  
-  ## END BIZARRE CODE THAT I NEED TO FIGURE OUT DEPENDENCIES OF
-  
-  # Model selection tables for various objectives
-  
-
-  
-  
-  
-  
-  # end model selection tables
-  
-  
-  observeEvent(input$load_driv1, {
-    req(input$table01_rows_selected != "")
-    req(input$mod_selec_tab_rows_selected != "")
-    idx <- input$mod_selec_tab_rows_selected
-
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
-
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
-
-    dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-    dat$wtemp[dat$Date > fc_date] <- NA
-    dat$forecast <- NA
-    dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-    dat$airt[dat$Date > fc_date] <- NA
-    dat$wtemp_yday[dat$Date > lag_date] <- NA
-    dat$airt_yday[dat$Date > mn_date] <- NA
-
-    df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-    df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data$lst[[idx]] <- df
-  })
-
-  wtemp_fc_data1a <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
-
-  # Driver Uncertainty
-  wtemp_fc_data5 <- reactiveValues(lst = NULL)
-
-  wtemp_fc_out1 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
-  observe({
-    if(is.null(input$mod_selec_tab_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc1")
-    } else if(is.na(wtemp_fc_data$lst[[input$mod_selec_tab_rows_selected]])) {
-      shinyjs::disable("run_wtemp_fc1")
-    } else {
-      shinyjs::enable("run_wtemp_fc1")
-    }
-  })
-
-  wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
-  observe({
-    if(is.null(input$mod_selec_tab1a_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc1a")
-    } else {
-      shinyjs::enable("run_wtemp_fc1a")
-    }
-  })
-
-
-  output$txt_fc_out <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab_rows_selected), "Select a model in the table.")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
-
-
-  observeEvent(input$run_wtemp_fc1, {
-    req(input$mod_selec_tab_rows_selected != "")
-
-    df <- wtemp_fc_data$lst[[input$mod_selec_tab_rows_selected]]
-    fc_days <- which(df$Date >= fc_date)
-    if(input$mod_selec_tab_rows_selected == 1) {
-      showModal(modalDialog(
-        title = "Uh oh!",
-        "This model requires air temperature at the same time step of water temperature to predict water temperature. Currently, we do not have forecasted air temperature so we cannot use this model to predict future water temperature.", easyClose = TRUE
-      ))
-    } else if(input$mod_selec_tab_rows_selected == 2) {
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1]
-      }
-    } else if(input$mod_selec_tab_rows_selected == 3) {
-      coeffs <- c(mlr_params$df$beta1[1], mlr_params$df$beta2[1])
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1] * coeffs[1] + coeffs[2]
-      }
-    } else if(input$mod_selec_tab_rows_selected == 4) {
-      coeffs <- c(mlr_params$df$beta1[2], mlr_params$df$beta2[2], mlr_params$df$beta3[2])
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * coeffs[1] + df$forecast[i-1] * coeffs[2] + coeffs[3]
-      }
-    }
-    wtemp_fc_out1$lst[[input$mod_selec_tab_rows_selected]] <- df[, c("Date", "forecast")]
-  })
-
-  
-
-
-
-
-  output$wtemp_fc1 <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-
-    if(any(!is.na(wtemp_fc_out1$lst))) {
-      sub_lst <- wtemp_fc_out1$lst[!is.null(wtemp_fc_out1$lst)]
-      mlt <- reshape::melt(sub_lst, id.vars = "Date")
-      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      mlt$Label <- as.character(mlt$Label)
-    }
-
-    p <- ggplot() +
-      # geom_point(data = wtemp_fc_data$hist, aes(Date, airt, color = "Air temp.")) +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      # coord_cartesian(xlim = c(as.Date("2020-09-22"), as.Date("2020"))) +
-      theme_bw(base_size = 12)
-
-    if(any(!is.na(wtemp_fc_out1$lst))) {
-      p <- p +
-        geom_line(data = mlt, aes(Date, value, color = Label))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6]))
-
-    return(ggplotly(p, dynamicTicks = TRUE))
-  })
-  
-
-
-
-
-
-
-
-
-  #* Parameter Uncertainty ----
-  observe({
-    if(input$view_at_fc < 1) {
-      shinyjs::disable("run_wtemp_fc3a")
-    } else {
-      shinyjs::enable("run_wtemp_fc3a")
-      }
-    })
-  
-  output$param_notation <- renderUI({
-    HTML("<p> For our models, the linear regression parameters <em>m</em> and <em>b</em> can also be written using \u03B2 notation. As a result the following two models are really the same, just using different notation for the parameters:</p>")
-  })
-
-  
-
-  output$lr_mod_eqn <- renderUI({
-    validate(
-      need(!is.na(mod_selec_tab$dt$eqn[1]),
-           message = "Please complete Objective X - Linear Regression")
-    )
-
-    eqn <- gsub("[$$]+", "", mod_selec_tab$dt$eqn[1])
-    eqn <- paste0("$$", eqn, " ; r^2 = ", mod_selec_tab$dt$r2[1], "$$")
-    withMathJax(
-      tags$p(eqn)
-    )
-  })
-
-  # Run one lr wtemp forecast
-  wtemp_fc3a <- reactiveValues(df = NULL)
-  # observeEvent(input$run_wtemp_fc3a, {
-  #   # NEEDS CHECKS
-  #
-  #   df <- airt1_fc$df
-  #   colnames(df)[2] <- "airt"
-  #   mod <- predict(lm_fit$fit, df)
-  #   dat <- data.frame(Date = df$Date, model = mod)
-  #   dat$model[1] <- wtemp_fc_data$hist$wtemp[which(wtemp_fc_data$hist$Date == fc_date)]
-  #   wtemp_fc3a$df <- dat
-  # })
-
-  output$param_fcast3b <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$gen_lr_dist_plot > 0, "Complete Objective 4!")
-    )
-    validate(
-      need(!is.na(lr_dist_plot$lst[[4]]), "Click 'Generate plot!' in Objective 4.")
-    )
-
-    lst <- lr_dist_plot$lst[!is.na(lr_dist_plot$lst)]
-
-    mlt <- do.call(rbind, lst)
-
-    # Just Daily
-    # lst <- lr_dist_plot$lst[4]
-    #
-    # mlt <- lr_dist_plot$lst[[4]]
-
-    y_max_m <- lapply(lst, function(x) {
-      dens_m <- density(x$m)
-      max(dens_m$y)
-    })
-
-    ylims_m <- c(0, max(c(6, max(unlist(y_max_m), na.rm = TRUE))))
-
-    y_max_b <- lapply(lst, function(x) {
-      dens_b <- density(x$b)
-      max(dens_b$y)
-    })
-
-    ylims_b <- c(0, max(c(1.5, max(unlist(y_max_b), na.rm = TRUE))))
-
-    xlims_m <- c(min(0, mlt$m), max(2, mlt$m))
-    xlims_b <- c(min(-2.5, mlt$b), max(10, mlt$b))
-
-    # scales_y <- list()
-
-    p1 <- ggplot() +
-      geom_density(data = mlt, aes(m, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_m, ylim = ylims_m) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Slope (m)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
-      theme_bw(base_size = 16)
-
-    p2 <- ggplot() +
-      geom_density(data = mlt, aes(b, fill = Frequency), color = NA, alpha = 0.3) +
-      coord_cartesian(xlim = xlims_b, ylim = ylims_b) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Intercept (b)") +
-      scale_fill_manual(values = c("Monthly" = cols[1], "Fortnightly" = cols[2], "Weekly" = cols[3], "Daily" = cols[4])) +
-      theme_bw(base_size = 16)
-
-    g <- ggpubr::ggarrange(p1, p2, nrow = 2, align = "v", common.legend = TRUE, legend = "bottom")
-    return(g)
-
-  })
-
-
-
-  #* Summary Plots ----
-  #** Process Uncertainty Summary ----
-  output$proc_uc_summ <- renderPlot({
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(any(!is.na(wtemp_fc_out2$mlt)),
-           message = "Click 'Run forecast' in Objective 6.")
-    )
-
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp."), size = 2) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 22)
-
-    if(any(!is.na(wtemp_fc_out2$dist))) {
-      sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
-      mlt <- do.call(rbind, sub_lst)
-      mlt <- na.exclude(mlt)
-      for(num in 1:4) {
-        if(num %in% mlt$Level) {
-          mlt$Level[mlt$Level == num] <- mod_names[num]
-        }
-      }
-      mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-      p <- p +
-        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
-        geom_line(data = mlt, aes(Date, p50, color = Level))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      guides(color = "none") +
-      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
-      labs(fill = "Model")
-    return(p)
-  })
-
-  #** Parameter Uncertainty Summary ----
-  output$param_uc_summ <- renderPlot({
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(any(!is.na(wtemp_fc_out3b$mlt)),
-           message = "Click 'Run forecast' in Objective 7.")
-    )
-
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 22)
-
-    if(any(!is.na(wtemp_fc_out3b$dist))) {
-      sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
-      mlt <- do.call(rbind, sub_lst)
-      mlt <- na.exclude(mlt)
-      for(num in 1:4) {
-        if(num %in% mlt$Level) {
-          mlt$Level[mlt$Level == num] <- mod_names[num]
-        }
-      }
-      mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-      p <- p +
-        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
-        geom_line(data = mlt, aes(Date, p50, color = Level))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      guides(color = "none") +
-      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
-      labs(fill = "Model")
-    return(p)
-  })
-
-  #** Initial Conditions Uncertainty Summary ----
-  output$ic_uc_summ <- renderPlot({
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(any(!is.na(wtemp_fc_out4$mlt)),
-           message = "Click 'Run forecast' in Objective 8.")
-    )
-
-    if(any(!is.na(wtemp_fc_out4$lst))) {
-      sub_lst <- wtemp_fc_out4$lst[!is.na(wtemp_fc_out4$lst)]
-      mlt <- reshape::melt(sub_lst, id.vars = "Date")
-      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      mlt$Label <- as.character(mlt$Label)
-    }
-
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 22)
-
-    if(any(!is.na(wtemp_fc_out4$dist))) {
-      sub_lst <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
-      mlt <- do.call(rbind, sub_lst)
-      mlt <- na.exclude(mlt)
-      for(num in 1:4) {
-        if(num %in% mlt$Level) {
-          mlt$Level[mlt$Level == num] <- mod_names[num]
-        }
-      }
-      mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-      p <- p +
-        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
-        geom_line(data = mlt, aes(Date, p50, color = Level))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      guides(color = "none") +
-      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
-      labs(fill = "Model")
-    return(p)
-  })
-
-  #** Driver Uncertainty Summary ----
-  output$driver_uc_summ <- renderPlot({
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(any(!is.na(wtemp_fc_out5$mlt)),
-           message = "Click 'Run forecast' in Objective 9.")
-    )
-
-    if(any(!is.na(wtemp_fc_out5$lst))) {
-      sub_lst <- wtemp_fc_out5$lst[!is.na(wtemp_fc_out5$lst)]
-      mlt <- reshape::melt(sub_lst, id.vars = "Date")
-      colnames(mlt)[which(colnames(mlt) == "L1")] <- "Label"
-      mlt$Label <- as.character(mlt$Label)
-    }
-
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
-      geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
-      ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 22)
-
-    if(any(!is.na(wtemp_fc_out5$dist))) {
-      sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
-      mlt <- do.call(rbind, sub_lst)
-      mlt <- na.exclude(mlt)
-      for(num in 1:4) {
-        if(num %in% mlt$Level) {
-          mlt$Level[mlt$Level == num] <- mod_names[num]
-        }
-      }
-      mlt$Level <- factor(mlt$Level, levels = mod_names)
-
-      p <- p +
-        geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.5) +
-        geom_line(data = mlt, aes(Date, p50, color = Level))
-    }
-
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
-                                    "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6])) +
-      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
-                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      guides(color = "none") +
-      coord_cartesian(xlim = c(as.Date(fc_date)-1, as.Date(fc_date)+7)) +
-      labs(fill = "Model")
-    return(p)
-  })
-
-
-  # Activity C ----
-
-  # Activity C - model
-  
-  
-
-  
-
- 
-
-  
-
-  # Uncertainty Partitioning ----
-
-
-
-
-  #####
-
-
-
-
-
-
-
-  #** NOAA Air temperature plot ----
-  output$noaa_at_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
-    )
-    validate(
-      need(is.numeric(30), "Please input a number for 'Number of forecasts'")
-    )
-    # validate(
-    #   need(input$view_day0, "Please click 'Load observation'")
-    # )
-    set.seed(123)
-
-
-    mlt <- noaa_df$airt
-
-    if(input$noaa_timestep == "Daily mean") {
-      mlt$date <- as.Date(mlt$time)
-      mlt <- plyr::ddply(mlt, c("date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-      mlt$time <- as.POSIXct(mlt$date)
-      fut_offset <- lubridate::days(6) #+ lubridate::hours(19)
-    } else if(input$noaa_timestep == "Hourly") {
-      fut_offset <- lubridate::days(6) + lubridate::hours(19)
-    }
-
-    idx1 <- which(mlt$time == mlt$time[1])
-    dat <- mlt[idx1, ]
-    dat$time2 <- dat$time + rnorm(nrow(dat), mean = 0, sd = 6000)
-    idx2 <- which(mlt$time == (mlt$time[1] + fut_offset))
-    dat2 <- mlt[idx2, ]
-    dat2$time2 <- dat2$time + rnorm(nrow(dat2), mean = 0, sd = 6000)
-
-    st <- data.frame(time = c(mlt$time[1], (mlt$time[1] + fut_offset)),
-                     mean = c(mean(dat$value, na.rm = TRUE), mean(dat2$value, na.rm = TRUE)),
-                     sd = c(sd(dat$value, na.rm = TRUE), sd(dat2$value, na.rm = TRUE)),
-                     null = rep(mean(dat$value, na.rm = TRUE), 2),
-                     L1 = dat$L1[1])
-
-    if(input$view_day7) {
-      ylims <- c(min(mlt$value, na.rm = TRUE) - 1, max(mlt$value, na.rm = TRUE) + 1)
-      xlims <- c(mlt$time[1], (mlt$time[1] + fut_offset))
-    } else {
-      xlims <- c((mlt$time[1] - lubridate::hours(12)), (mlt$time[1] + lubridate::hours(12)))
-      ylims <- c(min(dat$value, na.rm = TRUE) - 1, max(dat$value, na.rm = TRUE) + 1)
-    }
-
-    dat <- dat[dat$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
-    dat2 <- dat2[dat2$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
-
-    if(30 > 0 & input$view_day7) {
-      cur_df <- data.frame(time = dat$time2, value = dat$value, variable = dat$variable, xend = dat2$time2, yend = dat2$value)
-    }
-
-
-    ylab <- "Temperature (\u00B0C)"
-    xlab <- "Time"
-
-    p <- ggplot() +
-      # geom_point(data = dat2, aes(time2, value)) + # Day 7
-      # geom_line(data = mlt[mlt$time <= xlims[2], ], aes(time, value, group = variable)) +
-      # geom_errorbar(data = st, aes(time, ymin = mean - sd, ymax = mean + sd),
-      #               color = "red", width = 12000, size = 2) + # Error bars - Std. Dev
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      # stat_ellipse(data = dat2, aes(time2, value), na.rm = TRUE, inherit.aes = FALSE) +
-      # facet_wrap(~L1, scales = "free_y", ncol = 1) +
-      ylab(ylab) +
-      xlab(xlab) +
-      coord_cartesian(xlim = xlims, ylim = ylims) +
-      theme_bw(base_size = 18)
-
-    if(input$view_day0) {
-      p <- p +
-        geom_point(data = st[1, ], aes(time, mean), color = "red", size = 5) # Mean
-    }
-
-    if(input$add_obs_uc) {
-      p <- p + geom_errorbar(data = st[1, ], aes(time, ymin = mean - sd, ymax = mean + sd),
-                        color = "red", width = 12000, size = 2) # Error bars - Std. Dev
-
-    }
-    if(input$view_ic & 30 > 0) {
-      p <- p +
-        geom_point(data = dat, aes(time2, value), size = 2) + # Day 1
-        # geom_ellipse(aes(x0 = (st$time[1] - 6000), y0 = st$mean[1], a = (2 * 6000), b = (2 * st$sd[1]), angle = 0))
-        stat_ellipse(data = dat, aes(time2, value), na.rm = TRUE,
-                     inherit.aes = FALSE, type = "norm")
-    }
-    if(input$view_day7 & 30 > 0) {
-      p <- p +
-        geom_point(data = dat2, aes(time2, value), size = 2) + # Day 1
-        stat_ellipse(data = dat2, aes(time2, value), na.rm = TRUE,
-                     inherit.aes = FALSE, type = "norm")
-    }
-
-    if(!is.null(input$add_to_plot)) {
-
-      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Line") {
-        p <- p +
-          geom_segment(data = cur_df, aes(time, value, group = variable, xend = xend, yend = yend),
-                       color = "gray", alpha = 0.6)
-        # geom_curve(data = cur_df, aes(time, value, group = variable, xend = xend, yend = yend),
-        #            curvature = -0.2) # Connecting curves
-      }
-      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Forecast members") {
-
-        mlt <- mlt[mlt$variable %in% paste0("mem", formatC(1:30, width = 2, format = "d", flag = "0")), ]
-        p <- p +
-          geom_line(data = mlt[mlt$time <= xlims[2], ], aes(time, value, group = variable),
-                    color = "gray", alpha = 0.6)
-      }
-      if(input$view_ic & 30 > 0 & input$view_day7 & input$add_to_plot == "Forecast distribution") {
-
-        validate(
-          need(30 >= 2, "Number of members must be greater than 1.")
-        )
-
-        wid <- tidyr::pivot_wider(mlt, c(time, L1), names_from = variable, values_from = value)
-        wid <- wid[wid$time <= (mlt$time[1] + fut_offset), 1:(30 + 2)]
-        df <- apply(wid[, -c(1, 2)], 1, function(x){
-          quantile(x, c(0.05, 0.5, 0.95))
-        })
-        df <- as.data.frame(t(df))
-        colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
-        df$time <- wid$time
-        p <- p +
-          geom_ribbon(data = df, aes(time, ymin = p5, ymax = p95), fill = l.cols[2], alpha = 0.3)+
-          # geom_ribbon(data = df, aes(time, ymin = p12.5, ymax = p87.5, fill = "75%"), alpha = 0.3)+
-          geom_line(data = df, aes(time, p50, color = "Median"))
-      }
-    }
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    # return(p)
-
-    return(gp)
-  })
-
-  # Run chl-A forecasts with IC UC ----
-  # Generate Initial condition distribution plots
-  ic_dist_plot <- reactiveValues(phy = NULL, nut = NULL, phy_xlims = NULL, nut_xlims = NULL)
-  observeEvent(input$gen_ic_dist, {
-    req(!is.null(input$n_samp_ic))
-    ic_dist_plot$phy <- rnorm(input$n_samp_ic, mean = input$phy_ic_value, sd = input$phy_ic_sd)
-    ic_dist_plot$phy[ic_dist_plot$phy <= 0] <- 0.01
-    ic_dist_plot$nut <- rnorm(input$n_samp_ic, mean = input$nut_ic_value, sd = input$nut_ic_sd)
-    ic_dist_plot$nut[ic_dist_plot$nut <= 0] <- 0.01
-    ic_dist_plot$phy_xlims <- c(input$phy_ic_value - 3 * input$phy_ic_sd, input$phy_ic_value + 3 * input$phy_ic_sd)
-    ic_dist_plot$nut_xlims <- c(input$nut_ic_value - 3 * input$nut_ic_sd, input$nut_ic_value + 3 * input$nut_ic_sd)
-    ic_dist_plot$phy_vline <- input$phy_ic_value
-    ic_dist_plot$nut_vline <- input$nut_ic_value
-  })
-
-  output$ic_phy_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$n_samp_ic),
-           message = "Please select a number of samples.")
-    )
-    validate(
-      need(input$gen_ic_dist > 0, "Click 'Generate initial condition distributions'")
-    )
-    df <- data.frame(par = "Chlorophyll-a (μg/L)", value = ic_dist_plot$phy)
-
-    p <- ggplot(df) +
-      geom_vline(xintercept = ic_dist_plot$phy_vline) +
-      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = ic_dist_plot$phy_xlims, ylim = c(0, 5)) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Chlorophyll-a (μg/L)") +
-      theme_bw(base_size = 22)
-    return(p)
-  })
-  output$ic_nut_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(input$n_samp_ic),
-           message = "Please select a number of samples.")
-    )
-    validate(
-      need(input$gen_ic_dist > 0, "Click 'Generate initial condition distributions'")
-    )
-    df <- data.frame(par = "Nutrients (mg/L)", value = ic_dist_plot$nut)
-
-    p <- ggplot(df) +
-      geom_vline(xintercept = ic_dist_plot$nut_vline) +
-      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = ic_dist_plot$nut_xlims, ylim = c(0, 5)) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Nutrient (mg/L)") +
-      theme_bw(base_size = 22)
-    return(p)
-  })
-
-  # Run IC FC ----
-  ic_fc_data <- reactiveValues(chla = NULL, nut = NULL)
-  observeEvent(input$run_ic_fc, {
-
-    req(!is.null(noaa_df$airt))
-
-    progress <- shiny::Progress$new()
-    # Make sure it closes when we exit this reactive, even if there's an error
-    on.exit(progress$close())
-    progress$set(message = paste0("Running NP model with ", length(ic_dist_plot$phy), " different sets of initial conditions."),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished running", value = 0.01)
-
-    swt <- noaa_df$swt
-    swt$date <- as.Date(swt$time)
-    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    upar <- noaa_df$upar
-    upar$date <- as.Date(upar$time)
-    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    np_inp <- merge(swt_dly, upar_dly, by = 1)
-    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
-    times <- 1:nrow(np_inp)
-
-    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
-
-    # Parameters for NP model
-    parms <- c(
-      maxUptake = 0.2, #day-1
-      kspar=120, #uEinst m-2 s-1
-      ksdin=0.5, #mmol m-3
-      maxGrazing=1.0, # day-1
-      ksphyto=1, #mmol N m-3
-      pFaeces=0.3, #unitless
-      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
-      excretionRate=0.1, #day-1
-      mineralizationRate=0.1, #day-1
-      Chl_Nratio = 1, #mg chl (mmolN)-1
-      Q10 = 2,  #unitless
-      refTEMP = 20 # Reference temperature for q10
-    )
-
-    n_mem <- length(ic_dist_plot$phy)
-    arr <- array(NA, dim = c(8, 3, n_mem))
-    for(mem in 1:n_mem) {
-      res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
-      res[1, 1] <- ic_dist_plot$phy[mem] * 0.016129 # Convert from μg/L to mmolN/m3
-      res[1, 2] <- ic_dist_plot$nut[mem] * 16.129 # Convert from mg/L to mmolN/m3
-      res[1, 3] <- res[1, 1]  * 62
-      for(i in 2:8) {
-
-        out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
-        res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
-                      (res[i-1, 2] + out[[1]][2]),
-                      (res[i-1, 1] + out[[1]][1]) * 62)
-
-      }
-      arr[, , mem] <- res
-      progress$set(value = mem/n_mem)
-    }
-
-    mlt <- reshape2::melt(arr[, 3, ])
-    mlt$date <- np_inp$date[1:8]
-    ic_fc_data$chla <- mlt
-
-    mlt <- reshape2::melt(arr[, 2, ])
-    mlt$date <- np_inp$date[1:8]
-    mlt$value <- mlt$value / 16.129
-    ic_fc_data$nut <- mlt
-  })
-
-  output$ic_fc_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(ic_dist_plot$phy),
-           "Please generate distributions of initial conditions required")
-    )
-    validate(
-      need(!is.null(input$ic_fc_type),
-           "Please select a type of plot")
-    )
-    validate(
-      need(!is.null(ic_fc_data$chla),
-           message = "Click 'Run forecast'")
-    )
-
-    dat <- ic_fc_data$chla
-
-    p <- ggplot()
-
-    if(input$ic_fc_type == "Distribution") {
-      wid <- tidyr::pivot_wider(dat, c(date), names_from = Var2, values_from = value)
-      df <- apply(wid[, -c(1)], 1, function(x){
-        quantile(x, c(0.05, 0.5, 0.95))
-      })
-      df <- as.data.frame(t(df))
-      colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
-      df$time <- wid$date
-      p <- p +
-        geom_ribbon(data = df, aes(time, ymin = p5, ymax = p95), fill = l.cols[2], alpha = 0.3)+
-        # geom_ribbon(data = df, aes(time, ymin = p12.5, ymax = p87.5, fill = "75%"), alpha = 0.3)+
-        geom_line(data = df, aes(time, p50, color = "Median"))
-      } else if(input$ic_fc_type == "Line") {
-      p <- p +
-        geom_line(data = dat, aes_string("date", "value", group = "Var2"),
-                  color = "gray", alpha = 0.6)
-      }
-    p <- p +
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      ylab("Chlorophyll-a (μg/L)") +
-      xlab("Time") +
-      theme_bw(base_size = 18)
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-        }
-      }
-    return(gp)
-    })
-
-  # Model Uncertainty ----
-  #* Process Uncertainty ----
-  mod0_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
-                              none = NULL, low = NULL, med = NULL, high = NULL)
-  output$sigma <- renderUI({
-    HTML("<p> where process noise is equal to a random number drawn from a normal distribution with a mean of zero and a standard deviation (\u03C3). </p>")
-  })
-  observeEvent(input$run_mod0, {
-
-    req(input$table01_rows_selected != "")
-    req(!is.null(noaa_df$airt))
-
-    swt <- noaa_df$swt
-    swt$date <- as.Date(swt$time)
-    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    upar <- noaa_df$upar
-    upar$date <- as.Date(upar$time)
-    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    np_inp <- merge(swt_dly, upar_dly, by = 1)
-    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
-    times <- 1:nrow(np_inp)
-
-    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
-
-    # Parameters for NP model
-    parms <- c(
-      maxUptake = 0.2, #day-1
-      kspar=120, #uEinst m-2 s-1
-      ksdin=0.5, #mmol m-3
-      maxGrazing=1.0, # day-1
-      ksphyto=1, #mmol N m-3
-      pFaeces=0.3, #unitless
-      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
-      excretionRate=0.1, #day-1
-      mineralizationRate=0.1, #day-1
-      Chl_Nratio = 1, #mg chl (mmolN)-1
-      Q10 = 2,  #unitless
-      refTEMP = 20 # Reference temperature for q10
-    )
-
-    parms[1] <- 0.15
-    parms[7] <- 0.85
-    if(input$proc_uc0 == "None") {
-      w_sd <- 0
-    } else if(input$proc_uc0 == "Low") {
-      w_sd <- 0.01
-    } else if(input$proc_uc0 == "Medium") {
-      w_sd <- 0.025
-    } else if(input$proc_uc0 == "High") {
-      w_sd <- 0.05
-    }
-    sig_w <- rnorm(8, mean = 0, sd = w_sd)
-
-    res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
-    res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
-    res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
-    res[1, 3] <- res[1, 1]  * 62
-    for(i in 2:8) {
-
-      out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
-      new_phy <- res[i-1, 1] + out[[1]][1] + sig_w[i]
-      new_nut <- res[i-1, 2] + out[[1]][2]
-      if(new_phy <= 0) {
-        new_phy <- 0.01
-      }
-      if(new_nut <= 0) {
-        new_nut <- 1
-      }
-      res[i, ] <- c(new_phy,
-                    new_nut,
-                    (new_phy * 62))
-    }
-
-
-
-    res <- as.data.frame(res)
-    res$date <- np_inp[1:8, 1]
-    if(input$proc_uc0 == "None") {
-      mod0_runs$none <- res
-    } else if(input$proc_uc0 == "Low") {
-      mod0_runs$low <- res
-    } else if(input$proc_uc0 == "Medium") {
-      mod0_runs$med <- res
-    } else if(input$proc_uc0 == "High") {
-      mod0_runs$high <- res
-    }
-
-    mod0_runs$curr <- res
-  })
-
-  output$proc_uc_plot <- renderPlot({
-
-
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    # validate(
-    #   need(input$proc_uc0 != "None",
-    #        message = "Add process uncertainty")
-    # )
-
-    xlims <- c((0 - 3*0.05), (0 + 3*0.05))
-    ylims <- c(0, 40)
-    df <- data.frame(Low = rnorm(1000, mean = 0, sd = 0.01),
-                     Medium = rnorm(1000, mean = 0, sd = 0.025),
-                     High = rnorm(1000, mean = 0, sd = 0.05))
-
-    p <- ggplot(df) +
-      geom_vline(xintercept = 0) +
-      geom_density(aes(x = Low, fill = "Low"), alpha = 0.6) +
-      geom_density(aes(x = Medium, fill = "Medium"), alpha = 0.6) +
-      geom_density(aes(x = High, fill = "High"), alpha = 0.6) +
-      coord_cartesian(xlim = xlims, ylim = ylims) +
-      scale_fill_manual(values = c("Low" = cols[2], "Medium" = cols[3], "High" = cols[4])) +
-      guides(fill = guide_legend(override.aes = list(alpha = 0.6))) +
-      labs(fill = "Level") +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Process Uncertainty") +
-      theme_bw(base_size = 22)
-    return(p)
-    })
-
-  output$run_mod0_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(mod0_runs$curr),
-           message = "Click 'Run model'")
-    )
-
-    p <- ggplot()
-
-    if(!is.null(mod0_runs$none)) {
-      p <- p +
-        geom_line(data = mod0_runs$none, aes(date, Chla, color = "None"),
-                  linetype = "solid")
-    }
-    if(!is.null(mod0_runs$low)) {
-      p <- p +
-        geom_line(data = mod0_runs$low, aes(date, Chla, color = "Low"),
-                  linetype = "twodash")
-    }
-    if(!is.null(mod0_runs$med)) {
-      p <- p +
-        geom_line(data = mod0_runs$med, aes(date, Chla, color = "Medium"),
-                  linetype = "dotted")
-    }
-    if(!is.null(mod0_runs$high)) {
-      p <- p +
-        geom_line(data = mod0_runs$high, aes(date, Chla, color = "High"),
-                  linetype = "dashed")
-    }
-
-    p <- p +
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      scale_color_manual(values = c("None" = cols[1], "Low" = cols[2], "Medium" = cols[3], "High" = cols[4])) +
-      ylab("Chlorophyll-a (μg/L)") +
-      xlab("Time") +
-      labs(color = "Process uncertainty") +
-      theme_bw(base_size = 18)
-
-    return(ggplotly(p, dynamicTicks = TRUE))
-
-  })
-
-
-  #* Run model & explore parameters
-
-  mod1_runs <- reactiveValues(curr = NULL, prev = NULL,  prev2 = NULL,
-                              pars_df = data.frame(matrix(NA, nrow = 3, ncol = 3, dimnames = list(c("Current run", "Previous run", "Previous run2"), c("Mortality rate", "Nutrient uptake", "Reference temperature")))),
-                              pars_curr = NULL, pars_prev = NULL, pars_prev2 = NULL)
-  observeEvent(input$run_mod1, {
-
-    req(input$table01_rows_selected != "")
-    req(!is.null(noaa_df$airt))
-
-    mod1_runs$prev2 <- mod1_runs$prev
-    mod1_runs$prev <- mod1_runs$curr
-
-    mod1_runs$pars_df[3, ] <- mod1_runs$pars_df[2, ]
-    mod1_runs$pars_df[2, ] <- mod1_runs$pars_df[1, ]
-    mod1_runs$pars_df[1, ] <- c(input$mort_rate1, input$nut_uptake1, input$refTEMP1)
-
-
-    swt <- noaa_df$swt
-    swt$date <- as.Date(swt$time)
-    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    upar <- noaa_df$upar
-    upar$date <- as.Date(upar$time)
-    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    np_inp <- merge(swt_dly, upar_dly, by = 1)
-    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
-    times <- 1:nrow(np_inp)
-
-    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
-
-    # Parameters for NP model
-    parms <- c(
-      maxUptake = 0.2, #day-1
-      kspar=120, #uEinst m-2 s-1
-      ksdin=0.5, #mmol m-3
-      maxGrazing=1.0, # day-1
-      ksphyto=1, #mmol N m-3
-      pFaeces=0.3, #unitless
-      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
-      excretionRate=0.1, #day-1
-      mineralizationRate=0.1, #day-1
-      Chl_Nratio = 1, #mg chl (mmolN)-1
-      Q10 = 2,  #unitless
-      refTEMP = 20 # Reference temperature for q10
-    )
-
-    parms[1] <- input$nut_uptake1
-    parms[7] <- input$mort_rate1
-    parms[12] <- input$refTEMP1
-
-    res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
-    res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
-    res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
-    res[1, 3] <- res[1, 1]  * 62
-    for(i in 2:8) {
-
-      out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
-      res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
-                    (res[i-1, 2] + out[[1]][2]),
-                    (res[i-1, 1] + out[[1]][1]) * 62)
-
-    }
-
-    res <- as.data.frame(res)
-    res$date <- np_inp[1:8, 1]
-
-    mod1_runs$curr <- res
-    mod1_runs$pars_curr <- c(parms[7], parms[1], parms[12])
-  })
-
-  output$run_mod1_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(mod1_runs$curr),
-           message = "Click 'Run model'")
-    )
-
-    p <- ggplot()
-
-    if(!is.null(mod1_runs$prev2)) {
-      p <- p +
-        geom_line(data = mod1_runs$prev2, aes(date, Chla, color = "Previous run2"),
-                  linetype = "dotted")
-    }
-    if(!is.null(mod1_runs$prev)) {
-      p <- p +
-        geom_line(data = mod1_runs$prev, aes(date, Chla, color = "Previous run"),
-                  linetype = "dashed")
-    }
-
-    p <- p +
-      geom_line(data = mod1_runs$curr, aes(date, Chla, color = "Current run")) +
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      ylab("Chlorophyll-a (μg/L)") +
-      xlab("Time") +
-      theme_bw(base_size = 18)
-
-    return(ggplotly(p, dynamicTicks = TRUE))
-
-  })
-
-  #** Data table of used parameters ----
-  output$run_mod1_pars <- renderDT(
-    mod1_runs$pars_df, rownames = TRUE, options = list(ordering = FALSE, dom = 't'),
-    colnames = c("Mortality rate", "Nutrient uptake", "Reference temperature")
-  )
-
-  #* Generate parameters ----
-  pars_dist <- reactiveValues(mort_rate = NULL, nut_uptake = NULL, mort_xlims = NULL, nut_xlims = NULL)
-  plot_switch <- reactiveValues(pars_UC = FALSE)
-  observeEvent(input$gen_param_dist, {
-
-    req(!is.null(input$n_samp_pars))
-    if(input$add_nut_uc) {
-      pars_dist$nut_uptake <- data.frame(value = rnorm(input$n_samp_pars, mean = input$nut_uptake2, sd = input$nut_uptake2_sd),
-                                         par = "Nutrient uptake")
-      pars_dist$nut_uptake[pars_dist$nut_uptake <= 0] <- 0.01
-      pars_dist$nut_uptake[pars_dist$nut_uptake >= 1] <- 0.99
-      pars_dist$nut_uptake_xlims <- c(input$nut_uptake2 - 3 * input$nut_uptake2_sd, input$nut_uptake2 + 3 * input$nut_uptake2_sd)
-      pars_dist$nut_uptake_vline <- input$nut_uptake2
-    }
-
-    if(input$add_mort_uc) {
-      pars_dist$mort_rate <- data.frame(value = rnorm(input$n_samp_pars, mean = input$mort_rate2, sd = input$mort_rate2_sd), par =  "Mortality rate")
-      pars_dist$mort_rate[pars_dist$mort_rate <= 0] <- 0.01
-      pars_dist$mort_rate[pars_dist$mort_rate >= 1] <- 0.99
-      pars_dist$mort_rate_xlims <- c(input$mort_rate2 - 3 * input$mort_rate2_sd, input$mort_rate2 + 3 * input$mort_rate2_sd)
-      pars_dist$mort_rate_vline <- input$mort_rate2
-    }
-    plot_switch$pars_UC <- FALSE
-  })
-
-  #** Mortality rate distribution plot ----
-  output$mort_rate_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$add_mort_uc, "Check 'Add uncertainty for mortality rate'")
-    )
-    validate(
-      need(!is.null(input$n_samp_pars), "Select the number of samples")
-    )
-    validate(
-      need(!is.null(pars_dist$mort_rate), "Click 'Generate parameter distributions'")
-    )
-
-    df <- pars_dist$mort_rate
-
-    p <- ggplot(df) +
-      geom_vline(xintercept = pars_dist$mort_rate_vline) +
-      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = c(0, 1)) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Mortality rate") +
-      theme_bw(base_size = 22)
-    return(p)
-  })
-
-  #** Nutrient uptake distribution plot ----
-  output$nut_uptake_dist_plot <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$add_nut_uc, "Check 'Add uncertainty for nutrient uptake'")
-    )
-    validate(
-      need(!is.null(pars_dist$nut_uptake), "Click 'Generate parameter distributions'")
-    )
-
-    df <- pars_dist$nut_uptake
-
-    p <- ggplot(df) +
-      geom_vline(xintercept = pars_dist$nut_uptake_vline, size = l_siz) +
-      geom_density(aes(x = value), fill = "gray", alpha = 0.6) +
-      coord_cartesian(xlim = c(0, 1)) +
-      ylab("Density") +
-      xlab("Value") +
-      ggtitle("Nutrient uptake") +
-      theme_bw(base_size = 22)
-    return(p)
-  })
-
-
-  # Run Param UC FC ----
-  pars_fc_data <- reactiveValues(chla = NULL, nut = NULL)
-  observeEvent(input$run_pars_fc, {
-
-    req(!is.null(noaa_df$airt))
-    req(!is.null(input$pars_fc_type))
-    plot_switch$pars_UC <- TRUE
-
-    progress <- shiny::Progress$new()
-    # Make sure it closes when we exit this reactive, even if there's an error
-    on.exit(progress$close())
-    progress$set(message = paste0("Running NP model with ", input$n_samp_pars, " different sets of parameters."),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished running", value = 0.01)
-
-    swt <- noaa_df$swt
-    swt$date <- as.Date(swt$time)
-    swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    upar <- noaa_df$upar
-    upar$date <- as.Date(upar$time)
-    upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
-
-    np_inp <- merge(swt_dly, upar_dly, by = 1)
-    np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
-    times <- 1:nrow(np_inp)
-
-    np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
-
-    # Parameters for NP model
-    parms <- c(
-      maxUptake = 0.2, #day-1
-      kspar=120, #uEinst m-2 s-1
-      ksdin=0.5, #mmol m-3
-      maxGrazing=1.0, # day-1
-      ksphyto=1, #mmol N m-3
-      pFaeces=0.3, #unitless
-      mortalityRate=0.8, #(mmmolN m-3)-1 day-1
-      excretionRate=0.1, #day-1
-      mineralizationRate=0.1, #day-1
-      Chl_Nratio = 1, #mg chl (mmolN)-1
-      Q10 = 2,  #unitless
-      refTEMP = 20 # Reference temperature for q10
-    )
-
-    n_mem <- nrow(pars_dist$mort_rate)
-    arr <- array(NA, dim = c(8, 3, n_mem))
-    for(mem in 1:n_mem) {
-
-      if(input$add_mort_uc) {
-        parms[7] <- pars_dist$mort_rate$value[mem]
-      }
-      if(input$add_nut_uc) {
-        parms[1] <- pars_dist$nut_uptake$value[mem]
-      }
-
-      res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
-      res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
-      res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
-      res[1, 3] <- res[1, 1]  * 62
-
-      for(i in 2:8) {
-        out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
-        res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
-                      (res[i-1, 2] + out[[1]][2]),
-                      (res[i-1, 1] + out[[1]][1]) * 62)
-      }
-      res[res[, 3] > 50 | res[, 3] < 0, 3] <- NA # Reset outlier values
-      arr[, , mem] <- res
-      progress$set(value = mem/n_mem)
-    }
-
-    mlt <- reshape2::melt(arr[, 3, ])
-    mlt$date <- np_inp$date[1:8]
-    pars_fc_data$chla <- mlt
-
-    mlt <- reshape2::melt(arr[, 2, ])
-    mlt$date <- np_inp$date[1:8]
-    mlt$value <- mlt$value / 16.129
-    pars_fc_data$nut <- mlt
-  })
-
-  output$pars_fc_plot <- renderPlotly({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(pars_dist$mort_rate),
-           "Please generate distributions of parameters required")
-    )
-    validate(
-      need(!is.null(input$pars_fc_type),
-           message = "Select a type of plot")
-    )
-    validate(
-      need(plot_switch$pars_UC,
-           message = "Click 'Run forecast'")
-    )
-
-    dat <- pars_fc_data$chla
-
-    p <- ggplot()
-
-    if(input$pars_fc_type == "Distribution") {
-      wid <- tidyr::pivot_wider(dat, c(date), names_from = Var2, values_from = value)
-      df <- apply(wid[, -c(1)], 1, function(x){
-        quantile(x, c(0.05, 0.125, 0.5, 0.875, 0.95), na.rm = TRUE)
-      })
-      df <- as.data.frame(t(df))
-      colnames(df) <- paste0("p", gsub("%", "", colnames(df)))
-      df$time <- wid$date
-      p <- p +
-        geom_ribbon(data = df, aes(time, ymin = p5, ymax = p95), fill = l.cols[2], alpha = 0.3)+
-        # geom_ribbon(data = df, aes(time, ymin = p12.5, ymax = p87.5, fill = "75%"), alpha = 0.3)+
-        geom_line(data = df, aes(time, p50, color = "Median"))
-    } else if(input$pars_fc_type == "Line") {
-      p <- p +
-        geom_line(data = dat, aes_string("date", "value", group = "Var2"),
-                  color = "gray", alpha = 0.6)
-    }
-    p <- p +
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      ylab("Chlorophyll-a (μg/L)") +
-      xlab("Time") +
-      theme_bw(base_size = 18)
-
-    gp <- ggplotly(p, dynamicTicks = TRUE)
-    # Code to remove parentheses in plotly
-    for (i in 1:length(gp$x$data)){
-      if (!is.null(gp$x$data[[i]]$name)){
-        gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-      }
-    }
-    return(gp)
-  })
-
-  # Run Driver UC FC ----
-  driv_fc_data0 <- reactiveValues(chla = NULL, nut = NULL)
-  rand_samp <- reactiveValues(val = NULL)
-  observeEvent(input$run_driv_fc0, {
-
-    req(!is.null(noaa_df$airt))
-    # plot_switch$pars_UC <- TRUE
-
-    progress <- shiny::Progress$new()
-    # Make sure it closes when we exit this reactive, even if there's an error
-    on.exit(progress$close())
-    progress$set(message = paste0("Running NP model."),
-                 detail = "This may take a while. This window will disappear
-                     when it is finished running", value = 0.01)
-
-    # Parameters for NP model
-    parms <- c(
-      maxUptake = 0.12, #day-1
-      kspar=120, #uEinst m-2 s-1
-      ksdin=0.5, #mmol m-3
-      maxGrazing=1.0, # day-1
-      ksphyto=1, #mmol N m-3
-      pFaeces=0.3, #unitless
-      mortalityRate=0.85, #(mmmolN m-3)-1 day-1
-      excretionRate=0.1, #day-1
-      mineralizationRate=0.1, #day-1
-      Chl_Nratio = 1, #mg chl (mmolN)-1
-      Q10 = 2,  #unitless
-      refTEMP = 20 # Reference temperature for q10
-    )
-
-    n_mem <- 30
-    arr <- array(NA, dim = c(8, 3, n_mem))
-    for(mem in 1:n_mem) {
-
-      sel_mem <- paste0("mem", formatC(mem, width = 2, format = "d", flag = "0"))
-
-      swt <- noaa_df$swt
-      swt <- swt[swt$variable == sel_mem, ]
-      swt$date <- as.Date(swt$time)
-      swt_dly <- plyr::ddply(swt, "date", function(x) mean(x$value, na.rm = TRUE))
-
-      upar <- noaa_df$upar
-      upar <- upar[upar$variable == sel_mem, ]
-      upar$date <- as.Date(upar$time)
-      upar_dly <- plyr::ddply(upar, "date", function(x) mean(x$value, na.rm = TRUE))
-
-      np_inp <- merge(swt_dly, upar_dly, by = 1)
-      np_inp[, 1] <- as.POSIXct(np_inp[, 1], tz = "UTC")
-      times <- 1:nrow(np_inp)
-
-      np_inputs <- create_np_inputs(time = np_inp[, 1], PAR = np_inp[, 3], temp = np_inp[, 2])
-
-      res <- matrix(NA, nrow = 8, ncol = 3, dimnames = list(rn = c(), cn = c("Phyto", "Nutrient", "Chla")))
-      res[1, 1] <- input$phy_ic_value * 0.016129 # Convert from μg/L to mmolN/m3
-      res[1, 2] <- input$nut_ic_value * 16.129 # Convert from mg/L to mmolN/m3
-      res[1, 3] <- res[1, 1]  * 62
-
-      for(i in 2:8) {
-        out <- NP_model(time = i, states = res[i - 1, 1:2], parms = parms, inputs = np_inputs)
-        res[i, ] <- c((res[i-1, 1] + out[[1]][1]),
-                      (res[i-1, 2] + out[[1]][2]),
-                      (res[i-1, 1] + out[[1]][1]) * 62)
-      }
-      # res[res[, 3] > 50 | res[, 3] < 0, 3] <- NA # Reset outlier values
-      arr[, , mem] <- res
-    }
-
-    mlt <- reshape2::melt(arr[, 3, ])
-    mlt$date <- np_inp$date[1:8]
-    driv_fc_data0$chla <- mlt
-
-    mlt <- reshape2::melt(arr[, 2, ])
-    mlt$date <- np_inp$date[1:8]
-    mlt$value <- mlt$value / 16.129
-    driv_fc_data0$nut <- mlt
-
-    rand_samp$val <- sample(1:30, 1)
-
-    progress$set(value = 1)
-  })
-
-  output$driv_fc_plot0 <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(driv_fc_data0$chla),
-           message = "Click 'Run forecast'")
-    )
-
-    dat <- driv_fc_data0$chla
-    dat$label <- paste0("mem", formatC((dat$Var2), width = 2, format = "d", flag = "0"))
-    ylims <- range(dat$value, na.rm = TRUE)
-    if(input$add_mem > 0) {
-      add_dat <- dat[dat$Var2 %in% c(2:(input$add_mem + 1)), ]
-    }
-    dat <- dat[dat$Var2 == 1, ]
-    col30 <- cols
-
-    p <- ggplot() +
-      geom_line(data = dat, aes(date, value, color = label)) +
-      scale_x_datetime(date_labels = "%a", date_breaks = "1 day") +
-      ylab("Chlorophyll-a (μg/L)") +
-      xlab("Time") +
-      coord_cartesian(ylim = ylims) +
-      theme_bw(base_size = 18)
-
-    if(input$add_mem > 0) {
-      p <- p +
-        geom_line(data = add_dat, aes(date, value, color = label))
-    }
-    if(input$add_mem > 7) {
-      col30 <- c(rep("black", input$add_mem - 7), cols)
-    }
-    p <- p + scale_color_manual(values = col30) +
-      guides(color = "none")
-
-    return(p)
-  })
-
-  output$driv_fc_plot1 <- renderPlot({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(noaa_df$airt),
-           "Load NOAA weather forecast")
-    )
-    validate(
-      need(!is.null(driv_fc_data0$chla),
-           message = "Click 'Run forecast'")
-    )
-
-    swt <- noaa_df$swt
-    # swt <- swt[swt$variable == sel_mem, ]
-    swt$date <- as.Date(swt$time)
-    dat <- plyr::ddply(swt, c("date", "variable"), function(x) {
-      data.frame(value = mean(x$value, na.rm = TRUE))
-    })
-
-    sub_dates <- unique(dat$date)[1:8]
-
-    ylims <- range(dat$value, na.rm = TRUE)
-    if(input$add_mem > 0) {
-      add_dat <- dat[dat$variable %in% paste0("mem", formatC((2:(input$add_mem + 1)), width = 2, format = "d", flag = "0")) & dat$date %in% sub_dates, ]
-      }
-    dat <- dat[dat$variable == "mem01" & dat$date %in% sub_dates, ]
-    col30 <- cols
-
-
-    p <- ggplot() +
-      geom_line(data = dat, aes(date, value, color = variable)) +
-      scale_x_date(date_labels = "%a", date_breaks = "1 day") +
-      ylab("Water temperature (\u00B0C)") +
-      xlab("Time") +
-      coord_cartesian(ylim = ylims) +
-      theme_bw(base_size = 18)
-
-    if(input$add_mem > 0) {
-      p <- p +
-        geom_line(data = add_dat, aes(date, value, color = variable))
-    }
-    if(input$add_mem > 7) {
-      col30 <- c(rep("black", input$add_mem - 7), cols)
-    }
-    p <- p + scale_color_manual(values = col30) +
-      guides(color = "none")
-
-    return(p)
-  })
-
   # Navigating Tabs ----
   #* Main Tab ====
   rv1 <- reactiveValues(prev = 0, nxt = 2)
@@ -5158,20 +3423,21 @@ shinyServer(function(input, output, session) {
     curr_tab1 <- input$maintab
     rv1$prev <- readr::parse_number(curr_tab1) - 1
     rv1$nxt <- readr::parse_number(curr_tab1) + 1
+    print(rv1$prev)
+    print(rv1$nxt)
   })
-
+  
   observe({
     toggleState(id = "prevBtn1", condition = rv1$prev > 0)
-    if(rv1$nxt > 7 & rv4a$nxt > 14) {
+    if(rv1$nxt > 6 & rv3a$nxt > 10) {
       shinyjs::disable("nextBtn1")
     } else {
       shinyjs::enable("nextBtn1")
     }
     hide(selector = ".page")
-    # show(paste0("mtab", rv1$nxt))
   })
-
-
+  
+  
   # Next button
   observe({
     curr_tab1 <- input$maintab
@@ -5187,235 +3453,144 @@ shinyServer(function(input, output, session) {
       idx2 <- which(tab_names$tab_id == curr_obj)
       new_nam <- tab_names$name[idx2 + 1]
     }
-    if (curr_tab1 == "mtab6") {
+    if(curr_tab1 == "mtab6") {
       curr_obj <- input$tabseries3
       idx2 <- which(tab_names$tab_id == curr_obj)
-      new_nam <- tab_names$name[idx2 + 1]
-    }
-    if(curr_tab1 == "mtab7") {
-      curr_obj <- input$tabseries4
-      idx2 <- which(tab_names$tab_id == curr_obj)
-      new_nam <- tab_names$name[idx2 + 1]
-    }
-    if(curr_tab1 == "mtab7" & rv4a$nxt > 14) {
+      new_nam <- tab_names$name[idx2 + 1]    } 
+    if(curr_tab1 == "mtab6" & rv3a$nxt > 10) {
       updateActionButton(session, inputId = "nextBtn1", label = paste("End of module"))
-    } else if(curr_tab1 == "mtab1") {
-      updateActionButton(session, inputId = "prevBtn1", label = paste("Module begins"))
     } else {
       updateActionButton(session, inputId = "nextBtn1", label = paste(new_nam, ">"))
     }
+    print(new_nam)
   })
-
+  
   # Previous button
   observe({
     curr_tab1 <- input$maintab
     idx <- which(tab_names$tab_id == curr_tab1)
     new_nam <- tab_names$name[idx - 1]
-
+    
     if (curr_tab1 == "mtab4") {
       curr_obj <- input$tabseries1
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj1") idx2 <- idx2 - 1 # Move off Activity A label
+      if(curr_obj == "obj1") idx2 <- idx2 - 1 # Move off Activty A label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if (curr_tab1 == "mtab5") {
       curr_obj <- input$tabseries2
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj3") idx2 <- idx2 - 1 # Move off Activity B label
+      if(curr_obj == "obj5") idx2 <- idx2 - 1 # Move off Activty B label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if (curr_tab1 == "mtab6") {
       curr_obj <- input$tabseries3
       idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj6") idx2 <- idx2 - 1 # Move off Activity C label
-      new_nam <- tab_names$name[idx2 - 1]
-    }
-    if(curr_tab1 == "mtab7") {
-      curr_obj <- input$tabseries4
-      idx2 <- which(tab_names$tab_id == curr_obj)
-      if(curr_obj == "obj12") idx2 <- idx2 - 1 # Move off Activity C label
+      if(curr_obj == "obj9") idx2 <- idx2 - 1 # Move off Activty C label
       new_nam <- tab_names$name[idx2 - 1]
     }
     if(curr_tab1 == "mtab1") {
-      updateActionButton(session, inputId = "prevBtn1", label = paste("< Previous"))
+      updateActionButton(session, inputId = "prevBtn1", label = paste("Module begins"))
     } else {
       # shinyjs::show(id = "prevBtn1")
       updateActionButton(session, inputId = "prevBtn1", label = paste("<", new_nam))
     }
+    print(new_nam)
   })
-
-
+  
+  
   # Advancing Tabs
   observeEvent(input$nextBtn1, {
-
-    if(input$nextBtn1 %in% c(5, 9, 15)) {
-      showModal(
-        modalDialog(
-          title = "Save Progress",
-          "Don't forget to save your progress as you go just in case you lose connection with the server. Click 'Download user input' at the bottom of the page to save a snapshot of your answers so far.")
-      )
+    
+    curr_tab1 <- input$maintab
+    idx <- which(tab_names$tab_id == curr_tab1)
+    if (curr_tab1 == "mtab4" & rv1a$nxt < 5) {
+      curr_obj <- input$tabseries1
+      
+      updateTabsetPanel(session, "tabseries1",
+                        selected = paste0("obj", rv1a$nxt))
+      
+    } else if (curr_tab1 == "mtab5" & rv2a$nxt < 9) {
+      curr_obj <- input$tabseries2
+      updateTabsetPanel(session, "tabseries2",
+                        selected = paste0("obj", rv2a$nxt))
+    } else if (curr_tab1 == "mtab6" & rv3a$nxt < 11) {
+      curr_obj <- input$tabseries2
+      updateTabsetPanel(session, "tabseries3",
+                        selected = paste0("obj", rv3a$nxt))
     } else {
-      curr_tab1 <- input$maintab
-      idx <- which(tab_names$tab_id == curr_tab1)
-      if (curr_tab1 == "mtab4" & rv1a$nxt < 3) {
-        curr_obj <- input$tabseries1
-
-        updateTabsetPanel(session, "tabseries1",
-                          selected = paste0("obj", rv1a$nxt))
-
-      } else if (curr_tab1 == "mtab5" & rv2a$nxt < 6) {
-        curr_obj <- input$tabseries2
-
-        updateTabsetPanel(session, "tabseries2",
-                          selected = paste0("obj", rv2a$nxt))
-
-      } else if (curr_tab1 == "mtab6" & rv3a$nxt < 12) {
-        curr_obj <- input$tabseries3
-        updateTabsetPanel(session, "tabseries3",
-                          selected = paste0("obj", rv3a$nxt))
-      } else if (curr_tab1 == "mtab7" & rv4a$nxt < 15) {
-        curr_obj <- input$tabseries4
-        updateTabsetPanel(session, "tabseries4",
-                          selected = paste0("obj", rv4a$nxt))
-      } else {
-        updateTabsetPanel(session, "tabseries1",
-                          selected = "obj1")
-        updateTabsetPanel(session, "tabseries2",
-                          selected = "obj3")
-        updateTabsetPanel(session, "tabseries3",
-                          selected = "obj6")
-        updateTabsetPanel(session, "tabseries4",
-                          selected = "obj12")
-        updateTabsetPanel(session, "maintab",
-                          selected = paste0("mtab", rv1$nxt))
-      }
-      shinyjs::runjs("window.scrollTo(0, 0)") # scroll to top of page
+      updateTabsetPanel(session, "tabseries1",
+                        selected = "obj1")
+      updateTabsetPanel(session, "tabseries2",
+                        selected = "obj5")
+      updateTabsetPanel(session, "tabseries3",
+                        selected = "obj9")
+      updateTabsetPanel(session, "maintab",
+                        selected = paste0("mtab", rv1$nxt))
     }
+    shinyjs::runjs("window.scrollTo(0, 0)") # scroll to top of page
   })
-
+  
   # Moving back through tabs
   observeEvent(input$prevBtn1, {
     curr_tab1 <- input$maintab
     idx <- which(tab_names$tab_id == curr_tab1)
     if (curr_tab1 == "mtab4" & rv1a$prev > 0) {
       curr_obj <- input$tabseries1
-
+      
       updateTabsetPanel(session, "tabseries1",
                         selected = paste0("obj", rv1a$prev))
-
-    } else if (curr_tab1 == "mtab5" & rv2a$prev > 2) {
+      
+    } else if (curr_tab1 == "mtab5" & rv2a$prev > 4) {
       curr_obj <- input$tabseries2
-
       updateTabsetPanel(session, "tabseries2",
                         selected = paste0("obj", rv2a$prev))
-
-    } else if (curr_tab1 == "mtab6" & rv3a$prev > 5) {
+    } else if (curr_tab1 == "mtab6" & rv3a$prev > 8) {
       curr_obj <- input$tabseries3
       updateTabsetPanel(session, "tabseries3",
                         selected = paste0("obj", rv3a$prev))
-    } else if (curr_tab1 == "mtab7" & rv4a$prev > 11) {
-      curr_obj <- input$tabseries4
-      updateTabsetPanel(session, "tabseries4",
-                        selected = paste0("obj", rv4a$prev))
     } else {
       updateTabsetPanel(session, "tabseries1",
-                        selected = "obj2")
+                        selected = "obj4")
       updateTabsetPanel(session, "tabseries2",
-                        selected = "obj5")
+                        selected = "obj8")
       updateTabsetPanel(session, "tabseries3",
-                        selected = "obj11")
+                        selected = "obj10")
       updateTabsetPanel(session, "maintab",
                         selected = paste0("mtab", rv1$prev))
     }
     shinyjs::runjs("window.scrollTo(0, 0)")
-
+    
   })
-
+  
   #* Tab 1a ----
   rv1a <- reactiveValues(prev = 0, nxt = 2)
   observeEvent(input$tabseries1, {
     curr_tab1 <- input$tabseries1
     rv1a$prev <- readr::parse_number(curr_tab1) - 1
     rv1a$nxt <- readr::parse_number(curr_tab1) + 1
+    print(rv1a$prev)
+    print(rv1a$nxt)
   })
-
+  
   #* Tab 2a ----
   rv2a <- reactiveValues(prev = 0, nxt = 2)
   observeEvent(input$tabseries2, {
     curr_tab1 <- input$tabseries2
     rv2a$prev <- readr::parse_number(curr_tab1) - 1
     rv2a$nxt <- readr::parse_number(curr_tab1) + 1
+    print(rv2a$prev)
+    print(rv2a$nxt)
   })
-
+  
   #* Tab 3a ----
   rv3a <- reactiveValues(prev = 0, nxt = 2)
   observeEvent(input$tabseries3, {
     curr_tab1 <- input$tabseries3
     rv3a$prev <- readr::parse_number(curr_tab1) - 1
     rv3a$nxt <- readr::parse_number(curr_tab1) + 1
-  })
-
-  #* Tab 4a ----
-  rv4a <- reactiveValues(prev = 0, nxt = 2)
-  observeEvent(input$tabseries4, {
-    curr_tab1 <- input$tabseries4
-    rv4a$prev <- readr::parse_number(curr_tab1) - 1
-    rv4a$nxt <- readr::parse_number(curr_tab1) + 1
-  })
-
-
-  #** Render Report ----
-  report <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
-  report2 <- reactiveValues(filepath = NULL) #This creates a short-term storage location for a filepath
-
-
-  
-  
-  observe({
-    if(input$row_num != "") {
-      dt_proxy <- dataTableProxy("table01")
-      selectRows(dt_proxy, input$row_num)
-    }
-  })
-
-  output$check_list2 <- renderUI({
-    chk_list()
-  })
-
-  chk_list <- reactive({
-    out_chk <- c(
-      if(input$name == "") "Introduction: Name",
-      if(input$id_number == "") "Introduction: ID number",
-      if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") "Site Selection: Objective 1 - Q.3"
-    )
-
-    for(i in 10:nrow(answers)) {
-      if(grepl("q3a",qid[i]) | grepl("q3b",qid[i]) | grepl("q3c",qid[i]) | grepl("q3d",qid[i]) | grepl("q3e",qid[i]) | grepl("q3f",qid[i])){
-      # if(input$q3a == "" | input$q3b == "" | input$q3c == "" |input$q3d == "" |input$q3e == "" |input$q3f == "") {
-      #   if(!("Site Selection: Objective 1 - Q.3" %in% out_chk)) {
-      #     out_chk <- c(out_chk, answers[qid["q3"], 2])
-      #   }
-      #   }
-        next
-      } else {
-        if(is.null(input[[qid[i]]])) {
-          out_chk <- c(out_chk, answers[qid[i], 2])
-        } else if(input[[qid[i]]] == "") {
-          out_chk <- c(out_chk, answers[qid[i], 2])
-        }
-      }
-    }
-
-    if(length(out_chk) == 0) {
-      out_chk <- "Finished! All answers have been input into the app."
-    }
-
-    HTML(
-      paste(
-        out_chk,
-        collapse = "<br/>"
-      )
-    )
+    print(rv3a$prev)
+    print(rv3a$nxt)
   })
 
 

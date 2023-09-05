@@ -2,21 +2,16 @@
 mtab1,Overview
 mtab2,Presentation
 mtab3,Introduction
-mtab4,Site Selection
+mtab4,Activity A
 obj1,Objective 1 - Select and view a NEON site
-obj2,Objective 2 - Explore data
-mtab5,Activity A
-obj3,Objective 3 - Build a water temperature model
-obj4,Objective 4 - Explore Parameters
-obj5,Objective 5 - Improve Model for Forecasting
-mtab6,Activity B
-obj6,Overview
-obj7,Objective 6 - Process Uncertainty
-obj8,Objective 7 - Parameter Uncertainty
-obj9,Objective 8 - Initial Conditions Uncertainty
-obj10,Objective 9 - Driver Uncertainty
-obj11,Summary
-mtab7,Activity C
-obj12,Objective 10 - Quantify Uncertainty
-obj13,Objective 11 - Management Scenario
-obj14,Summary
+obj2,Objective 2 - Explore water temperature data
+obj3,Objective 3 - Build models
+obj4,Objective 4 - Generate forecasts
+mtab5,Activity B
+obj5,Objective 5 - Process Uncertainty
+obj6,Objective 6 - Parameter Uncertainty
+obj7,Objective 7 - Initial Conditions Uncertainty
+obj8,Objective 8 - Driver Uncertainty
+mtab6,Activity C
+obj9,Objective 9 - Quantify Uncertainty
+obj10,Objective 10 - Management Scenario

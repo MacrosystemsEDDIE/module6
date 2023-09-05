@@ -396,7 +396,7 @@ ui <- function(req) {
                                     ),
                                    
                                     #* Objective 2 - Explore water temperature ====
-                                    tabPanel(title = "Objective 2 - Explore water temperature", value = "obj3",
+                                    tabPanel(title = "Objective 2 - Explore water temperature", value = "obj2",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -833,8 +833,8 @@ ui <- function(req) {
                                                       p("We will use the models we have built to generate forecasts."))
                                              )
                                     ),
-                                    #* Activity B - Overview ====
-                                    tabPanel(title = "Objective 4 - Generate forecasts", value = "obj6",
+                                    #* Objective 4 - Generate forecasts ====
+                                    tabPanel(title = "Objective 4 - Generate forecasts", value = "obj4",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -938,7 +938,7 @@ ui <- function(req) {
                                     )
                         ),
                # 6. Activity B ----
-               tabPanel(title = tags$b("Activity B"), value = "mtab6",
+               tabPanel(title = tags$b("Activity B"), value = "mtab5",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -949,9 +949,9 @@ ui <- function(req) {
                                  )
                           )
                         ),
-                        tabsetPanel(id = "tabseries3",
+                        tabsetPanel(id = "tabseries2",
                                     #* Objective 5 - Process Uncertainty ====
-                                    tabPanel(title = "Objective 5 - Process Uncertainty", value = "obj7",
+                                    tabPanel(title = "Objective 5 - Process Uncertainty", value = "obj5",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1079,7 +1079,7 @@ ui <- function(req) {
                                              )
                                     ),
                                     #* Objective 6 - Parameter Uncertainty ====
-                                    tabPanel(title = "Objective 6 - Parameter Uncertainty", value = "obj8",
+                                    tabPanel(title = "Objective 6 - Parameter Uncertainty", value = "obj6",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1199,7 +1199,7 @@ ui <- function(req) {
                                                )
                                              ),
                                     #* Objective 7 - Initial Conditions Uncertainty ====
-                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj9",
+                                    tabPanel(title = "Objective 7 - Initial Conditions Uncertainty", value = "obj7",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1306,7 +1306,7 @@ ui <- function(req) {
                                                )
                                              ),
                                     #* Objective 8 - Driver Uncertainty ====
-                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj10",
+                                    tabPanel(title = "Objective 8 - Driver Uncertainty", value = "obj8",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1397,7 +1397,7 @@ ui <- function(req) {
                                     )
                         ),
                # 6. Activity C ----
-               tabPanel(title = tags$b("Activity C"), value = "mtab7",
+               tabPanel(title = tags$b("Activity C"), value = "mtab6",
                         img(src = "project-eddie-banner-2020_green.png", height = 100,
                             width = 1544, top = 5),
                         fluidRow(
@@ -1408,9 +1408,9 @@ ui <- function(req) {
                                            )
                                  )
                           ),
-                        tabsetPanel(id = "tabseries4",
+                        tabsetPanel(id = "tabseries3",
                                     #* Objective 9 - Quantify Uncertainty ====
-                                    tabPanel(title = "Objective 9 - Quantify Uncertainty", value = "obj12",
+                                    tabPanel(title = "Objective 9 - Quantify Uncertainty", value = "obj9",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1549,7 +1549,7 @@ ui <- function(req) {
                                              )
                                              ),
                                     #* Objective 10 - Management Scenario ====
-                                    tabPanel(title = "Objective 10 - Management Scenario", value = "obj13",
+                                    tabPanel(title = "Objective 10 - Management Scenario", value = "obj10",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -1718,6 +1718,7 @@ ui <- function(req) {
                ),
     # Tab navigation buttons ----
     br(), hr(),
+    useShinyjs(),
     introBox(
       # h4("Use the buttons below to navigate through the tabs", align = "center"),
       box(width = 12, status = "success",
