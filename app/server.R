@@ -3345,6 +3345,61 @@ shinyServer(function(input, output, session) {
   # end Objective 9
   
   
+  #### Objective 10 - Management Scenario
+  
+  # create output plot for scenario 1
+  output$scen1_plot <- renderPlot({
+    
+    p <- ggplot(scen_fc1) +
+      geom_hline(yintercept = 12, linetype = "dashed") +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
+      geom_line(aes(Date, surftemp, color = "Surface")) +
+      geom_line(aes(Date, bottemp, color = "Bottom")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Day") +
+      guides(color = "none") +
+      labs(fill = "Location") +
+      scale_x_date(breaks = "1 day", date_labels = "%a") +
+      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+      # scale_fill_discrete(breaks = c("Surface", "Bottom")) +
+      coord_cartesian(ylim = c(8, 14)) +
+      theme_bw(base_size = 22)
+    return(p)
+    
+  })
+  
+  # create output plot for scenario 2
+  output$scen2_plot <- renderPlot({
+    
+    validate(
+      need(input$scen1_dec > 0, "Complete Decision #1 above.")
+    )
+    
+    p <- ggplot(scen_fc2) +
+      geom_hline(yintercept = 12, linetype = "dashed") +
+      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
+      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
+      geom_line(aes(Date, surftemp, color = "Surface")) +
+      geom_line(aes(Date, bottemp, color = "Bottom")) +
+      ylab("Temperature (\u00B0C)") +
+      xlab("Day") +
+      guides(color = "none") +
+      labs(fill = "Location") +
+      scale_x_date(breaks = "1 day", date_labels = "%a") +
+      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
+      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
+      coord_cartesian(ylim = c(8, 14)) +
+      theme_bw(base_size = 22)
+    return(p)
+    
+  })
+  
+  # end Objective 10
+  
+  
+  
   
   
   #### A BUNCH OF CODE THAT I CURRENTLY DON'T KNOW WHAT TO DO WITH YET ----
@@ -4052,103 +4107,7 @@ shinyServer(function(input, output, session) {
 
   #####
 
-  #** Scenario Plots ----
 
-  output$scen1_plot <- renderPlot({
-
-    p <- ggplot(scen_fc1) +
-      geom_hline(yintercept = 12, linetype = "dashed") +
-      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
-      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
-      geom_line(aes(Date, surftemp, color = "Surface")) +
-      geom_line(aes(Date, bottemp, color = "Bottom")) +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Day") +
-      guides(color = "none") +
-      labs(fill = "Location") +
-      scale_x_date(breaks = "1 day", date_labels = "%a") +
-      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
-      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
-      # scale_fill_discrete(breaks = c("Surface", "Bottom")) +
-      coord_cartesian(ylim = c(8, 14)) +
-      theme_bw(base_size = 22)
-    return(p)
-
-    # gp <- ggplotly(p, dynamicTicks = TRUE)
-    # # Code to remove parentheses in plotly
-    # for (i in 1:length(gp$x$data)){
-    #   if (!is.null(gp$x$data[[i]]$name)){
-    #     gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-    #   }
-    # }
-    # return(gp)
-  })
-
-  output$scen2_plot <- renderPlot({
-
-    validate(
-      need(input$scen1_dec > 0, "Complete Decision #1 above.")
-    )
-
-    p <- ggplot(scen_fc2) +
-      geom_hline(yintercept = 12, linetype = "dashed") +
-      geom_ribbon(aes(Date, ymin = surf_lci, ymax = surf_uci, fill = "Surface"), alpha = 0.4) +
-      geom_ribbon(aes(Date, ymin = bot_lci, ymax = bot_uci, fill = "Bottom"), alpha = 0.4) +
-      geom_line(aes(Date, surftemp, color = "Surface")) +
-      geom_line(aes(Date, bottemp, color = "Bottom")) +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Day") +
-      guides(color = "none") +
-      labs(fill = "Location") +
-      scale_x_date(breaks = "1 day", date_labels = "%a") +
-      scale_color_manual(values = c(p.cols[c(6, 2)]), breaks = c("Surface", "Bottom")) +
-      scale_fill_manual(values = c(p.cols[c(5, 1)]), breaks = c("Surface", "Bottom")) +
-      coord_cartesian(ylim = c(8, 14)) +
-      theme_bw(base_size = 22)
-    return(p)
-
-    # gp <- ggplotly(p, dynamicTicks = TRUE)
-    # # Code to remove parentheses in plotly
-    # for (i in 1:length(gp$x$data)){
-    #   if (!is.null(gp$x$data[[i]]$name)){
-    #     gp$x$data[[i]]$name =  gsub("\\(","", stringr::str_split(gp$x$data[[i]]$name,",")[[1]][1])
-    #   }
-    # }
-    # return(gp)
-  })
-
-  observeEvent(input$scen1_dec, {
-    shinyjs::disable("dec_scen1")
-    shinyjs::disable("scen1_dec")
-
-    shinyjs::enable("dec_scen2")
-    shinyjs::enable("scen2_dec")
-  })
-
-  observe({
-
-    if(is.null(input$dec_scen1)) {
-      disable("scen1_dec")
-    } else {
-      enable("scen1_dec")
-    }
-
-    if(is.null(input$dec_scen2)) {
-      disable("scen2_dec")
-    } else {
-      enable("scen2_dec")
-    }
-
-    if(input$scen1_dec < 1) {
-      shinyjs::disable("dec_scen2")
-      shinyjs::disable("scen2_dec")
-    }
-  })
-
-  observeEvent(input$scen2_dec, {
-    shinyjs::disable("dec_scen2")
-    shinyjs::disable("scen2_dec")
-  })
 
 
 

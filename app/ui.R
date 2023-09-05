@@ -1584,12 +1584,12 @@ ui <- function(req) {
                                                       p(id = "txt_j", "The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases."),
                                                       radioButtons("dec_scen1", "Which level should be used to release water from the dam?", choices = dam_lev,
                                                                    selected = character(0)),
-                                                      actionButton("scen1_dec", "Decide"),
-                                                      conditionalPanel("input.scen1_dec > 0",
-                                                                       wellPanel(
-                                                                         p("Submitted! Now scroll down to make the next decision related to water extraction.")
-                                                                         )
-                                                                       )
+                                                      conditionalPanel("input.dec_scen1 == 'Surface'",
+                                                                           p(tags$em("Submitted! Now scroll down to make the next decision."))
+                                                          ),
+                                                          conditionalPanel("input.dec_scen1 == 'Bottom'",
+                                                                           p(tags$em("Submitted! Now scroll down to make the next decision."))
+                                                          )    
                                                       ),
                                                column(8,
                                                       h4("Forecast of water temperature at the surface and bottom of the reservoir"),
@@ -1608,12 +1608,12 @@ ui <- function(req) {
                                                       p(id = "txt_j", "The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases."),
                                                       radioButtons("dec_scen2", "Which level should be used to release water from the dam?", choices = dam_lev,
                                                                    selected = character(0)),
-                                                      actionButton("scen2_dec", "Decide"),
-                                                      conditionalPanel("input.scen2_dec > 0",
-                                                                       wellPanel(
-                                                                         p("Submitted! Now scroll down and answer the questions below.")
-                                                                         )
-                                                                       )
+                                                      conditionalPanel("input.dec_scen2 == 'Surface'",
+                                                                       p(tags$em("Submitted! Now scroll down and answer the questions below."))
+                                                      ),
+                                                      conditionalPanel("input.dec_scen2 == 'Bottom'",
+                                                                       p(tags$em("Submitted! Now scroll down and answer the questions below."))
+                                                      )  
                                                       ),
                                                column(8,
                                                       h4("Forecast of water temperature at the surface and bottom of the reservoir"),
