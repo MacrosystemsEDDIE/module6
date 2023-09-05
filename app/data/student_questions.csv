@@ -40,3 +40,6 @@ q32,"Which model had the least initial conditions uncertainty, and why?",Activit
 q33,"You have learned that initial conditions uncertainty arises from observation error and missing observations. Knowing this, describe one way that you think initial conditions uncertainty in our water temperature forecasts could be reduced.",Activity C: Objective 11
 q34,Why do only two of the models exhibit driver uncertainty in their water temperature forecasts?,Activity C: Objective 11
 q35,"You have learned that driver uncertainty arises because we cannot perfectly know what the future values of our model inputs will be. Knowing this, describe one way that you think driver uncertainty in our water temperature forecasts could be reduced.",
+q36,Which source of uncertainty contributes the most to total forecast uncertainty for model 1?,
+q37,Which source of uncertainty contributes the most to total forecast uncertainty for model 2?,
+q38,"Compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",

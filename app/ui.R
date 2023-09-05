@@ -1409,20 +1409,20 @@ ui <- function(req) {
                                  )
                           ),
                         tabsetPanel(id = "tabseries4",
-                                    #* Objective 10 - Quantify Uncertainty ====
-                                    tabPanel(title = "Objective 10 - Quantify Uncertainty", value = "obj12",
+                                    #* Objective 9 - Quantify Uncertainty ====
+                                    tabPanel(title = "Objective 9 - Quantify Uncertainty", value = "obj12",
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
-                                                                h3("Objective 10 - Quantify Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_10", ])
+                                                                h3("Objective 9 - Quantify Uncertainty"),
+                                                                p(id = "txt_j", module_text["obj_09", ])
                                                       )
                                                )
                                              ),
                                              fluidRow(
                                                column(4,
                                                       h3("Quantifying Uncertainty"),
-                                                      p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty. In ecological forecasting, our goal with uncertainty quantification is to determine how likely certain outcomes are if some aspects of the ecosystem and ecological model are not exactly known."),
+                                                      p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty. In ecological forecasting, our goal with uncertainty quantification is to determine how likely certain outcomes are if some aspects of the ecosystem are not exactly known."),
                                                       p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will compare how much each source of uncertainty contributes to total forecast uncertainty at each forecast horizon and for different models."),
                                                       p(id = "txt_j", "We will generate forecasts with two of the models including all sources of uncertainty. This will allow us to determine if some sources of uncertainty contribute more to the forecast depending on which model we choose."),
                                                       br(),
@@ -1474,7 +1474,7 @@ ui <- function(req) {
                                                       h4("Model 1"),
                                                       p(id = "txt_j", "For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
-                                                      radioButtons(qid[34], quest[qid[34], ], choices = uc_sources[1:4], selected = character(0))
+                                                      radioButtons("dom_uc1",tags$b(quest["q36", 1]), choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       h4("Contribution of Uncertainty Sources: Model 1"),
@@ -1509,9 +1509,9 @@ ui <- function(req) {
                                                column(4,
                                                       h3("Quantify Forecast Uncertainty: "),
                                                       h4("Model 2"),
-                                                      p(id = "txt_j", "Quantify uncertainty for the other model you have selected, compare the two results, and answer the questions below."),
+                                                      p(id = "txt_j", "Quantify uncertainty for the second model you have selected, compare the two results, and answer the questions below."),
                                                       actionButton("quant_ucB", "Quantify uncertainty"),
-                                                      radioButtons(qid[35], quest[qid[35], ], choices = uc_sources[1:4], selected = character(0))
+                                                      radioButtons("dom_uc2",tags$b(quest["q37", 1]), choices = uc_sources[1:4], selected = character(0))
                                                ),
                                                column(8,
                                                       h4("Contribution of Uncertainty Sources: Model 2"),
@@ -1534,7 +1534,7 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   textAreaInput2(inputId = qid[36], label = quest[qid[36], ], width = "90%")
+                                                                   p(tags$b(quest["q38", 1]))
                                                             )
                                                           )
                                                       )
@@ -1542,42 +1542,11 @@ ui <- function(req) {
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(12,
-                                                      h3("Manage Uncertainty")
-                                               ),
                                                column(5, offset = 1,
-                                                      radioButtons("uc_manage", "Select a source of uncertainty below and learn of ways to reduce it:",
-                                                                   choices = uc_sources[1:4], selected = character(0), inline = TRUE),
-                                                      conditionalPanel("input.uc_manage == 'Process'",
-                                                                       h4("Process Uncertainty"),
-                                                                       tags$ul(
-                                                                         tags$li(id = "txt_j", "Build a better model"),
-                                                                         tags$li(id = "txt_j", "Collect more data")
-                                                                       )
-                                                      ),
-                                                      conditionalPanel("input.uc_manage == 'Parameter'",
-                                                                       h4("Parameter Uncertainty"),
-                                                                       tags$ul(
-                                                                         tags$li(id = "txt_j", "Collect more data"),
-                                                                         tags$li(id = "txt_j", "Identify which variables you need to measure")
-                                                                       )
-                                                      ),
-                                                      conditionalPanel("input.uc_manage == 'Driver'",
-                                                                       h4("Driver Uncertainty"),
-                                                                       tags$ul(
-                                                                         tags$li(id = "txt_j", "Use better forecasted data"),
-                                                                         tags$li(id = "txt_j", "Increase number of driver ensemble members")
-                                                                       )
-                                                      ),
-                                                      conditionalPanel("input.uc_manage == 'Initial Conditions'",
-                                                                       h4("Initial Conditions Uncertainty"),
-                                                                       tags$ul(
-                                                                         tags$li(id = "txt_j", "Collect data at time of forecast (in real-time)"),
-                                                                         tags$li(id = "txt_j", "Collect data more frequently")
-                                                                         )
-                                                                       )
-                                                      )
+                                                      h3("Next step"),
+                                                      p("You will complete a case study where you act as a water manager to make decisions using forecasts with uncertainty.")
                                                )
+                                             )
                                              ),
                                     #* Objective 11 - Management Scenario ====
                                     tabPanel(title = "Objective 11 - Management Scenario", value = "obj13",

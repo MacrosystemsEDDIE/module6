@@ -30,8 +30,8 @@ obj_05,Explore how process uncertainty affects the different models when forecas
 obj_06,Explore how parameter uncertainty affects the different models when forecasting water temperature.
 obj_07,Explore how initial conditions uncertainty affects the different models when forecasting water temperature.
 obj_08,Explore how driver uncertainty affects the different models when forecasting water temperature.
-obj_09,Explore how driver uncertainty affects the different models when forecasting water temperature.
-obj_10,Generate forecasts of water temperature with total forecast uncertainty and quantify the uncertainty at each forecast horizon and its source.
+obj_09,Generate forecasts of water temperature with total forecast uncertainty and quantify the uncertainty at each forecast horizon and its source.
+obj_10,As a water resource manager you will use forecasts to make decisions about water releases from a reservoir. With your partner you will explore how forecast uncertainty affects your decisions.
 obj_11,As a water resource manager you will use forecasts to make decisions about water releases from a reservoir. With your partner you will explore how forecast uncertainty affects your decisions.
 weather_forecast1,A weather forecast is probably the most widely used and applied forecast. Here we will examine the output from a weather forecast model from NOAA.
 weather_forecast2,"Weather forecasts use multiple simulations from the same model, but alters the initial conditions of the model to generate different potential futures."
@@ -68,7 +68,7 @@ scne_p2,Within
 phenocam,A 'phenocam' is a digital camera capturing time-lapse images of foliage and lake sites. It can be used to generate quantitative measures of plant phenology.
 rmse,(RMSE) is a metric used to assess how well a model fits a dataset. It tells us the average distance between the predicted values from the model and the actual values in the dataset.
 uc_quant1,Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known.
-tps1,"With your partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss with your partner to answer Q. 30."
+tps1,"With your partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss your findings with your partner."
 mgmt_scen1,"For this activity you are a water resource manager for the local hydroelectric dam, which provides water to agricultural users downstream and energy to the local town."
 mgmt_scen2,"During the summer, water temperatures at the surface of the reservoir increase substantially, while temperatures at the bottom increase more slowly, creating a difference in temperature between the surface and the bottom waters."
 mgmt_scen3,This reservoir can release water either from the surface or the bottom of the dam.
