@@ -3438,8 +3438,6 @@ shinyServer(function(input, output, session) {
     curr_tab1 <- input$maintab
     rv1$prev <- readr::parse_number(curr_tab1) - 1
     rv1$nxt <- readr::parse_number(curr_tab1) + 1
-    print(rv1$prev)
-    print(rv1$nxt)
   })
   
   observe({
@@ -3477,7 +3475,6 @@ shinyServer(function(input, output, session) {
     } else {
       updateActionButton(session, inputId = "nextBtn1", label = paste(new_nam, ">"))
     }
-    print(new_nam)
   })
   
   # Previous button
@@ -3510,7 +3507,6 @@ shinyServer(function(input, output, session) {
       # shinyjs::show(id = "prevBtn1")
       updateActionButton(session, inputId = "prevBtn1", label = paste("<", new_nam))
     }
-    print(new_nam)
   })
   
   
@@ -3584,8 +3580,6 @@ shinyServer(function(input, output, session) {
     curr_tab1 <- input$tabseries1
     rv1a$prev <- readr::parse_number(curr_tab1) - 1
     rv1a$nxt <- readr::parse_number(curr_tab1) + 1
-    print(rv1a$prev)
-    print(rv1a$nxt)
   })
   
   #* Tab 2a ----
@@ -3594,8 +3588,6 @@ shinyServer(function(input, output, session) {
     curr_tab1 <- input$tabseries2
     rv2a$prev <- readr::parse_number(curr_tab1) - 1
     rv2a$nxt <- readr::parse_number(curr_tab1) + 1
-    print(rv2a$prev)
-    print(rv2a$nxt)
   })
   
   #* Tab 3a ----
@@ -3604,8 +3596,6 @@ shinyServer(function(input, output, session) {
     curr_tab1 <- input$tabseries3
     rv3a$prev <- readr::parse_number(curr_tab1) - 1
     rv3a$nxt <- readr::parse_number(curr_tab1) + 1
-    print(rv3a$prev)
-    print(rv3a$nxt)
   })
 
 

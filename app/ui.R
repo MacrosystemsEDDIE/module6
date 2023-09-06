@@ -368,20 +368,20 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(7, offset = 1,
                                                                    h3("Questions"),
-                                                                   h4(quest["q3", 1]),
+                                                                   p(tags$b(quest["q3", 1])),
                                                                    p(id = "txt_j", "If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
                                                             )
                                                           ),
                                                           fluidRow(
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   p(tags$b(quest["q3a", 1] , width = "90%")),
-                                                                   p(tags$b(quest["q3b", 1], width = "90%")),
-                                                                   p(tags$b(quest["q3c", 1], width = "90%"))
+                                                                   p(tags$em(quest["q3a", 1] , width = "90%")),
+                                                                   p(tags$em(quest["q3b", 1], width = "90%")),
+                                                                   p(tags$em(quest["q3c", 1], width = "90%"))
                                                             ),
                                                             column(4, offset = 1, align = "left", style = paste0("background: ", ques_bg),
-                                                                   p(tags$b(quest["q3d", 1] , width = "90%")),
-                                                                   p(tags$b(quest["q3e", 1], width = "90%")),
-                                                                   p(tags$b(quest["q3f", 1], width = "90%"))
+                                                                   p(tags$em(quest["q3d", 1] , width = "90%")),
+                                                                   p(tags$em(quest["q3e", 1], width = "90%")),
+                                                                   p(tags$em(quest["q3f", 1], width = "90%"))
                                                             )
                                                           )
                                                       )
@@ -499,7 +499,9 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    DTOutput("q8_tab"),
                                                                    br(),
-                                                                   p(tags$b(quest["q8", 1]))
+                                                                   p(tags$b(quest["q8", 1])),
+                                                                   p(tags$em(quest["q8a", 1])),
+                                                                   p(tags$em(quest["q8b", 1]))
                                                             )
                                                           ),
                                                           br(),
@@ -616,6 +618,8 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
                                                                    p(tags$b(quest["q11", 1])),
+                                                                   p(tags$em(quest["q11a", 1])),
+                                                                   p(tags$em(quest["q11b", 1])),
                                                                    p(tags$b(quest["q12", 1]))
                                                             )
                                                           )
@@ -677,6 +681,8 @@ ui <- function(req) {
                                                             column(6, offset = 1,
                                                                    h3("Questions"),
                                                                    p(tags$b(quest["q13", 1])),
+                                                                   p(tags$em(quest["q13a", 1])),
+                                                                   p(tags$em(quest["q13b", 1])),
                                                                    radioButtons("lin_rel1", "", c("Positive", "Negative"),
                                                                                 inline = TRUE,
                                                                                 selected = character(0)),
@@ -687,6 +693,8 @@ ui <- function(req) {
                                                                                     p("Whoops! Try again.")
                                                                    ),
                                                                    p(tags$b(quest["q14", 1])),
+                                                                   p(tags$em(quest["q14a", 1])),
+                                                                   p(tags$em(quest["q14b", 1])),
                                                                    radioButtons("lin_rel2", "", c("Positive", "Negative"),
                                                                                 inline = TRUE,
                                                                                 selected = character(0)),
@@ -757,7 +765,9 @@ ui <- function(req) {
                                                  fluidRow(
                                                    column(10, offset = 1,
                                                           h3("Question"),
-                                                          p(tags$b(quest["q16", 1]))
+                                                          p(tags$b(quest["q16", 1])),
+                                                          p(tags$em(quest["q16a", 1])),
+                                                          p(tags$em(quest["q16b", 1]))
                                                           )
                                                  )
                                              )
@@ -783,6 +793,8 @@ ui <- function(req) {
                                                    column(10, offset = 1,
                                                           h3("Questions"),
                                                           p(tags$b(quest["q17", 1])),
+                                                          p(tags$em(quest["q17a", 1])),
+                                                          p(tags$em(quest["q17b", 1])),
                                                           radioButtons("mlr_params", "", c("wtemp", "atemp"),
                                                                        selected = character(0)),
                                                           conditionalPanel("input.mlr_params == 'wtemp'",
@@ -816,6 +828,8 @@ ui <- function(req) {
                                                    column(10, offset = 1,
                                                           h3("Question"),
                                                           p(tags$b(quest["q18", 1])),
+                                                          p(tags$em(quest["q18a", 1])),
+                                                          p(tags$em(quest["q18b", 1]))
                                                    )
                                                  )
                                              )
@@ -892,7 +906,9 @@ ui <- function(req) {
                                                           fluidRow(
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
-                                                                   p(tags$b(quest["q19", 1]))
+                                                                   p(tags$b(quest["q19", 1])),
+                                                                   p(tags$em(quest["q19a", 1])),
+                                                                   p(tags$em(quest["q19b", 1]))
                                                             )
                                                           )
                                                       )
@@ -1023,7 +1039,9 @@ ui <- function(req) {
                                                                  fluidRow(
                                                                    column(10, offset = 1,
                                                                           h3("Question"),
-                                                                          p(tags$b(quest["q24", 1]))
+                                                                          p(tags$b(quest["q24", 1])),
+                                                                          p(tags$em(quest["q24a", 1])),
+                                                                          p(tags$em(quest["q24b", 1]))
                                                                    )
                                                                  )
                                                              )
@@ -1072,6 +1090,8 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    h3("Question"),
                                                                    p(tags$b(quest["q25", 1])),
+                                                                   p(tags$em(quest["q25a", 1])),
+                                                                   p(tags$em(quest["q25b", 1])),
                                                                    p(tags$b(quest["q26", 1]))
                                                             )
                                                           )
@@ -1150,7 +1170,9 @@ ui <- function(req) {
                                                    fluidRow(
                                                      column(10, offset = 1,
                                                             h3("Question"),
-                                                            p(tags$b(quest["q27", 1]))
+                                                            p(tags$b(quest["q27", 1])),
+                                                            p(tags$em(quest["q27a", 1])),
+                                                            p(tags$em(quest["q27b", 1]))
                                                      )
                                                    )
                                                )
@@ -1203,6 +1225,8 @@ ui <- function(req) {
                                                      column(10, offset = 1,
                                                             h3("Questions"),
                                                             p(tags$b(quest["q28", 1])),
+                                                            p(tags$em(quest["q28a", 1])),
+                                                            p(tags$em(quest["q28b", 1])),
                                                             p(tags$b(quest["q29", 1]))
                                                      )
                                                    )
@@ -1315,6 +1339,8 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
                                                                    p(tags$b(quest["q32", 1])),
+                                                                   p(tags$em(quest["q32a", 1])),
+                                                                   p(tags$em(quest["q32b", 1])),
                                                                    p(tags$b(quest["q33", 1]))
                                                                    )
                                                             )
@@ -1427,6 +1453,8 @@ ui <- function(req) {
                                                             column(10, offset = 1,
                                                                    h3("Questions"),
                                                                    p(tags$b(quest["q34", 1])),
+                                                                   p(tags$em(quest["q34a", 1])),
+                                                                   p(tags$em(quest["q34b", 1])),
                                                                    p(tags$b(quest["q35", 1]))
                                                             )
                                                             )
@@ -1521,7 +1549,18 @@ ui <- function(req) {
                                                       h4("Model 1"),
                                                       p(id = "txt_j", "For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
-                                                      radioButtons("dom_uc1",tags$b(quest["q36", 1]), choices = uc_sources[1:4], selected = character(0))
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   p(tags$b(quest["q36", 1])),
+                                                                   p(tags$em(quest["q36a", 1])),
+                                                                   p(tags$em(quest["q36b", 1])),
+                                                                   p(tags$em(quest["q36c", 1]))
+                                                            )
+                                                          )
+                                                      )
                                                ),
                                                column(8,
                                                       h4("Contribution of Uncertainty Sources: Model 1"),
@@ -1558,7 +1597,18 @@ ui <- function(req) {
                                                       h4("Model 2"),
                                                       p(id = "txt_j", "Quantify uncertainty for the second model you have selected, compare the two results, and answer the questions below."),
                                                       actionButton("quant_ucB", "Quantify uncertainty"),
-                                                      radioButtons("dom_uc2",tags$b(quest["q37", 1]), choices = uc_sources[1:4], selected = character(0))
+                                                      box(id = "box2", width = 12, status = "primary",
+                                                          solidHeader = TRUE,
+                                                          fluidRow(
+                                                            column(10, offset = 1,
+                                                                   h3("Questions"),
+                                                                   p(tags$b(quest["q37", 1])),
+                                                                   p(tags$em(quest["q37a", 1])),
+                                                                   p(tags$em(quest["q37b", 1])),
+                                                                   p(tags$em(quest["q37c", 1]))
+                                                            )
+                                                          )
+                                                      )
                                                ),
                                                column(8,
                                                       h4("Contribution of Uncertainty Sources: Model 2"),

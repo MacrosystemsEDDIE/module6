@@ -72,21 +72,8 @@ qid <- row.names(quest)
 idx <- which(grepl("Name of selected ", quest$Question))
 idx2 <- which(grepl("Elevation", quest$Question))
 
-# Number questions
-quest$Question[1:(idx-1)] <- paste0("Q.", 1:(idx-1), " ", quest$Question[1:(idx-1)])
-quest$Question[idx:(idx2)] <- paste0(letters[1:length(idx:idx2)], ". ", quest$Question[idx:idx2])
-quest$Question[(idx2+1):nrow(quest)] <- paste0("Q.", ((idx2+1):nrow(quest) - 6), " ", quest$Question[(idx2+1):nrow(quest)])
-
-# Number location
-quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1))
-# quest$location[idx:(idx2)] <- paste0(quest$location[idx:idx2],letters[1:length(idx:idx2)], ". ", )
-quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
-
-# Create dataframe for answers
-answers <- quest
-quest$location <- NULL
-colnames(answers)[1] <- "Answer"
-answers[, 1] <- ""
+# Read in assessment questions
+quest <- read.csv("data/student_questions.csv", row.names = 1)
 
 # Slides
 recap_slides <- list.files("www/shiny_slides", full.names = TRUE)
