@@ -1205,7 +1205,7 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(input$view_at_fc,
-           message = "Please click 'View forecast")
+           message = "Please click 'View forecast'")
     )
     
     p <- ggplot() +
@@ -1328,17 +1328,20 @@ shinyServer(function(input, output, session) {
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
     
     if(any(!is.na(wtemp_fc_out1a$lst))) {
       p <- p +
-        geom_line(data = mlt, aes(Date, value, color = Label))
+        geom_line(data = mlt, aes(Date, value, color = Label)) +
+        labs(color = NULL)
     }
     
     p <- p +
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
-                                    "Atemp" = cols[5], "Both" = cols[6]))
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      labs(color = NULL)
     
     wtemp_fc1a$main <- ggplotly(p, dynamicTicks = TRUE)
   })
@@ -1361,6 +1364,10 @@ shinyServer(function(input, output, session) {
       validate(
         need(!is.na(mod_selec_tab$dt[4,1]),
              message = "Please fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(input$mod_selec_tab1a_rows_selected),
+             message = "Please select a model in the table.")
       )
       validate(
         need(any(!is.na(wtemp_fc_out1a$lst)),
@@ -2994,10 +3001,11 @@ shinyServer(function(input, output, session) {
     
     
     p <- ggplot() +
-      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+      geom_point(data = dat, aes(Date, wtemp, color = "Water temp. - observed")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
     
     if(input$plot_type_totA == "Line") {
       if(!is.null(tot_fc_dataA$mlt)) {
@@ -3005,15 +3013,17 @@ shinyServer(function(input, output, session) {
         mlt <- tot_fc_dataA$mlt
         
         p <- p +
-          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
+          geom_line(data = mlt, aes(Date, value, group = variable, color = input$mod_selec_tot_fc[1]), alpha = 0.6) +
+          labs(color = NULL)
       }
     } else if(input$plot_type_totA == "Distribution") {
       if(!is.null(tot_fc_dataA$dist)) {
         mlt <- tot_fc_dataA$dist
         
         p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50), color = sel_col)
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = input$mod_selec_tot_fc[1]), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = input$mod_selec_tot_fc[1])) +
+          labs(color = NULL, fill = NULL)
       }
     }
     
@@ -3023,7 +3033,8 @@ shinyServer(function(input, output, session) {
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
                                    "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+      labs(color = NULL, fill = NULL)
     
     gp <- ggplotly(p, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
@@ -3289,10 +3300,11 @@ shinyServer(function(input, output, session) {
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
     
     p <- ggplot() +
-      geom_point(data = dat, aes(Date, wtemp, color = "Water temp.")) +
+      geom_point(data = dat, aes(Date, wtemp, color = "Water temp. - observed")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12) +
+      labs(color = NULL)
     
     if(input$plot_type_totB == "Line") {
       if(!is.null(tot_fc_dataB$mlt)) {
@@ -3300,15 +3312,17 @@ shinyServer(function(input, output, session) {
         mlt <- tot_fc_dataB$mlt
         
         p <- p +
-          geom_line(data = mlt, aes(Date, value, group = variable), color = sel_col, alpha = 0.6)
+          geom_line(data = mlt, aes(Date, value, group = variable, color = input$mod_selec_tot_fc[2]), alpha = 0.6) +
+          labs(color = NULL)
       }
     } else if(input$plot_type_totB == "Distribution") {
       if(!is.null(tot_fc_dataB$dist)) {
         mlt <- tot_fc_dataB$dist
         
         p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95), fill = sel_col, alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50), color = sel_col)
+          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = input$mod_selec_tot_fc[2]), alpha = 0.3) +
+          geom_line(data = mlt, aes(Date, p50, color = input$mod_selec_tot_fc[2])) +
+          labs(color = NULL, fill = NULL)
       }
     }
     
@@ -3318,7 +3332,8 @@ shinyServer(function(input, output, session) {
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
                                    "Atemp" = l.cols[3], "Both" = l.cols[4])) +
-      scale_x_date(date_breaks = "1 day", date_labels = "%b %d")
+      scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+      labs(color = NULL, fill = NULL)
     
     
     gp <- ggplotly(p, dynamicTicks = TRUE)
@@ -3389,7 +3404,7 @@ shinyServer(function(input, output, session) {
   output$scen2_plot <- renderPlot({
     
     validate(
-      need(input$scen1_dec > 0, "Complete Decision #1 above.")
+      need(input$dec_scen1 %in% c("Surface","Bottom"), "Complete Decision #1 above.")
     )
     
     p <- ggplot(scen_fc2) +

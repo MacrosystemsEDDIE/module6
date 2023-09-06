@@ -956,7 +956,7 @@ ui <- function(req) {
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
                                                                 h3("Objective 5 - Process Uncertainty"),
-                                                                p(id = "txt_j", module_text["obj_06", ])
+                                                                p(id = "txt_j", module_text["obj_05", ])
                                                                 )
                                                       )
                                              ),
@@ -967,18 +967,25 @@ ui <- function(req) {
                                                       )
                                              ),
                                              fluidRow(
-                                               column(4,
+                                               column(6,
                                                       p(id = "txt_j", tags$b("Process uncertainty")," is uncertainty caused by our inability to model all processes as observed in the real world."),
                                                       p(id = "txt_j", "Our 'simple' water temperature models use today's water temperature and tomorrow's forecasted air temperature to forecast tomorrow's water temperature. For example:"),
-                                                      div("$$wtemp_{t+1} =  \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1}$$"),
-                                                      p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W):")),
-                                                      div("$$wtemp_{t+1} = \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + W_t$$"),
-                                                      h4(tags$em("Scroll through the slides to the right to learn how",tags$b(" W")," is calculated and accounted for in a forecast."))
+                                                      div("$$wtemp_{t+1} =  \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1}$$")
                                                ),
-                                               column(8,
+                                               column(6,
+                                                      p(id = "txt_j", "But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce, we can add in ",tags$b("process noise (W)")," at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise ",tags$b("(W):")),
+                                                      div("$$wtemp_{t+1} = \\beta_0 + \\beta_1*wtemp_{t} + \\beta_2*atemp_{t+1} + W_t$$")
+                                                      )
+                                               ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(
+                                                        h4(tags$em("Scroll through the slides below to learn how",tags$b(" process uncertainty")," is calculated and accounted for in a forecast."))
+                                                        ),
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
-                                                        slickROutput("proc_uc_slides", width = "640px", height = "360px")
+                                                        slickROutput("proc_uc_slides", width = "1000px", height = "563px")
                                                         )
                                                       )
                                                ),
@@ -1090,21 +1097,32 @@ ui <- function(req) {
                                              ),
                                              #** Parameter Uncertainty ----
                                              fluidRow(
-                                               column(4,
-                                                      h3("Parameter Uncertainty"),
+                                               column(12,
+                                                      h3("Parameter Uncertainty")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
                                                       p(id = "txt_j", tags$b("Parameter uncertainty")," refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used."),
                                                       p(id = "txt_j", "With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model."),
-                                                      p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters."),
-                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similarly good model fits during calibration."),
-                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty."),
-                                                      h4(tags$em("Scroll through the slides to the right for a visual explanation of parameter uncertainty."))
+                                                      p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters.")
                                                ),
-                                               column(8,
+                                               column(6,
+                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similarly good model fits during calibration."),
+                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty.") 
+                                               )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(
+                                                        h4(tags$em("Scroll through the slides below for a visual explanation of ",tags$b("parameter uncertainty.")))
+                                                      ),
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
-                                                        slickROutput("param_uc_slides", width = "640px", height = "360px")
+                                                        slickROutput("param_uc_slides", width = "1000px", height = "563px")
                                                       )
-                                               )
+                                                      )
                                              ),
                                              hr(),
                                              fluidRow(
@@ -1209,24 +1227,41 @@ ui <- function(req) {
                                                       )
                                                ),
                                              fluidRow(
-                                               column(4,
-                                                      h3("Initial Conditions Uncertainty"),
+                                               column(12,
+                                                      h3("Initial Conditions Uncertainty")
+                                               )
+                                             ),
+                                             fluidRow(
+                                               column(6,
                                                       p(tags$b("Initial conditions")," are the starting conditions used by a model. For example, in our persistence model:"),
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),
                                                         div("$$wtemp_{t+1} = wtemp_{t}$$"),
                                                         p("where t = today and t+1 = tomorrow")
                                                       ),
-                                                      p("the initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature."),
-                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem - in our case, ",tags$b("lake water temperature"), " - are not precisely known."),
-                                                      p(id = "txt_j", "Even though we have daily measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements."),
-                                                      h4(tags$em("Scroll through the slides to the right to understand how initial conditions uncertainty is calculated and accounted for in a forecast."))
+                                                      p("the initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature.")
+                                                      
                                                ),
-                                               column(8,
+                                               column(6,
+                                                      p(id = "txt_j", tags$b("Initial conditions uncertainty")," refers to uncertainty arising because the current conditions in an ecosystem - in our case, ",tags$b("lake water temperature"), " - are not precisely known."),
+                                                      p(id = "txt_j", "Even though we have daily measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements.")
+                                                      )
+                                               ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(
+                                                      h4(tags$em("Scroll through the slides below to understand how",tags$b(" initial conditions uncertainty "), "is calculated and accounted for in a forecast."))
+                                                      ),
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
-                                                        slickROutput("ic_uc_slides", width = "640px", height = "360px")
-                                                        ),
+                                                        slickROutput("ic_uc_slides", width = "1000px", height = "563px")
+                                                      )
+                                             )
+                                             ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
                                                       box(id = "box10", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1235,11 +1270,11 @@ ui <- function(req) {
                                                                    h4("Hint: Read through the slides above before attempting to answer these questions!"),
                                                                    p(tags$b(quest["q30", 1])),
                                                                    p(tags$b(quest["q31", 1]))
-                                                                   )
+                                                            )
                                                           )
                                                       )
                                                       )
-                                               ),
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(4,
@@ -1316,19 +1351,31 @@ ui <- function(req) {
                                                )
                                              ),
                                              fluidRow(
-                                               column(4,
-                                                      h3("Driver Uncertainty"),
+                                               column(12,
+                                                      h3("Driver Uncertainty")
+                                                      )
+                                             ),
+                                             fluidRow(
+                                               column(6,
                                                       p(id = "txt_j", tags$b("Driver uncertainty")," comes from the forecasted variables needed as inputs to run a forecast model into the future. These input variables are referred to as ",tags$b("drivers,"), " hence ",tags$b("driver uncertainty.")),
-                                                      p(id = "txt_j", "Our driver variable is",tags$b("air temperature."), "To generate a forecast of future water temperature, some of our models require forecasted air temperature."),
-                                                      p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
+                                                      p(id = "txt_j", "Our driver variable is",tags$b("air temperature."), "To generate a forecast of future water temperature, some of our models require forecasted air temperature.")
                                                       ),
-                                               column(8,
-                                                      h5("Click the arrows to navigate through the slides", align = "center"),
-                                                      wellPanel(
-                                                        slickROutput("driver_uc_slides", width = "640px", height = "360px")
-                                                        )
+                                               column(6,
+                                                      p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
                                                       )
                                                ),
+                                             hr(),
+                                             fluidRow(
+                                               column(12,
+                                                      wellPanel(
+                                                        h4(tags$em("Scroll through the slides below for a visual explanation of how to account for ",tags$b("driver uncertainty")," in a forecast."))
+                                                      ),
+                                                      h5("Click the arrows to navigate through the slides", align = "center"),
+                                                      wellPanel(
+                                                        slickROutput("driver_uc_slides", width = "1000px", height = "563px")
+                                                      )
+                                                      )
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(6,
