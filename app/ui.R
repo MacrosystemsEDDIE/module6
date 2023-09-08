@@ -511,7 +511,8 @@ ui <- function(req) {
                                                       h4("Time series of water temperature and air temperature"),
                                                       wellPanel(
                                                         plotlyOutput("airt_swt_plot1")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_at_swt_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -628,7 +629,8 @@ ui <- function(req) {
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("persist_plot")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_pers_model_pred_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -661,7 +663,8 @@ ui <- function(req) {
                                                       br(), br(),
                                                       wellPanel(
                                                         plotlyOutput("swt_swt_plot_lines")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_swt_swt_plot", "Download plot", icon = icon("download"))
                                                ),
                                                column(6,
                                                       h4("Today's water temperature vs. today's air temperature"),
@@ -669,7 +672,8 @@ ui <- function(req) {
                                                       br(), br(),
                                                       wellPanel(
                                                         plotlyOutput("airt_swt_plot_lines"),
-                                                      )
+                                                      ),
+                                                      downloadButton("save_airt_swt_plot", "Download plot", icon = icon("download"))
                                                       )
                                              ),
                                              hr(),
@@ -837,7 +841,8 @@ ui <- function(req) {
                                       column(6,
                                              wellPanel(
                                                plotlyOutput("all_mods_plot")
-                                             )
+                                             ),
+                                             downloadButton("save_all_mods_plot", "Download plot", icon = icon("download"))
                                              )
                                     ),
                                     hr(),
@@ -918,6 +923,8 @@ ui <- function(req) {
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
+                                                      downloadButton("save_deter_fc_plot", "Download plot", icon = icon("download")),
+                                                      br(),br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod1a"),
                                                         textOutput("txt_fc_out1a")
@@ -1050,7 +1057,8 @@ ui <- function(req) {
                                                column(6,
                                                       wellPanel(
                                                         plotOutput("proc_dist_plot")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_proc_uc_distrib_plot", "Download plot", icon = icon("download"))
                                                       )
                                              ),
                                              hr(),
@@ -1063,22 +1071,23 @@ ui <- function(req) {
                                                       DTOutput("mod_selec_tab2"),
                                                       br(), br(),
                                                       actionButton("run_wtemp_fc2", "Run forecast"),
-                                                      br(), br()
+                                                      br(), br(),
+                                                      wellPanel(
+                                                        uiOutput("sel_mod2"),
+                                                        textOutput("txt_fc_out2")
+                                                      )
                                                ),
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
-                                                      ),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod2"),
-                                                        textOutput("txt_fc_out2")
                                                       ),
                                                       conditionalPanel("input.run_wtemp_fc2 > 0",
                                                                        p(id = "txt_j", "Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE),
                                                                        p(id = "txt_j", "Click on items in the legend to show/hide them from the plot.")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_proc_fc_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -1206,6 +1215,8 @@ ui <- function(req) {
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc3b")
                                                       ),
+                                                      downloadButton("save_param_fc_plot", "Download plot", icon = icon("download")),
+                                                      br(),br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod3b"),
                                                         textOutput("txt_fc_out3b")
@@ -1350,12 +1361,17 @@ ui <- function(req) {
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc4")
                                                       ),
+                                                      downloadButton("save_ic_fc_plot", "Download plot", icon = icon("download")),
+                                                      br(),br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod4"),
-                                                        textOutput("txt_fc_out4"),
-                                                        radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
-                                                                     inline = TRUE)
-                                                        )
+                                                        textOutput("txt_fc_out4")
+                                                        ),
+                                                      conditionalPanel("input.run_wtemp_fc4 > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
+                                                      )
                                                       )
                                                ),
                                              hr(),
@@ -1433,15 +1449,19 @@ ui <- function(req) {
                                                       br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod5"),
-                                                        textOutput("txt_fc_out5"),
-                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                                     inline = TRUE)
+                                                        textOutput("txt_fc_out5")
+                                                      ),
+                                                      conditionalPanel("input.run_wtemp_fc5 > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
                                                       )
                                                ),
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc5")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_driver_fc_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -1566,7 +1586,8 @@ ui <- function(req) {
                                                       h4("Contribution of Uncertainty Sources: Model 1"),
                                                       wellPanel(
                                                         plotlyOutput("fc_quantA")
-                                                      )
+                                                      ),
+                                                      downloadButton("save_fc_quantA_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -1614,7 +1635,8 @@ ui <- function(req) {
                                                       h4("Contribution of Uncertainty Sources: Model 2"),
                                                       wellPanel(
                                                         plotlyOutput("fc_quantB")
-                                                        )
+                                                        ),
+                                                      downloadButton("save_fc_quantB_plot", "Download plot", icon = icon("download")),
                                                       )
                                                ),
                                              hr(),

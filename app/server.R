@@ -357,38 +357,8 @@ shinyServer(function(input, output, session) {
   
   # Plot air temperature and water temperature
   plot.airt_swt1 <- reactiveValues(main=NULL)
-  
-  observe({
     
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    
-    validate(
-      need(input$plot_airt_swt2 > 0,
-           message = "Click 'Plot air temperature'")
-    )
-    
-    df <- airt_swt$df
-    df$airt[is.na(df$wtemp)] <- NA
-    df$wtemp[is.na(df$airt)] <- NA
-    
-    p <- ggplot() +
-      geom_point(data = df, aes(Date, wtemp, color = "Water temperature")) +
-      geom_point(data = df, aes(Date, airt, color = "Air temperature")) +
-      scale_color_manual(values = c("Water temperature" = cols[5], "Air temperature" = cols[6])) +
-      ylab("Temperature (\u00B0C)") +
-      xlab("Time") +
-      labs(color = NULL) +
-      theme_bw(base_size = 12)
-    
-    plot.airt_swt1$main <- ggplotly(p, dynamicTicks = TRUE)
-  })
-  
-  observe({
-    
-    output$airt_swt_plot1 <- renderPlotly({ 
+  output$airt_swt_plot1 <- renderPlotly({ 
       
       validate(
         need(input$table01_rows_selected != "",
@@ -403,9 +373,38 @@ shinyServer(function(input, output, session) {
              message = "Click 'Plot air temperature'")
       )
       
-      plot.airt_swt1$main })
+      df <- airt_swt$df
+      df$airt[is.na(df$wtemp)] <- NA
+      df$wtemp[is.na(df$airt)] <- NA
+      
+      p <- ggplot() +
+        geom_point(data = df, aes(Date, wtemp, color = "Water temperature")) +
+        geom_point(data = df, aes(Date, airt, color = "Air temperature")) +
+        scale_color_manual(values = c("Water temperature" = cols[5], "Air temperature" = cols[6])) +
+        ylab("Temperature (\u00B0C)") +
+        xlab("Time") +
+        labs(color = NULL) +
+        theme_bw(base_size = 12)
+      
+      plot.airt_swt1$main <- p
+      
+      return(ggplotly(p, dynamicTicks = TRUE))
+      
+       })
     
-  })
+  # Download plot of air and water temperature
+  output$save_at_swt_plot <- downloadHandler(
+    filename = function() {
+      paste("Q8a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = plot.airt_swt1$main, device = device)
+    }
+  )
   
   # Output stats ----
   output$out_stats <- renderText({
@@ -514,6 +513,20 @@ shinyServer(function(input, output, session) {
       }
     })
   })
+  
+  # download plot of persistence model predictions
+  output$save_pers_model_pred_plot <- downloadHandler(
+    filename = function() {
+      paste("Q11a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = persist_plot$main + persist_plot$layer1, device = device)
+    }
+  )
   
   output$persist_r2 <- renderUI({
     validate(
@@ -692,9 +705,9 @@ shinyServer(function(input, output, session) {
       
     }
     
-    swt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) 
+    swt_swt_plot_lines$main <- p 
     
-    wt_reg_ts_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
+    wt_reg_ts_plot$main <- p1 
     
     
   })
@@ -708,8 +721,22 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot data'")
     )
-    swt_swt_plot_lines$main
+    return(ggplotly(swt_swt_plot_lines$main, dynamicTicks = TRUE))
   })
+  
+  # save scatterplot of wtemp vs wtemp yday
+  output$save_swt_swt_plot <- downloadHandler(
+    filename = function() {
+      paste("Q13a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = swt_swt_plot_lines$main, device = device)
+    }
+  )
   
   output$wt_reg_ts_plot <- renderPlotly({
     validate(
@@ -720,7 +747,7 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot data'")
     )
-    wt_reg_ts_plot$main
+    return(ggplotly(wt_reg_ts_plot$main, dynamicTicks = TRUE))
   })
 
 
@@ -890,9 +917,7 @@ shinyServer(function(input, output, session) {
       
     }
     
-    airt_swt_plot_lines$main <- ggplotly(p, dynamicTicks = TRUE) %>%
-      layout(xaxis = list(range = c(0, 10)),
-             yaxis = list(range = c(10, 15)))
+    airt_swt_plot_lines$main <- p
     
     at_reg_ts_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
     
@@ -908,8 +933,26 @@ shinyServer(function(input, output, session) {
       need(!is.null(airt_swt$sub),
            message = "Click 'Plot data'")
     )
-    airt_swt_plot_lines$main
+    validate(
+      need(input$plot_airt_swt4 > 0,
+           message = "Click 'Plot data'")
+    )
+    return(ggplotly(airt_swt_plot_lines$main, dynamicTicks = TRUE)) 
   })
+  
+  # save scatterplot of wtemp vs airtemp
+  output$save_airt_swt_plot <- downloadHandler(
+    filename = function() {
+      paste("Q14a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = airt_swt_plot_lines$main, device = device)
+    }
+  )
   
   output$at_reg_ts_plot <- renderPlotly({
     validate(
@@ -1163,7 +1206,7 @@ shinyServer(function(input, output, session) {
                                     "Obs" = "black"), name = "") +
       theme_bw(base_size = 12)
     
-    all_mods_plot$main <- ggplotly(p1, dynamicTicks = TRUE) 
+    all_mods_plot$main <- p1
     
     
   })
@@ -1189,8 +1232,22 @@ shinyServer(function(input, output, session) {
       need(!is.null(mlr_fit1$fit),
            message = "Be sure to fit all four models above!")
     )
-    all_mods_plot$main
+    return(ggplotly(all_mods_plot$main, dynamicTicks = TRUE))
   })
+  
+  # save plot of all model predictions
+  output$save_all_mods_plot <- downloadHandler(
+    filename = function() {
+      paste("Q18a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = all_mods_plot$main, device = device)
+    }
+  )
   
   # end Objective 3
   
@@ -1325,7 +1382,7 @@ shinyServer(function(input, output, session) {
     }
     
     p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp. - obs")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
       theme_bw(base_size = 12) +
@@ -1338,12 +1395,12 @@ shinyServer(function(input, output, session) {
     }
     
     p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp. - obs" = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       labs(color = NULL)
     
-    wtemp_fc1a$main <- ggplotly(p, dynamicTicks = TRUE)
+    wtemp_fc1a$main <- p
   })
   
   observe({
@@ -1374,10 +1431,24 @@ shinyServer(function(input, output, session) {
              message = "Click 'Run forecast'.")
       )
       
-      wtemp_fc1a$main
+      return(ggplotly(wtemp_fc1a$main, dynamicTicks = TRUE))
     })
     
   })
+  
+  # save deterministic forecast plot
+  output$save_deter_fc_plot <- downloadHandler(
+    filename = function() {
+      paste("Q19a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = wtemp_fc1a$main, device = device)
+    }
+  )
   
   # text showing equation of selected model
   output$sel_mod1a <- renderUI({
@@ -1476,6 +1547,20 @@ shinyServer(function(input, output, session) {
     
     return(proc_dist_plot$main)
   })
+  
+  # save plot of process uncertainty distributions
+  output$save_proc_uc_distrib_plot <- downloadHandler(
+    filename = function() {
+      paste("Q24a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = proc_dist_plot$main, device = device)
+    }
+  )
   
   # output object for table with sd of residuals for each model
   output$sigma_table <- renderDT({
@@ -1605,6 +1690,8 @@ shinyServer(function(input, output, session) {
   })
   
   # plot process uncertainty forecast output
+  proc_fc_plot <- reactiveValues(main = NULL)
+  
   output$wtemp_fc2 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1615,56 +1702,71 @@ shinyServer(function(input, output, session) {
            message = "Click 'Run forecast'.")
     )
     
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+    p0 <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp. - obs")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
       theme_bw(base_size = 12)
     
-    if(input$plot_type2 == "Line") {
-      if(any(!is.na(wtemp_fc_out2$mlt))) {
-        sub_lst <- wtemp_fc_out2$mlt[!is.null(wtemp_fc_out2$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
+    
+    if(any(!is.na(wtemp_fc_out2$mlt))) {
+      sub_lst <- wtemp_fc_out2$mlt[!is.null(wtemp_fc_out2$mlt)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
         }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)+
-          labs(color = NULL)
       }
-    } else if(input$plot_type2 == "Distribution") {
-      if(any(!is.na(wtemp_fc_out2$dist))) {
-        sub_lst <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level))+
-          labs(color = NULL, fill = NULL)
-      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
     }
     
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+    if(any(!is.na(wtemp_fc_out2$dist))) {
+      sub_lst1 <- wtemp_fc_out2$dist[!is.null(wtemp_fc_out2$dist)]
+      mlt1 <- do.call(rbind, sub_lst1)
+      mlt1 <- na.exclude(mlt1)
+      for(num in 1:4) {
+        if(num %in% mlt1$Level) {
+          mlt1$Level[mlt1$Level == num] <- mod_names[num]
+        }
+      }
+      mlt1$Level <- factor(mlt1$Level, levels = mod_names)
+    }
+    
+    if(input$plot_type2 == "Line") {
+        
+        p <- p0 +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)+
+          labs(color = NULL)
+      
+    } else if(input$plot_type2 == "Distribution") {
+      
+        p <- p0 +
+          geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt1, aes(Date, p50, color = Level))+
+          labs(color = NULL, fill = NULL)
+      
+    }
+    
+    p1 <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp. - obs" = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
                                    "Atemp" = l.cols[3], "Both" = l.cols[4]))+
       labs(color = NULL, fill = NULL)
     
-    gp <- ggplotly(p, dynamicTicks = TRUE)
+    proc_fc_plot$main <- p0 +
+      geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+      geom_line(data = mlt1, aes(Date, p50, color = Level))+
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp. - obs" = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4]))+
+      labs(color = NULL, fill = NULL)
+
+    gp <- ggplotly(p1, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
     for (i in 1:length(gp$x$data)){
       if (!is.null(gp$x$data[[i]]$name)){
@@ -1674,6 +1776,20 @@ shinyServer(function(input, output, session) {
     
     return(gp)
   })
+  
+  # save plot of forecasts with process uncertainty
+  output$save_proc_fc_plot <- downloadHandler(
+    filename = function() {
+      paste("Q25a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = proc_fc_plot$main, device = device)
+    }
+  )
   
   # this shows the equation of the model you are running a forecast for
   output$sel_mod2 <- renderUI({
@@ -1959,6 +2075,8 @@ shinyServer(function(input, output, session) {
   })
   
   # code to render plot
+  param_fc_plot <- reactiveValues(main = NULL)
+  
   output$wtemp_fc3b <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1982,58 +2100,68 @@ shinyServer(function(input, output, session) {
            message = "Click 'Run forecast'.")
     )
     
-    p <- ggplot() +
-      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
+    p0 <- ggplot() +
+      geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp. - obs")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
       theme_bw(base_size = 12) +
       labs(color = NULL)
     
-    if(input$plot_type3b == "Line") {
-      if(any(!is.na(wtemp_fc_out3b$mlt))) {
-        sub_lst <- wtemp_fc_out3b$mlt[!is.null(wtemp_fc_out3b$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
+    if(any(!is.na(wtemp_fc_out3b$mlt))) {
+      sub_lst1 <- wtemp_fc_out3b$mlt[!is.null(wtemp_fc_out3b$mlt)]
+      mlt1 <- do.call(rbind, sub_lst1)
+      mlt1 <- na.exclude(mlt1)
+      for(num in 1:4) {
+        if(num %in% mlt1$Level) {
+          mlt1$Level[mlt1$Level == num] <- mod_names[num]
         }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
-          labs(color = NULL)
       }
-    } else if(input$plot_type3b == "Distribution") {
+      mlt1$Level <- factor(mlt1$Level, levels = mod_names)
+    }
+      
       if(any(!is.na(wtemp_fc_out3b$dist))) {
-        sub_lst <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
+        sub_lst2 <- wtemp_fc_out3b$dist[!is.null(wtemp_fc_out3b$dist)]
+        mlt2 <- do.call(rbind, sub_lst2)
+        mlt2 <- na.exclude(mlt2)
         for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
+          if(num %in% mlt2$Level) {
+            mlt2$Level[mlt2$Level == num] <- mod_names[num]
           }
         }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level)) +
-          labs(color = NULL, fill = NULL)
-        
+        mlt2$Level <- factor(mlt2$Level, levels = mod_names)
       }
+    
+    if(input$plot_type3b == "Line") {
+        p <- p0 +
+          geom_line(data = mlt1, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
+    } else if(input$plot_type3b == "Distribution") {
+        p <- p0 +
+          geom_ribbon(data = mlt2, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt2, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
     }
     
-    p <- p +
-      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+    p1 <- p +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp. - obs" = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
                                    "Atemp" = l.cols[3], "Both" = l.cols[4])) +
       labs(color = NULL, fill = NULL)
     
-    gp <- ggplotly(p, dynamicTicks = TRUE)
+    param_fc_plot$main <- p0 +
+      geom_ribbon(data = mlt2, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+      geom_line(data = mlt2, aes(Date, p50, color = Level)) +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp. - obs" = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
+
+    
+    gp <- ggplotly(p1, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
     for (i in 1:length(gp$x$data)){
       if (!is.null(gp$x$data[[i]]$name)){
@@ -2043,6 +2171,20 @@ shinyServer(function(input, output, session) {
     
     return(gp)
   })
+  
+  # save parameter uncertainty forecast plot
+  output$save_param_fc_plot <- downloadHandler(
+    filename = function() {
+      paste("Q28a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = param_fc_plot$main, device = device)
+    }
+  )
   
   # this shows the equation of the model you are running a forecast for
   output$sel_mod3b <- renderUI({
@@ -2260,6 +2402,8 @@ shinyServer(function(input, output, session) {
   
   
   # create output object for plot of initial conditions uncertainty forecast
+  ic_fc_plot <- reactiveValues(main = NULL)
+  
   output$wtemp_fc4 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -2270,49 +2414,53 @@ shinyServer(function(input, output, session) {
            message = "Click 'Run forecast'.")
     )
     
-    p <- ggplot() +
+    p0 <- ggplot() +
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
       theme_bw(base_size = 12) +
       labs(color = NULL)
     
-    if(input$plot_type4 == "Line") {
-      if(any(!is.na(wtemp_fc_out4$mlt))) {
-        sub_lst <- wtemp_fc_out4$mlt[!is.null(wtemp_fc_out4$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
+    if(any(!is.na(wtemp_fc_out4$mlt))) {
+      sub_lst <- wtemp_fc_out4$mlt[!is.null(wtemp_fc_out4$mlt)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
         }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
-          labs(color = NULL)
       }
-    } else if(input$plot_type4 == "Distribution") {
-      if(any(!is.na(wtemp_fc_out4$dist))) {
-        sub_lst <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level)) +
-          labs(color = NULL, fill = NULL)
-      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
     }
     
-    p <- p +
+    if(any(!is.na(wtemp_fc_out4$dist))) {
+      sub_lst1 <- wtemp_fc_out4$dist[!is.null(wtemp_fc_out4$dist)]
+      mlt1 <- do.call(rbind, sub_lst1)
+      mlt1 <- na.exclude(mlt1)
+      for(num in 1:4) {
+        if(num %in% mlt1$Level) {
+          mlt1$Level[mlt1$Level == num] <- mod_names[num]
+        }
+      }
+      mlt1$Level <- factor(mlt1$Level, levels = mod_names)
+    }
+    
+    if(input$plot_type4 == "Line") {
+      
+        p <- p0 +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
+
+    } else if(input$plot_type4 == "Distribution") {
+      
+        p <- p0 +
+          geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt1, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
+      
+    }
+    
+    p1 <- p +
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
@@ -2320,7 +2468,17 @@ shinyServer(function(input, output, session) {
                                    "Atemp" = l.cols[3], "Both" = l.cols[4])) +
       labs(color = NULL, fill = NULL)
     
-    gp <- ggplotly(p, dynamicTicks = TRUE)
+    ic_fc_plot$main <- p0 +
+      geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+      geom_line(data = mlt1, aes(Date, p50, color = Level)) +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
+
+    gp <- ggplotly(p1, dynamicTicks = TRUE)
     
     # Code to remove parentheses in plotly
     for (i in 1:length(gp$x$data)){
@@ -2330,6 +2488,20 @@ shinyServer(function(input, output, session) {
     }
     return(gp)
   })
+  
+  # save initial conditions uncertainty forecast
+  output$save_ic_fc_plot <- downloadHandler(
+    filename = function() {
+      paste("Q32a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = ic_fc_plot$main, device = device)
+    }
+  )
   
   # this shows the equation of the model you are running a forecast for
   output$sel_mod4 <- renderUI({
@@ -2647,6 +2819,7 @@ shinyServer(function(input, output, session) {
   })
   
   # create output object for driver uncertainty forecast plot
+  driver_fc_plot <- reactiveValues(main = NULL)
   output$wtemp_fc5 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -2664,49 +2837,53 @@ shinyServer(function(input, output, session) {
       mlt$Label <- as.character(mlt$Label)
     }
     
-    p <- ggplot() +
+    p0 <- ggplot() +
       geom_point(data = wtemp_fc_data$hist, aes(Date, wtemp, color = "Water temp.")) +
       geom_vline(xintercept = as.Date(fc_date), linetype = "dashed") +
       ylab("Temperature (\u00B0C)") +
       theme_bw(base_size = 12) +
       labs(color = NULL)
     
-    if(input$plot_type5 == "Line") {
-      if(any(!is.na(wtemp_fc_out5$mlt))) {
-        sub_lst <- wtemp_fc_out5$mlt[!is.null(wtemp_fc_out5$mlt)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
+    if(any(!is.na(wtemp_fc_out5$mlt))) {
+      sub_lst <- wtemp_fc_out5$mlt[!is.null(wtemp_fc_out5$mlt)]
+      mlt <- do.call(rbind, sub_lst)
+      mlt <- na.exclude(mlt)
+      for(num in 1:4) {
+        if(num %in% mlt$Level) {
+          mlt$Level[mlt$Level == num] <- mod_names[num]
         }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
-          labs(color = NULL)
       }
-    } else if(input$plot_type5 == "Distribution") {
-      if(any(!is.na(wtemp_fc_out5$dist))) {
-        sub_lst <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
-        mlt <- do.call(rbind, sub_lst)
-        mlt <- na.exclude(mlt)
-        for(num in 1:4) {
-          if(num %in% mlt$Level) {
-            mlt$Level[mlt$Level == num] <- mod_names[num]
-          }
-        }
-        mlt$Level <- factor(mlt$Level, levels = mod_names)
-        
-        p <- p +
-          geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt, aes(Date, p50, color = Level)) +
-          labs(color = NULL, fill = NULL)
-      }
+      mlt$Level <- factor(mlt$Level, levels = mod_names)
     }
     
-    p <- p +
+    if(any(!is.na(wtemp_fc_out5$dist))) {
+      sub_lst1 <- wtemp_fc_out5$dist[!is.null(wtemp_fc_out5$dist)]
+      mlt1 <- do.call(rbind, sub_lst1)
+      mlt1 <- na.exclude(mlt1)
+      for(num in 1:4) {
+        if(num %in% mlt1$Level) {
+          mlt1$Level[mlt1$Level == num] <- mod_names[num]
+        }
+      }
+      mlt1$Level <- factor(mlt1$Level, levels = mod_names)
+    }
+    
+    if(input$plot_type5 == "Line") {
+        
+        p <- p0 +
+          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6) +
+          labs(color = NULL)
+      
+    } else if(input$plot_type5 == "Distribution") {
+        
+        p <- p0 +
+          geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+          geom_line(data = mlt1, aes(Date, p50, color = Level)) +
+          labs(color = NULL, fill = NULL)
+      
+    }
+    
+    p1 <- p +
       scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
                                     "Pers" = cols[3], "Wtemp" = cols[4],
                                     "Atemp" = cols[5], "Both" = cols[6])) +
@@ -2714,7 +2891,17 @@ shinyServer(function(input, output, session) {
                                    "Atemp" = l.cols[3], "Both" = l.cols[4])) +
       labs(color = NULL, fill = NULL)
     
-    gp <- ggplotly(p, dynamicTicks = TRUE)
+    driver_fc_plot$main <- p0 +
+      geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+      geom_line(data = mlt1, aes(Date, p50, color = Level)) +
+      scale_color_manual(values = c("Air temp." = cols[1], "Water temp." = cols[2],
+                                    "Pers" = cols[3], "Wtemp" = cols[4],
+                                    "Atemp" = cols[5], "Both" = cols[6])) +
+      scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
+                                   "Atemp" = l.cols[3], "Both" = l.cols[4])) +
+      labs(color = NULL, fill = NULL)
+
+    gp <- ggplotly(p1, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
     for (i in 1:length(gp$x$data)){
       if (!is.null(gp$x$data[[i]]$name)){
@@ -2723,6 +2910,20 @@ shinyServer(function(input, output, session) {
     }
     return(gp)
   })
+  
+  # save forecast plot with driver uncertainty
+  output$save_driver_fc_plot <- downloadHandler(
+    filename = function() {
+      paste("Q34a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = driver_fc_plot$main, device = device)
+    }
+  )
   
   # this shows the equation of the model you are running a forecast for
   output$sel_mod5 <- renderUI({
@@ -3048,6 +3249,7 @@ shinyServer(function(input, output, session) {
   
   
   # create output for partitioned uncertainty plot for Model A
+  fc_quantA_plot <- reactiveValues(main = NULL)
   output$fc_quantA <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -3069,9 +3271,25 @@ shinyServer(function(input, output, session) {
       labs(fill = "Uncertainty") +
       theme_bw(base_size = 12)
     
+    fc_quantA_plot$main <- p
+    
     gp <- ggplotly(p, dynamicTicks = TRUE)
     return(gp)
   })
+  
+  # save uncertainty partitioning plot for model A
+  output$save_fc_quantA_plot <- downloadHandler(
+    filename = function() {
+      paste("Q36a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = fc_quantA_plot$main, device = device)
+    }
+  )
   
   # text describing Model B
   output$modB_txt <- renderText({
@@ -3347,6 +3565,8 @@ shinyServer(function(input, output, session) {
   })
   
   # create plot output for partitioned uncertainty for Model B
+  fc_quantB_plot <- reactiveValues(main = NULL)
+  
   output$fc_quantB <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -3368,9 +3588,25 @@ shinyServer(function(input, output, session) {
       labs(fill = "Uncertainty") +
       theme_bw(base_size = 12)
     
+    fc_quantB_plot$main <- p
+    
     gp <- ggplotly(p) #, dynamicTicks = TRUE)
     return(gp)
   })
+  
+  # save plot of quantified uncertainty for model B
+  output$save_fc_quantB_plot <- downloadHandler(
+    filename = function() {
+      paste("Q37a-plot-", Sys.Date(), ".png", sep="")
+    },
+    content = function(file) {
+      device <- function(..., width, height) {
+        grDevices::png(..., width = width, height = height,
+                       res = 300, units = "in")
+      }
+      ggsave(file, plot = fc_quantB_plot$main, device = device)
+    }
+  )
   
   # end Objective 9
   
