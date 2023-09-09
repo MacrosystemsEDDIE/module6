@@ -1276,6 +1276,8 @@ shinyServer(function(input, output, session) {
     return(ggplotly(p, dynamicTicks = TRUE))
   })
   
+  # create buttons for model data table
+  deter_fc_btns <- create_btns(x = c("run_deter_fc_pers","run_deter_fc_wtemp","run_deter_fc_atemp","run_deter_fc_both"), label = "Run forecast")
   
   # model selection table for deterministic forecasts
   output$mod_selec_tab1a <- renderDT({
@@ -1283,12 +1285,13 @@ shinyServer(function(input, output, session) {
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1,5)]
+    mod_selec_tab$dt[, c(1,5)] %>%
+      bind_cols("Buttons" = deter_fc_btns)
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model",""), rownames = mod_names,
+  colnames = c("Model","",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
   
   # create reactive value for data for deterministic forecasts
@@ -1586,9 +1589,13 @@ shinyServer(function(input, output, session) {
   colnames = c("Model", "SD of residuals"), 
   server = FALSE, escape = FALSE)
   
+  # create buttons for model data table
+  proc_fc_btns <- create_btns(x = c("run_proc_fc_pers","run_proc_fc_wtemp","run_proc_fc_atemp","run_proc_fc_both"), label = "Run forecast")
+  
   # table of models for Objective 5
   output$mod_selec_tab2 <- renderDT({
-    dt <- mod_selec_tab$dt[, c(1, 5)]
+    dt <- mod_selec_tab$dt[, c(1,5)] %>%
+      bind_cols("Buttons" = proc_fc_btns)
     idx <- which(!is.na(dt$eqn))
     eqn <- gsub("[$$]+", "", dt$eqn[idx])
     dt$eqn[idx] <- paste0("$$", eqn, " + W_{t}$$")
@@ -1598,7 +1605,7 @@ shinyServer(function(input, output, session) {
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", ""), rownames = mod_names,
+  colnames = c("Model", "",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
   
   # disable run forecast button if no model selected
@@ -1920,14 +1927,20 @@ shinyServer(function(input, output, session) {
                              ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("1 year model","2 year model"),
                              server = FALSE, escape = FALSE)
   
+  # create buttons for model data table
+  gen_param_btns <- create_btns(x = c("gen_param_pers","gen_param_wtemp","gen_param_atemp","gen_param_both"), label = "Run forecast")
+  param_fc_btns <- create_btns(x = c("run_param_fc_pers","run_param_fc_wtemp","run_param_fc_atemp","run_param_fc_both"), label = "Generate parameter distributions")
+  
   # model selection table
   output$mod_selec_tab3 <- renderDT({
-    mod_selec_tab$dt[, c(1, 5)]
+    mod_selec_tab$dt[, c(1, 5)] %>%
+      bind_cols("Buttons1" = gen_param_btns) %>%
+      bind_cols("Buttons2" = param_fc_btns)
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", ""), rownames = mod_names,
+  colnames = c("Model", "","",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
   
   # create reactive value to hold parameter distributions
@@ -2300,18 +2313,22 @@ shinyServer(function(input, output, session) {
     
   })
   
+  # create buttons for model data table
+  ic_fc_btns <- create_btns(x = c("run_ic_fc_pers","run_ic_fc_wtemp","run_ic_fc_atemp","run_ic_fc_both"), label = "Run forecast")
+  
   # model selection table for initial conditions uncertainty
   output$mod_selec_tab4 <- renderDT({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 5)]
+    mod_selec_tab$dt[, c(1, 5)] %>%
+      bind_cols("Buttons" = ic_fc_btns)
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", ""), rownames = mod_names,
+  colnames = c("Model", "",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
   
   # disable run forecast button if no model selected
@@ -2727,18 +2744,22 @@ shinyServer(function(input, output, session) {
     return(gp)
   })
   
+  # create buttons for model data table
+  driver_fc_btns <- create_btns(x = c("run_driver_fc_pers","run_driver_fc_wtemp","run_driver_fc_atemp","run_driver_fc_both"), label = "Run forecast")
+  
   # model selection table for driver uncertainty forecasts
   output$mod_selec_tab5 <- renderDT({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 5)]
+    mod_selec_tab$dt[, c(1, 5)] %>%
+      bind_cols("Buttons" = driver_fc_btns)
   }, selection = "single",
   options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
                  columnDefs = list(list(width = '10%', targets = "_all")),
                  scrollX = TRUE),
-  colnames = c("Model", "RMSE (\u00B0C)"), rownames = mod_names,
+  colnames = c("Model", "",""), rownames = mod_names,
   server = FALSE, escape = FALSE)
   
   # disable run forecast button if no model selected in table
@@ -3833,6 +3854,43 @@ shinyServer(function(input, output, session) {
     rv3a$prev <- readr::parse_number(curr_tab1) - 1
     rv3a$nxt <- readr::parse_number(curr_tab1) + 1
   })
+  
+  # # Bookmarking
+  # bookmarkingWhitelist <- c("phy_ic","row_num","run_fc3","load_fc3","assess_fc4","update_fc2",
+  #                           "assess_fc3","run_fc2","load_fc2","conv_fc","add_lm3","run_qaqc2","add_lm2",
+  #                           "run_qaqc1","load_fc","submit_ques","run_mod_ann","run_mod_parm",
+  #                           "run_mod_ic","tabseries1","maintab","nut_uptake2","mort_rate2","phy_init2",
+  #                           "nut_uptake","mort_rate","phy_init","parm_mort_rate","members2",
+  #                           "add_newobs","add_obs","add_obs_parm","add_obs_ic","phy_init4","table01_rows_selected")
+  # 
+  observeEvent(input$bookmarkBtn, {
+    session$doBookmark()
+  })
+  # 
+  # ExcludedIDs <- reactiveVal(value = NULL)
+  # 
+  # observe({
+  #   toExclude <- setdiff(names(input), bookmarkingWhitelist)
+  #   setBookmarkExclude(toExclude)
+  #   ExcludedIDs(toExclude)
+  # })
+  # 
+  # # Save extra values in state$values when we bookmark
+  # onBookmark(function(state) {
+  #   state$values$sel_row <- input$table01_rows_selected
+  # })
+  # 
+  # # Read values from state$values when we restore
+  # onRestore(function(state) {
+  #   updateTabsetPanel(session, "maintab",
+  #                     selected = "mtab4")
+  #   updateTabsetPanel(session, "tabseries1",
+  #                     selected = "obj1")
+  # })
+  # 
+  # onRestored(function(state) {
+  #   updateSelectizeInput(session, "row_num", selected = state$values$sel_row)
+  # })
 
 
 })

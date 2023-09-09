@@ -1,4 +1,4 @@
-ui <- function(req) {
+ui <- function(request) {
 
   tagList( # Added functionality for not losing your settings
     # shinythemes::themeSelector(), # user-defined theme

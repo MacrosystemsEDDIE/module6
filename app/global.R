@@ -20,10 +20,8 @@ suppressPackageStartupMessages(library(hover, quietly = TRUE))
 suppressPackageStartupMessages(library(lubridate, quietly = TRUE))
 suppressPackageStartupMessages(library(tidyverse, quietly = TRUE))
 
-
-
-
-
+# Enable bookmarking
+enableBookmarking(store = "url")
 
 # Help documentation
 help_text <- read.csv("data/help_text.csv", row.names = 1)
@@ -245,6 +243,15 @@ sketch1 = htmltools::withTags(table(
     )
   )
 ))
+
+# create action buttons for table function
+create_btns <- function(x, label) {
+  x %>%
+    purrr::map_chr(~
+                     paste0(
+                       '<button id=',.x,' type="button" class="btn btn-default action-button">',label,'</button>'
+                     ))
+}
 
 
 # end
