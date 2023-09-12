@@ -1287,7 +1287,7 @@ shinyServer(function(input, output, session) {
            message = "Please fit models in Objective 3.")
     )
     deter <- mod_selec_tab$dt[, c(1,5)] %>%
-      mutate(models = paste0("run_deter_fc_",mod_names),
+      mutate(models = paste0("fc1_",mod_names),
              Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
       select(-models)
     
@@ -1303,7 +1303,7 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # code to run forecasts when students press action button
-  observeEvent(input$run_deter_fc_Pers, {
+  observeEvent(input$fc1_Pers, {
     
     df <- run_deterministic_forecast(model = 1,
                                data = airt_swt$df,
@@ -1316,7 +1316,7 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[1]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$run_deter_fc_Wtemp, {
+  observeEvent(input$fc1_Wtemp, {
     
     df <- run_deterministic_forecast(model = 2, 
                                      data = airt_swt$df,
@@ -1329,7 +1329,7 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[2]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$run_deter_fc_Atemp, {
+  observeEvent(input$fc1_Atemp, {
     
     df <- run_deterministic_forecast(model = 3, 
                                      data = airt_swt$df,
@@ -1342,7 +1342,7 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[3]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$run_deter_fc_Both, {
+  observeEvent(input$fc1_Both, {
     
     df <- run_deterministic_forecast(model = 4, 
                                      data = airt_swt$df,
@@ -1606,7 +1606,7 @@ shinyServer(function(input, output, session) {
            message = "Please fit models in Objective 3.")
     )
     proc <- mod_selec_tab$dt[, c(1,5)] %>%
-      mutate(models = paste0("run_proc_fc_",mod_names),
+      mutate(models = paste0("fc2_",mod_names),
              Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
       select(-models)
     
@@ -1623,7 +1623,7 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this will run when the user clicks 'Run forecast' in Objective 5
-  observeEvent(input$run_proc_fc_Pers, {
+  observeEvent(input$fc2_Pers, {
     
     out <- run_process_forecast(model = 1, 
                                data = airt_swt$df,
@@ -1642,7 +1642,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$run_proc_fc_Wtemp, {
+  observeEvent(input$fc2_Wtemp, {
     
     out <- run_process_forecast(model = 2, 
                                 data = airt_swt$df,
@@ -1661,7 +1661,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$run_proc_fc_Atemp, {
+  observeEvent(input$fc2_Atemp, {
     
     out <- run_process_forecast(model = 3, 
                                 data = airt_swt$df,
@@ -1680,7 +1680,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$run_proc_fc_Both, {
+  observeEvent(input$fc2_Both, {
     
     out <- run_process_forecast(model = 4, 
                                 data = airt_swt$df,
