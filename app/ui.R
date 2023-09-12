@@ -903,9 +903,7 @@ ui <- function(request) {
                                                       p(id = "txt_j", "Select a model from the table below and then run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab1a"),
-                                                      br(),
-                                                      actionButton("run_wtemp_fc1a", "Run forecast"),
-                                                      br(), br(),
+                                                      br(), 
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1070,8 +1068,6 @@ ui <- function(request) {
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
                                                       DTOutput("mod_selec_tab2"),
                                                       br(), br(),
-                                                      actionButton("run_wtemp_fc2", "Run forecast"),
-                                                      br(), br(),
                                                       wellPanel(
                                                         uiOutput("sel_mod2"),
                                                         textOutput("txt_fc_out2")
@@ -1081,7 +1077,7 @@ ui <- function(request) {
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
                                                       ),
-                                                      conditionalPanel("input.run_wtemp_fc2 > 0",
+                                                      conditionalPanel("input.run_proc_fc_Both > 0 || input.run_proc_fc_Pers > 0 || input.run_proc_fc_Wtemp > 0 || input.run_proc_fc_Atemp > 0",
                                                                        p(id = "txt_j", "Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE),

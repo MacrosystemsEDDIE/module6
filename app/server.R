@@ -1276,89 +1276,83 @@ shinyServer(function(input, output, session) {
     return(ggplotly(p, dynamicTicks = TRUE))
   })
   
-  # create buttons for model data table
-  deter_fc_btns <- create_btns(x = c("run_deter_fc_pers","run_deter_fc_wtemp","run_deter_fc_atemp","run_deter_fc_both"), label = "Run forecast")
-  
   # model selection table for deterministic forecasts
-  output$mod_selec_tab1a <- renderDT({
+  output$mod_selec_tab1a <- renderDataTable({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1,5)] %>%
-      bind_cols("Buttons" = deter_fc_btns)
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model","",""), rownames = mod_names,
-  server = FALSE, escape = FALSE)
-  
-  # create reactive value for data for deterministic forecasts
-  wtemp_fc_data1a <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
-
-  # create reactive value for output of deterministic forecasts
-  wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
-  observe({
-    if(is.null(input$mod_selec_tab1a_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc1a")
-    } else {
-      shinyjs::enable("run_wtemp_fc1a")
-    }
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    deter <- mod_selec_tab$dt[, c(1,5)] %>%
+      mutate(models = paste0("run_deter_fc_",mod_names),
+             Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
+      select(-models)
+    
+    DT::datatable(deter, selection = "single",
+                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                                 columnDefs = list(list(width = '10%', targets = "_all")),
+                                 scrollX = TRUE),
+                  colnames = c("Model","",""), rownames = mod_names,
+                  escape = FALSE)
   })
   
+  # create reactive value for output of deterministic forecasts
+  wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
+  
   # code to run forecasts when students press action button
-  observeEvent(input$run_wtemp_fc1a, {
+  observeEvent(input$run_deter_fc_Pers, {
     
-    req(input$table01_rows_selected != "")
-    req(input$mod_selec_tab1a_rows_selected != "")
-    idx <- input$mod_selec_tab1a_rows_selected
+    df <- run_deterministic_forecast(model = 1,
+                               data = airt_swt$df,
+                               airtemp_forecast = airt1_fc$df,
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt)
+
+    wtemp_fc_out1a$lst[[1]] <- df[, c("Date", "forecast")]
+  })
+  
+  observeEvent(input$run_deter_fc_Wtemp, {
     
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
+    df <- run_deterministic_forecast(model = 2, 
+                                     data = airt_swt$df,
+                                     airtemp_forecast = airt1_fc$df, 
+                                     lr_pars3 = lr_eqn1$dt,
+                                     lr_pars2 = lr_eqn$dt,
+                                     mlr_pars = mlr_pars$dt,
+                                     model_table = mod_selec_tab$dt)
     
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    wtemp_fc_out1a$lst[[2]] <- df[, c("Date", "forecast")]
+  })
+  
+  observeEvent(input$run_deter_fc_Atemp, {
     
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
+    df <- run_deterministic_forecast(model = 3, 
+                                     data = airt_swt$df,
+                                     airtemp_forecast = airt1_fc$df, 
+                                     lr_pars3 = lr_eqn1$dt,
+                                     lr_pars2 = lr_eqn$dt,
+                                     mlr_pars = mlr_pars$dt,
+                                     model_table = mod_selec_tab$dt)
     
-    dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-    dat$wtemp[dat$Date > fc_date] <- NA
-    dat$forecast <- NA
-    dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-    dat$airt[dat$Date > fc_date] <- airt1_fc$df$value[2:8]
-    dat$wtemp_yday[dat$Date > lag_date] <- NA
-    dat$airt_yday[dat$Date > mn_date] <- NA
+    wtemp_fc_out1a$lst[[3]] <- df[, c("Date", "forecast")]
+  })
+  
+  observeEvent(input$run_deter_fc_Both, {
     
-    df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-    df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data1a$lst[[idx]] <- df
-    
-    # Run model
-    
-    df <- wtemp_fc_data1a$lst[[input$mod_selec_tab1a_rows_selected]]
-    fc_days <- which(df$Date >= fc_date)
-    if(input$mod_selec_tab1a_rows_selected == 3) {
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$airt[i] * lr_eqn1$dt$m[1] + lr_eqn1$dt$b[1]
-      }
-    } else if(input$mod_selec_tab1a_rows_selected == 1) {
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1]
-      }
-    } else if(input$mod_selec_tab1a_rows_selected == 2) {
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1] * lr_eqn$dt$m[1] + lr_eqn$dt$b[1]
-      }
-    } else if(input$mod_selec_tab1a_rows_selected == 4) {
-      for(i in fc_days[-1]) {
-        df$forecast[i] <- df$forecast[i-1] * mlr_pars$dt$b1_est[1] + df$airt[i] * mlr_pars$dt$b2_est[1] + mlr_pars$dt$b0_est[1]
-      }
-    }
-    wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]] <- df[, c("Date", "forecast")]
+    df <- run_deterministic_forecast(model = 4, 
+                                     data = airt_swt$df,
+                                     airtemp_forecast = airt1_fc$df, 
+                                     lr_pars3 = lr_eqn1$dt,
+                                     lr_pars2 = lr_eqn$dt,
+                                     mlr_pars = mlr_pars$dt,
+                                     model_table = mod_selec_tab$dt)
+
+    wtemp_fc_out1a$lst[[4]] <- df[, c("Date", "forecast")]
   })
   
   
@@ -1366,11 +1360,6 @@ shinyServer(function(input, output, session) {
   wtemp_fc1a <- reactiveValues(main = NULL)
   
   observe({
-    
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
     
     if(any(!is.na(wtemp_fc_out1a$lst))) {
       sub_lst <- wtemp_fc_out1a$lst[!is.null(wtemp_fc_out1a$lst)]
@@ -1422,12 +1411,12 @@ shinyServer(function(input, output, session) {
              message = "Please fit models in Objective 3.")
       )
       validate(
-        need(!is.na(mod_selec_tab$dt[4,1]),
+        need(!is.na(mod_selec_tab$dt[3,1]),
              message = "Please fit models in Objective 3.")
       )
       validate(
-        need(!is.null(input$mod_selec_tab1a_rows_selected),
-             message = "Please select a model in the table.")
+        need(!is.na(mod_selec_tab$dt[4,1]),
+             message = "Please fit models in Objective 3.")
       )
       validate(
         need(any(!is.na(wtemp_fc_out1a$lst)),
@@ -1460,8 +1449,24 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
+      need(!is.na(mod_selec_tab$dt[1,1]),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.na(mod_selec_tab$dt[2,1]),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.na(mod_selec_tab$dt[3,1]),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.na(mod_selec_tab$dt[4,1]),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
       need(input$mod_selec_tab1a_rows_selected != "",
-           message = "")
+           message = "Please select a model in the table.")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab1a_rows_selected])
@@ -1471,7 +1476,7 @@ shinyServer(function(input, output, session) {
   # text showing forecast is complete
   output$txt_fc_out1a <- renderText({
     validate(
-      need(!is.null(input$mod_selec_tab1a_rows_selected), "Select a model in the table.")
+      need(!is.null(input$mod_selec_tab1a_rows_selected), "")
     )
     validate(
       need(!is.na(wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]]), "Click 'Run forecast'")
@@ -1589,111 +1594,109 @@ shinyServer(function(input, output, session) {
   colnames = c("Model", "SD of residuals"), 
   server = FALSE, escape = FALSE)
   
-  # create buttons for model data table
-  proc_fc_btns <- create_btns(x = c("run_proc_fc_pers","run_proc_fc_wtemp","run_proc_fc_atemp","run_proc_fc_both"), label = "Run forecast")
   
-  # table of models for Objective 5
-  output$mod_selec_tab2 <- renderDT({
-    dt <- mod_selec_tab$dt[, c(1,5)] %>%
-      bind_cols("Buttons" = proc_fc_btns)
-    idx <- which(!is.na(dt$eqn))
-    eqn <- gsub("[$$]+", "", dt$eqn[idx])
-    dt$eqn[idx] <- paste0("$$", eqn, " + W_{t}$$")
-    dt
+  # model selection table for process forecasts
+  output$mod_selec_tab2 <- renderDataTable({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    proc <- mod_selec_tab$dt[, c(1,5)] %>%
+      mutate(models = paste0("run_proc_fc_",mod_names),
+             Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
+      select(-models)
     
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "",""), rownames = mod_names,
-  server = FALSE, escape = FALSE)
-  
-  # disable run forecast button if no model selected
-  observe({
-    if(is.null(input$mod_selec_tab2_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc2")
-    } else {
-      shinyjs::enable("run_wtemp_fc2")
-    }
+    DT::datatable(proc, selection = "single",
+                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                                 columnDefs = list(list(width = '10%', targets = "_all")),
+                                 scrollX = TRUE),
+                  colnames = c("Model","",""), rownames = mod_names,
+                  escape = FALSE)
   })
   
-  # create reactive value for data needed to run process uncertainty forecast
-  wtemp_fc_data2 <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
   
   # create reactive value for output of process uncertainty forecast
   wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this will run when the user clicks 'Run forecast' in Objective 5
-  observeEvent(input$run_wtemp_fc2, {
+  observeEvent(input$run_proc_fc_Pers, {
     
-    req(input$table01_rows_selected != "")
-    req(input$mod_selec_tab2_rows_selected != "")
-    idx <- input$mod_selec_tab2_rows_selected
+    out <- run_process_forecast(model = 1, 
+                               data = airt_swt$df,
+                               airtemp_forecast = airt1_fc$df, 
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt,
+                               sigmas = sigma_table$df)
     
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
+    wtemp_fc_out2$dist[[1]] <- out$dat
     
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    wtemp_fc_out2$mlt[[1]] <- out$mlt
     
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
+    wtemp_fc_out2$lst[[1]] <- out$df[, c("Date", "forecast")]
     
-    dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-    dat$wtemp[dat$Date > fc_date] <- NA
-    dat$forecast <- NA
-    dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-    dat$airt[dat$Date > fc_date] <- airt1_fc$df$value[2:8]
-    dat$wtemp_yday[dat$Date > lag_date] <- NA
-    dat$airt_yday[dat$Date > mn_date] <- NA
+  })
+  
+  observeEvent(input$run_proc_fc_Wtemp, {
     
-    df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-    df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data2$lst[[idx]] <- df
+    out <- run_process_forecast(model = 2, 
+                                data = airt_swt$df,
+                                airtemp_forecast = airt1_fc$df, 
+                                lr_pars3 = lr_eqn1$dt,
+                                lr_pars2 = lr_eqn$dt,
+                                mlr_pars = mlr_pars$dt,
+                                model_table = mod_selec_tab$dt,
+                                sigmas = sigma_table$df)
     
-    # Run forecast
-    df <- wtemp_fc_data2$lst[[input$mod_selec_tab2_rows_selected]]
+    wtemp_fc_out2$dist[[2]] <- out$dat
     
-    mat <- matrix(NA, 8, 100)
-    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-    df <- df[(df$Date >= fc_date), ]
-    idx <- input$mod_selec_tab2_rows_selected
+    wtemp_fc_out2$mlt[[2]] <- out$mlt
     
-    for(mem in 2:nrow(mat)) {
-      if(idx == 3) {
-        Wt <- sigma_table$df[3,2]
-        mat[mem, ] <- df$airt[mem] * lr_eqn1$dt$m[1] + lr_eqn1$dt$b[1] + rnorm(100, 0, Wt)
-      } else if(idx == 1) {
-        Wt <- sigma_table$df[1,2]
-        mat[mem, ] <- mat[mem-1, ] + rnorm(100, 0, Wt)
-      } else if(idx == 2) {
-        Wt <- sigma_table$df[2,2]
-        mat[mem, ] <- mat[mem-1, ] * lr_eqn$dt$m[1] + lr_eqn$dt$b[1] + rnorm(100, 0, Wt)
-      } else if(idx == 4) {
-        Wt <- sigma_table$df[4,2]
-        mat[mem, ] <- mat[mem-1, ] * mlr_pars$dt$b1_est[1] + df$airt[mem] * mlr_pars$dt$b2_est[1] + mlr_pars$dt$b0_est[1] + rnorm(100, 0, Wt)
-      }
-    }
+    wtemp_fc_out2$lst[[2]] <- out$df[, c("Date", "forecast")]
     
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out2$dist[[idx]] <- dat
+  })
+  
+  observeEvent(input$run_proc_fc_Atemp, {
     
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out2$mlt[[idx]] <- mlt
+    out <- run_process_forecast(model = 3, 
+                                data = airt_swt$df,
+                                airtemp_forecast = airt1_fc$df, 
+                                lr_pars3 = lr_eqn1$dt,
+                                lr_pars2 = lr_eqn$dt,
+                                mlr_pars = mlr_pars$dt,
+                                model_table = mod_selec_tab$dt,
+                                sigmas = sigma_table$df)
     
-    wtemp_fc_out2$lst[[idx]] <- df[, c("Date", "forecast")]
+    wtemp_fc_out2$dist[[3]] <- out$dat
+    
+    wtemp_fc_out2$mlt[[3]] <- out$mlt
+    
+    wtemp_fc_out2$lst[[3]] <- out$df[, c("Date", "forecast")]
+    
+  })
+  
+  observeEvent(input$run_proc_fc_Both, {
+    
+    out <- run_process_forecast(model = 4, 
+                                data = airt_swt$df,
+                                airtemp_forecast = airt1_fc$df, 
+                                lr_pars3 = lr_eqn1$dt,
+                                lr_pars2 = lr_eqn$dt,
+                                mlr_pars = mlr_pars$dt,
+                                model_table = mod_selec_tab$dt,
+                                sigmas = sigma_table$df)
+    
+    wtemp_fc_out2$dist[[4]] <- out$dat
+    
+    wtemp_fc_out2$mlt[[4]] <- out$mlt
+    
+    wtemp_fc_out2$lst[[4]] <- out$df[, c("Date", "forecast")]
+    
   })
   
   # plot process uncertainty forecast output
@@ -1703,6 +1706,14 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$gen_proc_dist > 0,
+           message = "Click 'Generate distributions' above.")
     )
     validate(
       need(any(!is.na(wtemp_fc_out2$mlt)),
@@ -1805,8 +1816,16 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$gen_proc_dist > 0,
+           message = "Click 'Generate distributions' above.")
+    )
+    validate(
       need(input$mod_selec_tab2_rows_selected != "",
-           message = "")
+           message = "Please select a model in the table.")
     )
     withMathJax(
       tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab2_rows_selected])
@@ -1816,7 +1835,7 @@ shinyServer(function(input, output, session) {
   # this text lets you know when the forecast from the current model is complete
   output$txt_fc_out2 <- renderText({
     validate(
-      need(!is.null(input$mod_selec_tab2_rows_selected), "Select a model in the table.")
+      need(!is.null(input$mod_selec_tab2_rows_selected), "")
     )
     validate(
       need(!is.na(wtemp_fc_out2$mlt[[input$mod_selec_tab2_rows_selected]]), "Click 'Run forecast'")
