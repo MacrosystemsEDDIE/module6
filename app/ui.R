@@ -1186,18 +1186,15 @@ ui <- function(request) {
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(6,
+                                               column(4,
                                                       h4("Generate Parameter Distributions"),
                                                       p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models. We will then draw 100 samples from these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
                                                       p(id = "txt_j", "Select a model from the table below and then generate parameter distributions and run the forecast."),
                                                       p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table.")
                                                ),
-                                               column(6,
-                                                      DTOutput("mod_selec_tab3"),
-                                                      br(),
-                                                      actionButton("gen_params3b", "Generate parameter distributions"),
-                                                      actionButton("run_wtemp_fc3b", "Run forecast"),
-                                               )
+                                               column(8,
+                                                      DTOutput("mod_selec_tab3")
+                                                      )
                                              ),
                                              fluidRow(
                                                column(6,

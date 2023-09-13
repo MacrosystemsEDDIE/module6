@@ -1946,45 +1946,108 @@ shinyServer(function(input, output, session) {
                              ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("1 year model","2 year model"),
                              server = FALSE, escape = FALSE)
   
-  # create buttons for model data table
-  gen_param_btns <- create_btns(x = c("gen_param_pers","gen_param_wtemp","gen_param_atemp","gen_param_both"), label = "Run forecast")
-  param_fc_btns <- create_btns(x = c("run_param_fc_pers","run_param_fc_wtemp","run_param_fc_atemp","run_param_fc_both"), label = "Generate parameter distributions")
-  
-  # model selection table
-  output$mod_selec_tab3 <- renderDT({
-    mod_selec_tab$dt[, c(1, 5)] %>%
-      bind_cols("Buttons1" = gen_param_btns) %>%
-      bind_cols("Buttons2" = param_fc_btns)
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "","",""), rownames = mod_names,
-  server = FALSE, escape = FALSE)
+  # model selection table for parameter forecasts
+  output$mod_selec_tab3 <- renderDataTable({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    param <- mod_selec_tab$dt[, c(1,5)] %>%
+      mutate(models = paste0("fc3_",mod_names),
+             params = paste0("param_",mod_names),
+             Buttons1 = glue('<button id="{params}" onclick="Shiny.onInputChange(\'{params}\', \'1\')">Generate parameter distributions</button>'),
+             Buttons2 = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
+      select(-models, - params)
+    
+    DT::datatable(param, selection = "single",
+                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
+                                 columnDefs = list(list(width = '10%', targets = "_all")),
+                                 scrollX = TRUE),
+                  colnames = c("Model","","",""), rownames = mod_names,
+                  escape = FALSE)
+  })
   
   # create reactive value to hold parameter distributions
-  param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)))
+  param_dist3b <- reactiveValues(dist = as.list(rep(NA, 4)),
+                                 main = NULL)
   
   # this code will run when the user clicks 'Generate parameter distributions'
-  observeEvent(input$gen_params3b, {
-    req(input$mod_selec_tab3_rows_selected != "")
+  observeEvent(input$param_Pers, {
+
+    idx <- 1
     
-    idx <- input$mod_selec_tab3_rows_selected
-    
-    if(idx == 3) {
-      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
-                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
-    } else if(idx == 1) {
       df <- "None"
-    } else if(idx == 2) {
+
+    param_dist3b$dist[[idx]] <- df
+    
+    p <- ggplot() +
+      annotate("text", x = 10,  y = 10,
+               size = 6,
+               label = "Looks like the model you selected has no parameters.\nBut you can still generate a forecast with it below!") + theme_void()
+    
+    param_dist3b$main <- p
+  })
+  
+  observeEvent(input$param_Wtemp, {
+
+    idx <- 2
+    
       df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[1], lr_pars$dt$m_se[1]),
                        b = rnorm(5000, lr_pars$dt$b_est[1], lr_pars$dt$b_se[1]))
-    } else if(idx == 4) {
+  
+    param_dist3b$dist[[idx]] <- df
+    
+    mlt <- reshape::melt(param_dist3b$dist[[idx]])
+    
+    p <- ggplot(mlt) +
+      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
+      facet_wrap(~variable, nrow = 1, scales = "free_x") +
+      theme_bw(base_size = 16)
+    
+    param_dist3b$main <- p
+  })
+  
+  observeEvent(input$param_Atemp, {
+
+    idx <- 3
+    
+      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
+   
+    param_dist3b$dist[[idx]] <- df
+    
+    mlt <- reshape::melt(param_dist3b$dist[[idx]])
+    
+    p <- ggplot(mlt) +
+      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
+      facet_wrap(~variable, nrow = 1, scales = "free_x") +
+      theme_bw(base_size = 16)
+    
+    param_dist3b$main <- p
+  })
+  
+  observeEvent(input$param_Both, {
+
+    idx <- 4
+    
       df <- data.frame(beta0 = rnorm(5000, mlr_pars$dt$b0_est[1], mlr_pars$dt$b0_se[1]),
                        beta1 = rnorm(5000, mlr_pars$dt$b1_est[1], mlr_pars$dt$b1_se[1]),
                        beta2 = rnorm(5000, mlr_pars$dt$b2_est[1], mlr_pars$dt$b2_se[1]))
-    }
+
     param_dist3b$dist[[idx]] <- df
+    
+    mlt <- reshape::melt(param_dist3b$dist[[idx]])
+    
+    p <- ggplot(mlt) +
+      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
+      facet_wrap(~variable, nrow = 1, scales = "free_x") +
+      theme_bw(base_size = 16)
+    
+    param_dist3b$main <- p
   })
   
   # write plot output for parameter distributions
@@ -1994,39 +2057,20 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$mod_selec_tab3_rows_selected != "", "Please select a model in the table.")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
     )
-    idx <- input$mod_selec_tab3_rows_selected
-    
-    if(idx == 1) {
-      validate(
-        need(param_dist3b$dist[[idx]] != "None", "Looks like the model you selected has no parameters, but you can still generate a forecast with it below!")
-      )
-    }
-    
     validate(
-      need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameter distributions'.")
+      need(!is.null(param_dist3b$main),
+           message = "Please select a model and generate parameter distributions.")
     )
-    
-    mlt <- reshape::melt(param_dist3b$dist[[idx]])
-    
-    ggplot(mlt) +
-      geom_density(aes(value), fill = l.cols[idx], alpha = 0.5) +
-      facet_wrap(~variable, nrow = 1, scales = "free_x") +
-      theme_bw(base_size = 16)
+
+      param_dist3b$main
     
   })
   
-  # disable run forecast button if no model selected
-  observe({
-    if(is.null(input$mod_selec_tab3_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc3b")
-    } else {
-      shinyjs::enable("run_wtemp_fc3b")
-    }
-  })
   
-  # create reactive value for data for process uncertainty forecast
+  # create reactive value for data for parameter uncertainty forecast
   wtemp_fc_data3 <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
   
   # create reactive value to hold forecast output
