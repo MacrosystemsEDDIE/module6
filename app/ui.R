@@ -900,9 +900,49 @@ ui <- function(request) {
                                                column(6,
                                                       h3("Deterministic Forecasts"),
                                                       p(id = "txt_j", "Now we will generate ", tags$b("deterministic"), " forecasts with each of our models. We will use the use the forecasted driver data (air temperature) for the models that use it as a driver. We will generate forecasts from today (Sep 25th), which is represented in the plots as the vertical dashed line, for seven days into the future (Oct 2nd)."),
-                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab1a"),
+                                                      p(id = "txt_j", "Click 'Run forecast' for each of the models in the list below."),
+                                                      fluidRow(
+                                                        column(8,
+                                                               h4("List of models:")),
+                                                        column(4,
+                                                               p(tags$b("")))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                                 column(8,
+                                                                        p(tags$b("Persistence model (Pers):")),
+                                                                        uiOutput("persUI_1"),
+                                                                        br()),
+                                                                 column(4,
+                                                                        actionButton("fc1_Pers","Run forecast"))
+                                                               ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Water temperature linear regression model (Wtemp):")),
+                                                               uiOutput("wtempUI_1"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc1_Wtemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Air temperature linear regression model (Atemp):")),
+                                                               uiOutput("atempUI_1"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc1_Atemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Multiple linear regression model (Both):")),
+                                                               uiOutput("bothUI_1"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc1_Both","Run forecast"))
+                                                      ),
                                                       br(), 
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
@@ -921,12 +961,7 @@ ui <- function(request) {
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
-                                                      downloadButton("save_deter_fc_plot", "Download plot", icon = icon("download")),
-                                                      br(),br(),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod1a"),
-                                                        textOutput("txt_fc_out1a")
-                                                      )
+                                                      downloadButton("save_deter_fc_plot", "Download plot", icon = icon("download"))
                                                )
                                              ),
                                              hr(),
@@ -1064,20 +1099,55 @@ ui <- function(request) {
                                                column(6,
                                                       h4("Forecast with Process Uncertainty"),
                                                       p(id = "txt_j", "Now we can generate forecasts with process uncertainty. Run each of the models as an ensemble forecast with process uncertainty and observe how the outcome changes compared to deterministic forecasts."),
-                                                      p(id = "txt_j", "Select a model from the table below and click 'Run forecast'."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab2"),
-                                                      br(), br(),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod2"),
-                                                        textOutput("txt_fc_out2")
+                                                      p(id = "txt_j", "Click 'Run forecast' for each of the models in the list below."),
+                                                      fluidRow(
+                                                        column(8,
+                                                               h4("List of models:")),
+                                                        column(4,
+                                                               p(tags$b("")))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Persistence model (Pers):")),
+                                                               uiOutput("persUI_2"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc2_Pers","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Water temperature linear regression model (Wtemp):")),
+                                                               uiOutput("wtempUI_2"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc2_Wtemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Air temperature linear regression model (Atemp):")),
+                                                               uiOutput("atempUI_2"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc2_Atemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Multiple linear regression model (Both):")),
+                                                               uiOutput("bothUI_2"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc2_Both","Run forecast"))
                                                       )
                                                ),
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
                                                       ),
-                                                      conditionalPanel("input.run_proc_fc_Both > 0 || input.run_proc_fc_Pers > 0 || input.run_proc_fc_Wtemp > 0 || input.run_proc_fc_Atemp > 0",
+                                                      conditionalPanel("input.fc2_Both > 0 || input.fc2_Pers > 0 || input.fc2_Wtemp > 0 || input.fc2_Atemp > 0",
                                                                        p(id = "txt_j", "Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type2", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE),
@@ -1189,11 +1259,59 @@ ui <- function(request) {
                                                column(4,
                                                       h4("Generate Parameter Distributions"),
                                                       p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models. We will then draw 100 samples from these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
-                                                      p(id = "txt_j", "Select a model from the table below and then generate parameter distributions and run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table.")
+                                                      p(id = "txt_j", "Generate parameter distributions and run the forecast for each model in the list below."),
                                                ),
                                                column(8,
-                                                      DTOutput("mod_selec_tab3")
+                                                      fluidRow(
+                                                        column(8,
+                                                               h4("List of models:")),
+                                                        column(4,
+                                                               p(tags$b("")))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Persistence model (Pers):")),
+                                                               uiOutput("persUI_3"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("param_Pers","Generate parameter distributions"),
+                                                               br(),br(),
+                                                               actionButton("fc3_Pers","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Water temperature linear regression model (Wtemp):")),
+                                                               uiOutput("wtempUI_3"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("param_Wtemp","Generate parameter distributions"),
+                                                               br(),br(),
+                                                               actionButton("fc3_Wtemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Air temperature linear regression model (Atemp):")),
+                                                               uiOutput("atempUI_3"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("param_Atemp","Generate parameter distributions"),
+                                                               br(),br(),
+                                                               actionButton("fc3_Atemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Multiple linear regression model (Both):")),
+                                                               uiOutput("bothUI_3"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("param_Both","Generate parameter distributions"),
+                                                               br(),br(),
+                                                               actionButton("fc3_Both","Run forecast"))
+                                                      )
                                                       )
                                              ),
                                              fluidRow(
@@ -1210,11 +1328,7 @@ ui <- function(request) {
                                                       ),
                                                       downloadButton("save_param_fc_plot", "Download plot", icon = icon("download")),
                                                       br(),br(),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod3b"),
-                                                        textOutput("txt_fc_out3b")
-                                                      ),
-                                                      conditionalPanel("input.run_wtemp_fc3b > 0",
+                                                      conditionalPanel("input.fc3_Both > 0 || input.fc3_Pers > 0 || input.fc3_Wtemp > 0 || input.fc3_Atemp > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE)
@@ -1307,8 +1421,8 @@ ui <- function(request) {
                                              fluidRow(
                                                column(4,
                                                       h4("Generate Initial Condition Distribution"),
-                                                      p("To account for initial condition uncertainty we can generate a distribution around this value and then run our model with slightly different initial conditions."),
-                                                      p(id = "txt_j", "Use the slider below to adjust the standard deviation and then generate a normal distribution around the initial condition."),
+                                                      p("Our water temperature has an observation uncertainty of ",tags$b("0.1 degrees Celsius.")),
+                                                      p(id = "txt_j", "Click the button below to generate a normal distribution around the initial condition (which is our most recent observation) with a standard deviation of 0.1 degrees C."),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
                                                column(4,
@@ -1329,13 +1443,50 @@ ui <- function(request) {
                                                column(6,
                                                       h4("Forecast with Initial Conditions Uncertainty"),
                                                       p(id = "txt_j", "Now we will generate forecasts with different initial conditions for each of our models."),
-                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab4"),
-                                                      br(),
-                                                      actionButton("run_wtemp_fc4", "Run forecast"),
-                                                      br(),
-                                                      p(id = "txt_j", "We will use 100 different initial condtions in the forecast ensemble. These will be sampled from the distribution generated above."),
+                                                      p(id = "txt_j", "We will use 100 different initial conditions in the forecast ensemble. These will be sampled from the distribution generated above."),
+                                                      p(id = "txt_j", "Click 'Run forecast' for each of the models in the list below."),
+                                                      fluidRow(
+                                                        column(8,
+                                                               h4("List of models:")),
+                                                        column(4,
+                                                               p(tags$b("")))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Persistence model (Pers):")),
+                                                               uiOutput("persUI_4"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc4_Pers","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Water temperature linear regression model (Wtemp):")),
+                                                               uiOutput("wtempUI_4"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc4_Wtemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Air temperature linear regression model (Atemp):")),
+                                                               uiOutput("atempUI_4"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc4_Atemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Multiple linear regression model (Both):")),
+                                                               uiOutput("bothUI_4"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc4_Both","Run forecast"))
+                                                      ),
                                                       br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
@@ -1356,11 +1507,7 @@ ui <- function(request) {
                                                       ),
                                                       downloadButton("save_ic_fc_plot", "Download plot", icon = icon("download")),
                                                       br(),br(),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod4"),
-                                                        textOutput("txt_fc_out4")
-                                                        ),
-                                                      conditionalPanel("input.run_wtemp_fc4 > 0",
+                                                      conditionalPanel("input.fc4_Both > 0 || input.fc4_Pers > 0 || input.fc4_Wtemp > 0 || input.fc4_Atemp > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE)
@@ -1434,27 +1581,61 @@ ui <- function(request) {
                                                column(6,
                                                       h4("Forecast with Driver Data Uncertainty"),
                                                       p(id = "txt_j", "Now we will generate forecasts using the NOAA air temperature ensemble forecast to drive each of our models."),
-                                                      p(id = "txt_j", "Select a model from the table below and then run the forecast."),
-                                                      p(id = "txt_j", "Note: If there are '$' in the table below, click on one of the rows and this will re-render the table."),
-                                                      DTOutput("mod_selec_tab5"),
-                                                      br(),
-                                                      actionButton("run_wtemp_fc5", "Run forecast"),
-                                                      br(),
-                                                      wellPanel(
-                                                        uiOutput("sel_mod5"),
-                                                        textOutput("txt_fc_out5")
+                                                      p(id = "txt_j", "Click 'Run forecast' for each of the models in the list below."),
+                                                      fluidRow(
+                                                        column(8,
+                                                               h4("List of models:")),
+                                                        column(4,
+                                                               p(tags$b("")))
                                                       ),
-                                                      conditionalPanel("input.run_wtemp_fc5 > 0",
-                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
-                                                                       radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                                                    inline = TRUE)
-                                                      )
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Persistence model (Pers):")),
+                                                               uiOutput("persUI_5"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc5_Pers","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Water temperature linear regression model (Wtemp):")),
+                                                               uiOutput("wtempUI_5"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc5_Wtemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Air temperature linear regression model (Atemp):")),
+                                                               uiOutput("atempUI_5"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc5_Atemp","Run forecast"))
+                                                      ),
+                                                      hr(),
+                                                      fluidRow(
+                                                        column(8,
+                                                               p(tags$b("Multiple linear regression model (Both):")),
+                                                               uiOutput("bothUI_5"),
+                                                               br()),
+                                                        column(4,
+                                                               actionButton("fc5_Both","Run forecast"))
+                                                      ),                            
+                                                      br()
                                                ),
                                                column(6,
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc5")
                                                       ),
-                                                      downloadButton("save_driver_fc_plot", "Download plot", icon = icon("download"))
+                                                      downloadButton("save_driver_fc_plot", "Download plot", icon = icon("download")),
+                                                      conditionalPanel("input.fc5_Both > 0 || input.fc5_Pers > 0 || input.fc5_Wtemp > 0 || input.fc5_Atemp > 0",
+                                                                       p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
+                                                                       radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
+                                                                                    inline = TRUE)
+                                                      )
                                                )
                                              ),
                                              hr(),
@@ -1562,6 +1743,7 @@ ui <- function(request) {
                                                       h4("Model 1"),
                                                       p(id = "txt_j", "For our forecasts, uncertainty is represented in the spread or the ", tags$em("variation"), " of the forecast ensemble members. From this variation we can calculate the ", tags$em("standard deviation"), " across our ensemble members and use this as a quantification of our uncertainty."),
                                                       actionButton("quant_ucA", "Quantify uncertainty"),
+                                                      br(),br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
@@ -1611,6 +1793,7 @@ ui <- function(request) {
                                                       h4("Model 2"),
                                                       p(id = "txt_j", "Quantify uncertainty for the second model you have selected, compare the two results, and answer the questions below."),
                                                       actionButton("quant_ucB", "Quantify uncertainty"),
+                                                      br(),br(),
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(

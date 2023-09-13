@@ -1276,27 +1276,61 @@ shinyServer(function(input, output, session) {
     return(ggplotly(p, dynamicTicks = TRUE))
   })
   
-  # model selection table for deterministic forecasts
-  output$mod_selec_tab1a <- renderDataTable({
+  #create UI outputs for model equations
+  output$persUI_1 <- renderUI({
     validate(
       need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
+           message = "Select site in Objective 1.")
     )
     validate(
       need(!is.null(all_mods_df$df),
-           message = "Please fit models in Objective 3.")
+           message = "Fit models in Objective 3.")
     )
-    deter <- mod_selec_tab$dt[, c(1,5)] %>%
-      mutate(models = paste0("fc1_",mod_names),
-             Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
-      select(-models)
-    
-    DT::datatable(deter, selection = "single",
-                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                                 columnDefs = list(list(width = '10%', targets = "_all")),
-                                 scrollX = TRUE),
-                  colnames = c("Model","",""), rownames = mod_names,
-                  escape = FALSE)
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[1])
+    )
+  })
+  
+  output$wtempUI_1 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[2])
+    )
+  })
+  
+  output$atempUI_1 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[3])
+    )
+  })
+  
+  output$bothUI_1 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[4])
+    )
   })
   
   # create reactive value for output of deterministic forecasts
@@ -1442,48 +1476,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # text showing equation of selected model
-  output$sel_mod1a <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.na(mod_selec_tab$dt[1,1]),
-           message = "Please fit models in Objective 3.")
-    )
-    validate(
-      need(!is.na(mod_selec_tab$dt[2,1]),
-           message = "Please fit models in Objective 3.")
-    )
-    validate(
-      need(!is.na(mod_selec_tab$dt[3,1]),
-           message = "Please fit models in Objective 3.")
-    )
-    validate(
-      need(!is.na(mod_selec_tab$dt[4,1]),
-           message = "Please fit models in Objective 3.")
-    )
-    validate(
-      need(input$mod_selec_tab1a_rows_selected != "",
-           message = "Please select a model in the table.")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab1a_rows_selected])
-    )
-  })
-  
-  # text showing forecast is complete
-  output$txt_fc_out1a <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab1a_rows_selected), "")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out1a$lst[[input$mod_selec_tab1a_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
-  
   # end Objective 4 and Activity A
   
   #### Activity B ----
@@ -1595,27 +1587,61 @@ shinyServer(function(input, output, session) {
   server = FALSE, escape = FALSE)
   
   
-  # model selection table for process forecasts
-  output$mod_selec_tab2 <- renderDataTable({
+  #create UI outputs for model equations
+  output$persUI_2 <- renderUI({
     validate(
       need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
+           message = "Select site in Objective 1.")
     )
     validate(
       need(!is.null(all_mods_df$df),
-           message = "Please fit models in Objective 3.")
+           message = "Fit models in Objective 3.")
     )
-    proc <- mod_selec_tab$dt[, c(1,5)] %>%
-      mutate(models = paste0("fc2_",mod_names),
-             Buttons = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
-      select(-models)
-    
-    DT::datatable(proc, selection = "single",
-                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                                 columnDefs = list(list(width = '10%', targets = "_all")),
-                                 scrollX = TRUE),
-                  colnames = c("Model","",""), rownames = mod_names,
-                  escape = FALSE)
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[1])
+    )
+  })
+  
+  output$wtempUI_2 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[2])
+    )
+  })
+  
+  output$atempUI_2 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[3])
+    )
+  })
+  
+  output$bothUI_2 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[4])
+    )
   })
   
   
@@ -1809,40 +1835,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # this shows the equation of the model you are running a forecast for
-  output$sel_mod2 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(!is.null(all_mods_df$df),
-           message = "Please fit models in Objective 3.")
-    )
-    validate(
-      need(input$gen_proc_dist > 0,
-           message = "Click 'Generate distributions' above.")
-    )
-    validate(
-      need(input$mod_selec_tab2_rows_selected != "",
-           message = "Please select a model in the table.")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab2_rows_selected])
-    )
-  })
-  
-  # this text lets you know when the forecast from the current model is complete
-  output$txt_fc_out2 <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab2_rows_selected), "")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out2$mlt[[input$mod_selec_tab2_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
-  
   # end Objective 5
   
   ## Objective 6 - Parameter Uncertainty ----
@@ -1852,7 +1844,48 @@ shinyServer(function(input, output, session) {
     slickR(param_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
   
-  # plot model fit from Objective 3 (one year of data)
+  # create reactive value for plot of model fit from year 1 and 2
+  airt_swt_plot_year1 <- reactiveValues(main = NULL)
+  
+  airt_swt_plot_year2 <- reactiveValues(main = NULL)
+  
+  # create reactive value for table with model fit parameters
+  param_uc_example_table <- reactiveValues(df = data.frame(m = c(NA,NA),
+                                                           b = c(NA,NA)))
+  
+  # calculate model params for first year and put in table and make plot
+  observeEvent(input$fit_model_year_1, {
+    
+    df <- airt_swt$sub
+    df <- na.exclude(df)
+    colnames(df)[2:3] <- c("airt", "wtemp")
+    df <- df %>%
+      filter(year(Date) == 2020)
+    fit <- lm(df$wtemp ~ df$airt)
+    out <- summary(fit)
+    
+    param_uc_example_table$df[1,] <- c(round(out$coefficients[2, 1], 2),round(out$coefficients[1, 1], 2))
+    
+    mx <- max(df$airt, df$wtemp, na.rm = TRUE) + 2
+    mn <- min(df$airt, df$wtemp, na.rm = TRUE) - 2
+    
+    sgmnt <- data.frame(x = mn, xend = mx, y = mn, yend = mx)
+    
+    p <- ggplot() +
+      geom_segment(data = sgmnt, aes(x, y, xend = xend, yend = yend), linetype = "dashed") +
+      ylab("Surface water temperature (\u00B0C)") +
+      xlab("Air temperature (\u00B0C)") +
+      geom_point(data = df, aes(airt, wtemp, color = "Obs")) +
+      scale_color_manual(values = c("Mod" = cols[5], "Obs" = "black"), name = "") +
+      theme_bw(base_size = 12) + 
+      geom_smooth(data = df, aes(airt, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
+                  se = FALSE) 
+    
+    airt_swt_plot_year1$main <- p
+    
+  })
+  
+  # plot model fit from one year of data
   output$model_fit_year_1 <- renderPlotly({
     validate(
       need(input$table01_rows_selected != "",
@@ -1866,29 +1899,7 @@ shinyServer(function(input, output, session) {
       need(input$fit_model_year_1 > 0,
            message = "Click 'Fit model to one year of data'.")
     )
-    airt_swt_plot_lines$main 
-  })
-  
-  # create reactive value for plot of model fit from year 2
-  airt_swt_plot_year2 <- reactiveValues(main = NULL)
-  
-  # create reactive value for table with model fit parameters
-  param_uc_example_table <- reactiveValues(df = data.frame(m = c(NA,NA),
-                                                           b = c(NA,NA)))
-  
-  # calculate model params for first year and put in table
-  observeEvent(input$fit_model_year_1, {
-    
-    df <- airt_swt$sub
-    df <- na.exclude(df)
-    colnames(df)[2:3] <- c("airt", "wtemp")
-    df <- df %>%
-      filter(year(Date) == 2020)
-    fit <- lm(df$wtemp ~ df$airt)
-    out <- summary(fit)
-    
-    param_uc_example_table$df[1,] <- c(round(out$coefficients[2, 1], 2),round(out$coefficients[1, 1], 2))
-    
+    airt_swt_plot_year1$main
   })
   
   # calculate model fit for second year and write plot
@@ -1946,29 +1957,61 @@ shinyServer(function(input, output, session) {
                              ), colnames = c("Slope (m)","Intercept (b)"), rownames = c("1 year model","2 year model"),
                              server = FALSE, escape = FALSE)
   
-  # model selection table for parameter forecasts
-  output$mod_selec_tab3 <- renderDataTable({
+  #create UI outputs for model equations
+  output$persUI_3 <- renderUI({
     validate(
       need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
+           message = "Select site in Objective 1.")
     )
     validate(
       need(!is.null(all_mods_df$df),
-           message = "Please fit models in Objective 3.")
+           message = "Fit models in Objective 3.")
     )
-    param <- mod_selec_tab$dt[, c(1,5)] %>%
-      mutate(models = paste0("fc3_",mod_names),
-             params = paste0("param_",mod_names),
-             Buttons1 = glue('<button id="{params}" onclick="Shiny.onInputChange(\'{params}\', \'1\')">Generate parameter distributions</button>'),
-             Buttons2 = glue('<button id="{models}" onclick="Shiny.onInputChange(\'{models}\', \'1\')">Run forecast</button>')) %>%
-      select(-models, - params)
-    
-    DT::datatable(param, selection = "single",
-                  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                                 columnDefs = list(list(width = '10%', targets = "_all")),
-                                 scrollX = TRUE),
-                  colnames = c("Model","","",""), rownames = mod_names,
-                  escape = FALSE)
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[1])
+    )
+  })
+  
+  output$wtempUI_3 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[2])
+    )
+  })
+  
+  output$atempUI_3 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[3])
+    )
+  })
+  
+  output$bothUI_3 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[4])
+    )
   })
   
   # create reactive value to hold parameter distributions
@@ -1987,7 +2030,7 @@ shinyServer(function(input, output, session) {
     p <- ggplot() +
       annotate("text", x = 10,  y = 10,
                size = 6,
-               label = "Looks like the model you selected has no parameters.\nBut you can still generate a forecast with it below!") + theme_void()
+               label = "Looks like the model you selected has no parameters.\nBut you can still generate a forecast with it!") + theme_void()
     
     param_dist3b$main <- p
   })
@@ -2069,84 +2112,58 @@ shinyServer(function(input, output, session) {
     
   })
   
-  
-  # create reactive value for data for parameter uncertainty forecast
-  wtemp_fc_data3 <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
-  
   # create reactive value to hold forecast output
   wtemp_fc_out3b <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this code will run when user clicks 'Run forecast'
-  observeEvent(input$run_wtemp_fc3b, {
+  observeEvent(input$fc3_Pers, {
 
-    idx <- input$mod_selec_tab3_rows_selected
-
-    pars <- param_dist3b$dist[[idx]]
-    if(idx != 1) {
-      pars <- pars[sample(1:nrow(pars), size = 100), ]
-    }
+    out <- run_param_forecast(model = 1, 
+                                          data = airt_swt$df,
+                                          airtemp_forecast = airt1_fc$df, 
+                                          param_dist = param_dist3b$dist,
+                                          model_table = mod_selec_tab$dt)
+    wtemp_fc_out3b$mlt[[1]] <- out$mlt
+    wtemp_fc_out3b$dist[[1]] <- out$dat
     
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
+  })
+  
+  observeEvent(input$fc3_Wtemp, {
     
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
-    
-    dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-    dat$wtemp[dat$Date > fc_date] <- NA
-    dat$forecast <- NA
-    dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-    dat$airt[dat$Date > fc_date] <- airt1_fc$df$value[2:8]
-    dat$wtemp_yday[dat$Date > lag_date] <- NA
-    dat$airt_yday[dat$Date > mn_date] <- NA
-    
-    df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-    df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data3$lst[[idx]] <- df
-    
-    # Run forecast
-    df <- wtemp_fc_data3$lst[[input$mod_selec_tab3_rows_selected]]
-    
-    mat <- matrix(NA, 8, 100)
-    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-    df <- df[(df$Date >= fc_date), ]
-    idx <- input$mod_selec_tab3_rows_selected
+    out <- run_param_forecast(model = 2, 
+                                          data = airt_swt$df,
+                                          airtemp_forecast = airt1_fc$df, 
+                                          param_dist = param_dist3b$dist,
+                                          model_table = mod_selec_tab$dt)
+      wtemp_fc_out3b$mlt[[2]] <- out$mlt
+    wtemp_fc_out3b$dist[[2]] <- out$dat
     
     
-    for(mem in 2:nrow(mat)) {
-      
-      if(idx == 3) {
-        mat[mem, ] <- df$airt[mem] * pars$m + pars$b
-      } else if(idx == 1) {
-        mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 2) {
-        mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
-      } else if(idx == 4) {
-        mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta0
-        
-      }
-    }
+  })
+  
+  observeEvent(input$fc3_Atemp, {
     
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out3b$dist[[idx]] <- dat
+    out <- run_param_forecast(model = 3, 
+                                          data = airt_swt$df,
+                                          airtemp_forecast = airt1_fc$df, 
+                                          param_dist = param_dist3b$dist,
+                                          model_table = mod_selec_tab$dt)
+      wtemp_fc_out3b$mlt[[3]] <- out$mlt
+    wtemp_fc_out3b$dist[[3]] <- out$dat
     
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out3b$mlt[[idx]] <- mlt
+    
+  })
+  
+  observeEvent(input$fc3_Both, {
+    
+    out <- run_param_forecast(model = 4, 
+                                          data = airt_swt$df,
+                                          airtemp_forecast = airt1_fc$df, 
+                                          param_dist = param_dist3b$dist,
+                                          model_table = mod_selec_tab$dt)
+      wtemp_fc_out3b$mlt[[4]] <- out$mlt
+    wtemp_fc_out3b$dist[[4]] <- out$dat
+    
     
   })
   
@@ -2159,18 +2176,15 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$mod_selec_tab3_rows_selected != "",
-           message = "Please select a model in the table.")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
     )
-    
-    idx <- input$mod_selec_tab3_rows_selected
-    
-    if(idx != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Click 'Generate parameter distributions'.")
-      )
-    }
-    
+
+    validate(
+      need(!is.null(param_dist3b$main),
+           message = "Please select a model and generate parameter distributions.")
+    )
+
     validate(
       need(any(!is.na(wtemp_fc_out3b$mlt)),
            message = "Click 'Run forecast'.")
@@ -2262,37 +2276,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # this shows the equation of the model you are running a forecast for
-  output$sel_mod3b <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab3_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab3_rows_selected])
-    )
-  })
-  
-  # this text lets you know when the forecast from the current model is complete
-  output$txt_fc_out3b <- renderText({
-    validate(
-      need(input$mod_selec_tab3_rows_selected != "", "Select a model in the table.")
-    )
-    if(input$mod_selec_tab3_rows_selected != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[input$mod_selec_tab3_rows_selected]]), "Click 'Generate parameter distributions'.")
-      )
-    }
-    validate(
-      need(!is.na(wtemp_fc_out3b$mlt[[input$mod_selec_tab3_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
-  
   # end Objective 6
   
   ## Objective 7 - Initial Conditions Uncertainty ----
@@ -2376,108 +2359,137 @@ shinyServer(function(input, output, session) {
     
   })
   
-  # create buttons for model data table
-  ic_fc_btns <- create_btns(x = c("run_ic_fc_pers","run_ic_fc_wtemp","run_ic_fc_atemp","run_ic_fc_both"), label = "Run forecast")
-  
-  # model selection table for initial conditions uncertainty
-  output$mod_selec_tab4 <- renderDT({
+  #create UI outputs for model equations
+  output$persUI_4 <- renderUI({
     validate(
       need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
+           message = "Select site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 5)] %>%
-      bind_cols("Buttons" = ic_fc_btns)
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "",""), rownames = mod_names,
-  server = FALSE, escape = FALSE)
-  
-  # disable run forecast button if no model selected
-  observe({
-    if(is.null(input$mod_selec_tab4_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc4")
-    } else {
-      shinyjs::enable("run_wtemp_fc4")
-    }
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[1])
+    )
   })
   
-  # create reactive value for data for initial conditions uncertainty forecast
-  wtemp_fc_data4 <- reactiveValues(lst = as.list(rep(NA, 4)), hist = NULL, fut = NULL)
+  output$wtempUI_4 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[2])
+    )
+  })
+  
+  output$atempUI_4 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[3])
+    )
+  })
+  
+  output$bothUI_4 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[4])
+    )
+  })
   
   # create reactive value for output of initial conditions uncertainty forecast
   wtemp_fc_out4 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
 
   # this code will run when user clicks "Run forecast"
-  observeEvent(input$run_wtemp_fc4, {
-    req(input$table01_rows_selected != "")
-    req(input$mod_selec_tab4_rows_selected != "")
-    idx <- input$mod_selec_tab4_rows_selected
+  observeEvent(input$fc4_Pers, {
     
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
+    out <- run_ic_forecast(model = 1, 
+                                data = airt_swt$df,
+                                airtemp_forecast = airt1_fc$df, 
+                                lr_pars3 = lr_eqn1$dt,
+                                lr_pars2 = lr_eqn$dt,
+                                mlr_pars = mlr_pars$dt,
+                                model_table = mod_selec_tab$dt)
     
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    wtemp_fc_out4$dist[[1]] <- out$dat
     
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
+    wtemp_fc_out4$mlt[[1]] <- out$mlt
     
+    wtemp_fc_out4$lst[[1]] <- out$df[, c("Date", "forecast")]
     
-    dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
-    dat$wtemp[dat$Date > fc_date] <- NA
-    dat$forecast <- NA
-    dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
-    dat$airt[dat$Date > fc_date] <- airt1_fc$df$value[2:8]
-    dat$wtemp_yday[dat$Date > lag_date] <- NA
-    dat$airt_yday[dat$Date > mn_date] <- NA
+  })
+  
+  observeEvent(input$fc4_Wtemp, {
     
-    df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
-    df <- merge(dat, df, by = "Date", all.y = TRUE)
-    wtemp_fc_data4$lst[[idx]] <- df
+    out <- run_ic_forecast(model = 2, 
+                           data = airt_swt$df,
+                           airtemp_forecast = airt1_fc$df, 
+                           lr_pars3 = lr_eqn1$dt,
+                           lr_pars2 = lr_eqn$dt,
+                           mlr_pars = mlr_pars$dt,
+                           model_table = mod_selec_tab$dt)
     
-    # Running Forecast
+    wtemp_fc_out4$dist[[2]] <- out$dat
     
-    df <- wtemp_fc_data4$lst[[input$mod_selec_tab4_rows_selected]]
+    wtemp_fc_out4$mlt[[2]] <- out$mlt
     
-    mat <- matrix(NA, 8, 100)
-    mat[1, ] <- rnorm(100, df$wtemp[which(df$Date == fc_date)], sd = 0.1) #0.1 is sensor error value
-    df <- df[(df$Date >= fc_date), ]
-    idx <- input$mod_selec_tab4_rows_selected
+    wtemp_fc_out4$lst[[2]] <- out$df[, c("Date", "forecast")]
     
-    for(mem in 2:nrow(mat)) {
-      if(idx == 3) {
-        mat[1, ] <- df$wtemp[which(df$Date == fc_date)] #no IC uc here!
-        mat[mem, ] <- df$airt[mem] * lr_eqn1$dt$m[1] + lr_eqn1$dt$b[1]
-      } else if(idx == 1) {
-        mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 2) {
-        mat[mem, ] <- mat[mem-1, ] * lr_eqn$dt$m[1] + lr_eqn$dt$b[1]
-      } else if(idx == 4) {
-        mat[mem, ] <- mat[mem-1, ] * mlr_pars$dt$b1_est[1] + df$airt[mem] * mlr_pars$dt$b2_est[1] + mlr_pars$dt$b0_est[1]
-      }
-    }
+  })
+  
+  observeEvent(input$fc4_Atemp, {
     
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out4$dist[[idx]] <- dat
+    out <- run_ic_forecast(model = 3, 
+                           data = airt_swt$df,
+                           airtemp_forecast = airt1_fc$df, 
+                           lr_pars3 = lr_eqn1$dt,
+                           lr_pars2 = lr_eqn$dt,
+                           mlr_pars = mlr_pars$dt,
+                           model_table = mod_selec_tab$dt)
     
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out4$mlt[[idx]] <- mlt
+    wtemp_fc_out4$dist[[3]] <- out$dat
     
-    wtemp_fc_out4$lst[[idx]] <- df[, c("Date", "forecast")]
+    wtemp_fc_out4$mlt[[3]] <- out$mlt
+    
+    wtemp_fc_out4$lst[[3]] <- out$df[, c("Date", "forecast")]
+    
+  })
+  
+  observeEvent(input$fc4_Both, {
+    
+    out <- run_ic_forecast(model = 4, 
+                           data = airt_swt$df,
+                           airtemp_forecast = airt1_fc$df, 
+                           lr_pars3 = lr_eqn1$dt,
+                           lr_pars2 = lr_eqn$dt,
+                           mlr_pars = mlr_pars$dt,
+                           model_table = mod_selec_tab$dt)
+    
+    wtemp_fc_out4$dist[[4]] <- out$dat
+    
+    wtemp_fc_out4$mlt[[4]] <- out$mlt
+    
+    wtemp_fc_out4$lst[[4]] <- out$df[, c("Date", "forecast")]
+    
   })
   
   
@@ -2490,8 +2502,15 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Click 'Generate distribution' above.")
+    )
+    validate(
       need(any(!is.na(wtemp_fc_out4$mlt)),
-           message = "Click 'Run forecast'.")
+           message = "Please select a model and click 'Run forecast'.")
     )
     
     p0 <- ggplot() +
@@ -2582,32 +2601,6 @@ shinyServer(function(input, output, session) {
       ggsave(file, plot = ic_fc_plot$main, device = device)
     }
   )
-  
-  # this shows the equation of the model you are running a forecast for
-  output$sel_mod4 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab4_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab4_rows_selected])
-    )
-  })
-  
-  # this text lets you know when the forecast from the current model is complete
-  output$txt_fc_out4 <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab4_rows_selected), "Select a model in the table.")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out4$mlt[[input$mod_selec_tab4_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
   
   # end Objective 7
   
@@ -2807,99 +2800,141 @@ shinyServer(function(input, output, session) {
     return(gp)
   })
   
-  # create buttons for model data table
-  driver_fc_btns <- create_btns(x = c("run_driver_fc_pers","run_driver_fc_wtemp","run_driver_fc_atemp","run_driver_fc_both"), label = "Run forecast")
-  
-  # model selection table for driver uncertainty forecasts
-  output$mod_selec_tab5 <- renderDT({
+  #create UI outputs for model equations
+  output$persUI_5 <- renderUI({
     validate(
       need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
+           message = "Select site in Objective 1.")
     )
-    mod_selec_tab$dt[, c(1, 5)] %>%
-      bind_cols("Buttons" = driver_fc_btns)
-  }, selection = "single",
-  options = list(searching = FALSE, paging = FALSE, ordering = FALSE, dom = "t", autoWidth = TRUE,
-                 columnDefs = list(list(width = '10%', targets = "_all")),
-                 scrollX = TRUE),
-  colnames = c("Model", "",""), rownames = mod_names,
-  server = FALSE, escape = FALSE)
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[1])
+    )
+  })
   
-  # disable run forecast button if no model selected in table
-  observe({
-    if(is.null(input$mod_selec_tab5_rows_selected)) {
-      shinyjs::disable("run_wtemp_fc5")
-    } else {
-      shinyjs::enable("run_wtemp_fc5")
-    }
+  output$wtempUI_5 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[2])
+    )
+  })
+  
+  output$atempUI_5 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[3])
+    )
+  })
+  
+  output$bothUI_5 <- renderUI({
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    withMathJax(
+      tags$p(mod_selec_tab$dt$eqn[4])
+    )
   })
   
   # create reactive value to hold driver uncertainty forecast output
   wtemp_fc_out5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this code will run when user clicks "Run forecast"
-  observeEvent(input$run_wtemp_fc5, {
+  observeEvent(input$fc5_Pers, {
     
-    req(input$table01_rows_selected != "")
+    out <- run_driver_forecast(model = 1, 
+                               data = airt_swt$df,
+                               airtemp_forecast = noaa_df$airt, 
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt,
+                               airtemp_forecast_data = wtemp_fc_data5$lst)
     
-    mlt <- noaa_df$airt
-    mlt$Date <- as.Date(mlt$time)
-    mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
-    mlt <- mlt[mlt$Date <= "2020-10-02", ]
+    wtemp_fc_out5$dist[[1]] <- out$dat
     
-    wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
-    wid <- as.data.frame(wid)
+    wtemp_fc_out5$mlt[[1]] <- out$mlt
     
-    idx <- input$mod_selec_tab5_rows_selected
+    wtemp_fc_out5$lst[[1]] <- out$df[, c("Date", "forecast")]
     
-    dat <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp,
-                      airt = airt_swt$df$airt,
-                      wtemp_yday = NA,
-                      airt_yday = NA)
+  })
+  
+  observeEvent(input$fc5_Wtemp, {
     
-    dat$wtemp_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
-    dat$airt_yday[-c(1:mod_selec_tab$dt$lag[idx])] <- dat$airt[-c((nrow(dat)+1-mod_selec_tab$dt$lag[idx]):nrow(dat))]
+    out <- run_driver_forecast(model = 2, 
+                               data = airt_swt$df,
+                               airtemp_forecast = noaa_df$airt, 
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt,
+                               airtemp_forecast_data = wtemp_fc_data5$lst)
     
-    lag_date <- (as.Date(fc_date) + mod_selec_tab$dt$lag[idx])
-    mn_date <- (as.Date(fc_date) + 1)
+    wtemp_fc_out5$dist[[2]] <- out$dat
     
-    df <- wtemp_fc_data5$lst[[1]]
+    wtemp_fc_out5$mlt[[2]] <- out$mlt
     
-    mat <- matrix(NA, 8, 30)
-    mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
-    df <- df[(df$Date >= fc_date), ]
-    idx <- input$mod_selec_tab5_rows_selected
-    driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date] )
+    wtemp_fc_out5$lst[[2]] <- out$df[, c("Date", "forecast")]
     
-    for(mem in 2:nrow(mat)) {
-      if(idx == 1) {
-        mat[mem, ] <- mat[mem-1, ]
-      } else if(idx == 2) {
-        mat[mem, ] <- mat[mem-1, ] * lr_eqn$dt$m[1] + lr_eqn$dt$b[1]
-      } else if(idx == 3) {
-        mat[mem, ] <- driv_mat[mem, ] * lr_eqn1$dt$m[1] + lr_eqn1$dt$b[1]
-      } else if(idx == 4) {
-        mat[mem, ] <- mat[mem-1, ] * mlr_pars$dt$b1_est[1] + driv_mat[mem, ] * mlr_pars$dt$b2_est[1] + mlr_pars$dt$b0_est[1]
-      }
-    }
+  })
+  
+  observeEvent(input$fc5_Atemp, {
     
-    # Calculate distributions
-    dat <- apply(mat, 1, function(x){
-      quantile(x, c(0.05, 0.5, 0.95))
-    })
-    dat <- as.data.frame(t(dat))
-    colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
-    dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    dat$Level <- as.character(idx)
-    wtemp_fc_out5$dist[[idx]] <- dat
+    out <- run_driver_forecast(model = 3, 
+                               data = airt_swt$df,
+                               airtemp_forecast = noaa_df$airt, 
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt,
+                               airtemp_forecast_data = wtemp_fc_data5$lst)
     
-    df2 <- as.data.frame(mat)
-    df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
-    mlt <- reshape::melt(df2, id.vars = "Date")
-    mlt$Level <- as.character(idx)
-    wtemp_fc_out5$mlt[[idx]] <- mlt
+    wtemp_fc_out5$dist[[3]] <- out$dat
     
-    wtemp_fc_out5$lst[[idx]] <- df[, c("Date", "forecast")]
+    wtemp_fc_out5$mlt[[3]] <- out$mlt
+    
+    wtemp_fc_out5$lst[[3]] <- out$df[, c("Date", "forecast")]
+    
+  })
+  
+  observeEvent(input$fc5_Both, {
+    
+    out <- run_driver_forecast(model = 4, 
+                               data = airt_swt$df,
+                               airtemp_forecast = noaa_df$airt, 
+                               lr_pars3 = lr_eqn1$dt,
+                               lr_pars2 = lr_eqn$dt,
+                               mlr_pars = mlr_pars$dt,
+                               model_table = mod_selec_tab$dt,
+                               airtemp_forecast_data = wtemp_fc_data5$lst)
+    
+    wtemp_fc_out5$dist[[4]] <- out$dat
+    
+    wtemp_fc_out5$mlt[[4]] <- out$mlt
+    
+    wtemp_fc_out5$lst[[4]] <- out$df[, c("Date", "forecast")]
+    
   })
   
   # create output object for driver uncertainty forecast plot
@@ -2908,6 +2943,14 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(wtemp_fc_data5$lst),
+           message = "Please load forecast above.")
     )
     validate(
       need(any(!is.na(wtemp_fc_out5$mlt)),
@@ -3009,31 +3052,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  # this shows the equation of the model you are running a forecast for
-  output$sel_mod5 <- renderUI({
-    validate(
-      need(input$table01_rows_selected != "",
-           message = "Please select a site in Objective 1.")
-    )
-    validate(
-      need(input$mod_selec_tab5_rows_selected != "",
-           message = "")
-    )
-    withMathJax(
-      tags$p(mod_selec_tab$dt$eqn[input$mod_selec_tab5_rows_selected])
-    )
-  })
-  
-  # this text lets you know when the forecast from the current model is complete
-  output$txt_fc_out5 <- renderText({
-    validate(
-      need(!is.null(input$mod_selec_tab5_rows_selected), "Select a model in the table.")
-    )
-    validate(
-      need(!is.na(wtemp_fc_out5$mlt[[input$mod_selec_tab5_rows_selected]]), "Click 'Run forecast'")
-    )
-    "Forecast complete!"
-  })
   
   # end Objective 8
   

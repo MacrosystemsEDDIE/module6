@@ -371,5 +371,205 @@ create_btns <- function(x, label) {
                      ))
 }
 
+# function to run parameter forecasts
+run_param_forecast <- function(model, data, airtemp_forecast, 
+                                 param_dist,
+                                 model_table){
+  
+idx <- model
+
+pars <- param_dist[[idx]]
+
+if(idx != 1) {
+  pars <- pars[sample(1:nrow(pars), size = 100), ]
+}
+
+dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                  airt = data$airt,
+                  wtemp_yday = NA,
+                  airt_yday = NA)
+
+dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+
+lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+mn_date <- (as.Date(fc_date) + 1)
+
+dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+dat$wtemp[dat$Date > fc_date] <- NA
+dat$forecast <- NA
+dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+dat$wtemp_yday[dat$Date > lag_date] <- NA
+dat$airt_yday[dat$Date > mn_date] <- NA
+
+df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+df <- merge(dat, df, by = "Date", all.y = TRUE)
+
+mat <- matrix(NA, 8, 100)
+mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+df <- df[(df$Date >= fc_date), ]
+
+for(mem in 2:nrow(mat)) {
+  
+  if(idx == 3) {
+    mat[mem, ] <- df$airt[mem] * pars$m + pars$b
+  } else if(idx == 1) {
+    mat[mem, ] <- mat[mem-1, ]
+  } else if(idx == 2) {
+    mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
+  } else if(idx == 4) {
+    mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta0
+    
+  }
+}
+
+# Calculate distributions
+dat <- apply(mat, 1, function(x){
+  quantile(x, c(0.05, 0.5, 0.95))
+})
+dat <- as.data.frame(t(dat))
+colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+dat$Level <- as.character(idx)
+
+df2 <- as.data.frame(mat)
+df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+mlt <- reshape::melt(df2, id.vars = "Date")
+mlt$Level <- as.character(idx)
+
+return(list(mlt = mlt, dat = dat))
+
+}
+
+# function to run ic forecasts
+run_ic_forecast <- function(model, data, airtemp_forecast, 
+                                 lr_pars3, lr_pars2, mlr_pars,
+                                 model_table){
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  
+  dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+  dat$wtemp[dat$Date > fc_date] <- NA
+  dat$forecast <- NA
+  dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+  dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+  dat$wtemp_yday[dat$Date > lag_date] <- NA
+  dat$airt_yday[dat$Date > mn_date] <- NA
+  
+  df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+  df <- merge(dat, df, by = "Date", all.y = TRUE)
+  
+  mat <- matrix(NA, 8, 100)
+  mat[1, ] <- rnorm(100, df$wtemp[which(df$Date == fc_date)], sd = 0.1) #0.1 is sensor error value
+  df <- df[(df$Date >= fc_date), ]
+
+  for(mem in 2:nrow(mat)) {
+    if(idx == 3) {
+      mat[1, ] <- df$wtemp[which(df$Date == fc_date)] #no IC uc here!
+      mat[mem, ] <- df$airt[mem] * lr_pars3$m[1] + lr_pars3$b[1]
+    } else if(idx == 1) {
+      mat[mem, ] <- mat[mem-1, ]
+    } else if(idx == 2) {
+      mat[mem, ] <- mat[mem-1, ] * lr_pars2$m[1] + lr_pars2$b[1]
+    } else if(idx == 4) {
+      mat[mem, ] <- mat[mem-1, ] * mlr_pars$b1_est[1] + df$airt[mem] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1]
+    }
+  }
+  
+  # Calculate distributions
+  dat <- apply(mat, 1, function(x){
+    quantile(x, c(0.05, 0.5, 0.95))
+  })
+  dat <- as.data.frame(t(dat))
+  colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+  dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  dat$Level <- as.character(idx)
+
+  df2 <- as.data.frame(mat)
+  df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  mlt <- reshape::melt(df2, id.vars = "Date")
+  mlt$Level <- as.character(idx)
+  
+  return(list(df = df, mlt = mlt, dat = dat))
+  
+}
+
+# function to run driver forecasts
+run_driver_forecast <- function(model, data, airtemp_forecast, 
+                            lr_pars3, lr_pars2, mlr_pars,
+                            model_table, airtemp_forecast_data){
+
+  mlt <- airtemp_forecast
+  mlt$Date <- as.Date(mlt$time)
+  mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+  mlt <- mlt[mlt$Date <= "2020-10-02", ]
+  
+  wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+  wid <- as.data.frame(wid)
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  df <- airtemp_forecast_data[[1]]
+  
+  mat <- matrix(NA, 8, 30)
+  mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+  df <- df[(df$Date >= fc_date), ]
+  idx <- model
+  driv_mat <- sapply(1:30, function(x) airtemp_forecast_data[[x]]$airt[airtemp_forecast_data[[x]]$Date >= fc_date] )
+  
+  for(mem in 2:nrow(mat)) {
+    if(idx == 1) {
+      mat[mem, ] <- mat[mem-1, ]
+    } else if(idx == 2) {
+      mat[mem, ] <- mat[mem-1, ] * lr_pars2$m[1] + lr_pars2$b[1]
+    } else if(idx == 3) {
+      mat[mem, ] <- driv_mat[mem, ] * lr_pars3$m[1] + lr_pars3$b[1]
+    } else if(idx == 4) {
+      mat[mem, ] <- mat[mem-1, ] * mlr_pars$b1_est[1] + driv_mat[mem, ] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1]
+    }
+  }
+  
+  # Calculate distributions
+  dat <- apply(mat, 1, function(x){
+    quantile(x, c(0.05, 0.5, 0.95))
+  })
+  dat <- as.data.frame(t(dat))
+  colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+  dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  dat$Level <- as.character(idx)
+  
+  df2 <- as.data.frame(mat)
+  df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  mlt <- reshape::melt(df2, id.vars = "Date")
+  mlt$Level <- as.character(idx)
+
+  return(list(dat = dat, mlt = mlt, df = df))
+  
+}
+
 
 # end
