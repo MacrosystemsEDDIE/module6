@@ -119,33 +119,6 @@ q8_table <- data.frame(
 )
 
 stats <- list("Minimum" = "Min.", "1st Quartile" = "1st Qu.", "Median" = "Median", "Mean" = "Mean", "3rd Quartile" = "3rd Qu.", "Maximum" = "Max.", "Standard Deviation" = "sd")
-mod_choices <- c("Negative", "No change", "Positive")
-# Sorting variables
-state_vars <- c("Phytoplankton", "Nitrogen")
-process_vars <- c("Mortality", "Uptake")
-
-# Parameters for NP model
-parms <- c(
-  maxUptake = 1.0, #day-1
-  kspar=120, #uEinst m-2 s-1
-  ksdin=0.5, #mmol m-3
-  maxGrazing=1.0, # day-1
-  ksphyto=1, #mmol N m-3
-  pFaeces=0.3, #unitless
-  mortalityRate=0.4, #(mmmolN m-3)-1 day-1
-  excretionRate=0.1, #day-1
-  mineralizationRate=0.1, #day-1
-  Chl_Nratio = 1, #mg chl (mmolN)-1
-  Q10 = 2,  #unitless
-  refTEMP = 20 # Reference temperature for q10
-)
-
-calib_model_png <- gsub("www/", "", list.files("www/calib_model/", full.names = TRUE))
-
-# Initial conditions for NP
-yini <- c(
-  PHYTO = 2, #mmolN m-3
-  DIN = 9) #mmolN m-3
 
 mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = element_line(colour = "black"),
                  axis.text.x=element_text(size=18, colour='black'), axis.text.y=element_text(size=18, colour='black'),
@@ -160,16 +133,13 @@ mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = ele
 png_theme <- theme(legend.position = "bottom",
                    legend.text = element_text(size = 14),
                    legend.title = element_text(size = 14))
+
 # Linear regression variables ----
 lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
                          fileEncoding = "UTF-8-BOM")
 
 # Forecast Date
 fc_date <- "2020-09-25"
-
-# Sampling frequency
-samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
-samp_freq2 <- c("Month", "Fortnight", "Week", "Day")
 
 # Uncertainty sources to include
 uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver", "Total")
@@ -183,7 +153,6 @@ tab_names <- read.csv("data/tab_names.csv", fileEncoding = "UTF-8-BOM")
 
 # Model names
 mod_names <- c("Pers", "Wtemp", "Atemp", "Both")
-
 
 # Dam levels
 dam_lev <- c("Surface", "Bottom")
@@ -252,7 +221,8 @@ run_deterministic_forecast <- function(model, data, airtemp_forecast,
   
   idx <- model
   
-  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+  dat <- data.frame(Date = data$Date, 
+                    wtemp = data$wtemp,
                     airt = data$airt,
                     wtemp_yday = NA,
                     airt_yday = NA)

@@ -474,7 +474,7 @@ shinyServer(function(input, output, session) {
   
   persist_plot <- reactiveValues(main = NULL, layer1 = NULL)
   
-  observeEvent(input$table01_rows_selected, {
+  observe({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -492,7 +492,11 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$plot_persist, {
+  observe({
+    validate(
+      need(input$plot_persist > 0,
+           message = "Click 'Plot'.")
+    )
     df <- persist_df$df
     df <- df[df$Date > "2020-01-01", ]
     persist_plot$layer1 <- geom_line(data = df, aes(Date, Mod, color = "Mod"))
@@ -500,7 +504,6 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observe({
     output$persist_plot <- renderPlotly({
       validate(
         need(input$table01_rows_selected != "",
@@ -512,7 +515,6 @@ shinyServer(function(input, output, session) {
         return(ggplotly(persist_plot$main, dynamicTicks = TRUE))
       }
     })
-  })
   
   # download plot of persistence model predictions
   output$save_pers_model_pred_plot <- downloadHandler(
@@ -528,7 +530,7 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  output$persist_r2 <- renderUI({
+  observe({
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -538,12 +540,8 @@ shinyServer(function(input, output, session) {
     )
     
     df <- persist_df$df
-    # df <- df[df$Date >= input$persist_date[1] & df$Date <= input$persist_date[2], ]
     df <- na.exclude(df)
-    # validate(
-    #   need(nrow(df) > 0, "No data between those dates. Adjust the Date range.")
-    # )
-    
+  
     fit <- lm(wtemp ~ Mod, data = df)
     out <- summary(fit)
     
@@ -559,12 +557,14 @@ shinyServer(function(input, output, session) {
   
   # Simple linear regression 1: Plot water temp today vs water temp yesterday
   
-  observeEvent(input$plot_airt_swt3, { # view_var
+  observe({ 
+    
+    validate(
+      need(input$plot_airt_swt3 > 0,
+           message = "Click 'Plot'")
+    )
     
     req(!is.null(airt_swt$df))
-    # Date slider
-    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
-    
     
     idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
     
@@ -609,7 +609,7 @@ shinyServer(function(input, output, session) {
   
   wt_reg_ts_plot <- reactiveValues(main = NULL)
   
-  observeEvent(input$plot_airt_swt3 | input$add_lm,{
+  observe({
     
     validate(
       need(input$table01_rows_selected != "",
@@ -617,6 +617,11 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(!is.null(airt_swt$sub),
+           message = "Click 'Plot data'")
+    )
+    
+    validate(
+      need(input$plot_airt_swt3 > 0,
            message = "Click 'Plot data'")
     )
     
@@ -645,17 +650,17 @@ shinyServer(function(input, output, session) {
     # }
     
     df$N <- nrow(df)
-
+    
     lm_fit$df_lst[[idx]] <- df
     
     lm_fit$fit <- fit
     
-
+    
     # For model selection table
     mod_selec_tab$dt$eqn[2] <- paste0("$$wtemp_{t+1} =  ", round(out$coefficients[2, 1], 2), " \\times wtemp_{t} + ", round(out$coefficients[1, 1], 2), "$$")
     mod_selec_tab$dt$r2[2] <- round(out$r.squared, 2)
     
-
+    
     mx <- max(df$wtemp_yday, df$wtemp, na.rm = TRUE) + 2
     mn <- min(df$wtemp_yday, df$wtemp, na.rm = TRUE) - 2
     
@@ -686,9 +691,9 @@ shinyServer(function(input, output, session) {
       theme_bw(base_size = 12)
     
     if(input$add_lm > 0) {
-     
+      
       p <- p + geom_smooth(data = df, aes(wtemp_yday, wtemp, color = "Mod"), method = "lm", formula = "y ~ x",
-                    se = FALSE) 
+                           se = FALSE) 
       
       lm_fit$eqn <- paste0("$$wtemp_{t} =  ", round(out$coefficients[2, 1], 2), "\\times wtemp_{t-1} + ", round(out$coefficients[1, 1], 2), "$$")
       
@@ -699,8 +704,8 @@ shinyServer(function(input, output, session) {
       
       mod <- predict(fit, df)
       pred <- data.frame(Date = df$Date,
-                     model = mod) 
-
+                         model = mod) 
+      
       p1 <- p1 + geom_line(data = pred, aes(Date, model, color = "Mod"))
       
     }
@@ -752,7 +757,6 @@ shinyServer(function(input, output, session) {
 
 
   output$lm_mod <- renderUI({
-    input$add_lm
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
@@ -773,12 +777,14 @@ shinyServer(function(input, output, session) {
   
   # Simple linear regression 2: Plot water temp vs air temp
   
-  observeEvent(input$plot_airt_swt4, { # view_var
+  observe({ # view_var
+    
+    validate(
+      need(input$plot_airt_swt4 > 0,
+           message = "Click 'Plot'")
+    )
     
     req(!is.null(airt_swt$df))
-    # Date slider
-    # airt_swt$sub <- airt_swt$df[airt_swt$df$Date >= input$date1[1] & airt_swt$df$Date <= input$date1[2], ]
-    
     
     idx_dates <- seq.Date(airt_swt$df$Date[1], to = airt_swt$df$Date[nrow(airt_swt$df)], by = "1 day")
     
@@ -823,7 +829,7 @@ shinyServer(function(input, output, session) {
   
   at_reg_ts_plot <- reactiveValues(main = NULL)
   
-  observeEvent(input$plot_airt_swt4 | input$add_lm1,{
+  observe({
     
     validate(
       need(input$table01_rows_selected != "",
@@ -831,6 +837,11 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    
+    validate(
+      need(input$plot_airt_swt4 > 0,
            message = "Click 'Plot'")
     )
     
@@ -988,7 +999,12 @@ shinyServer(function(input, output, session) {
   
   # Multiple linear regression model
   
-  observeEvent(input$plot_mlr, { # view_var
+  observe({ 
+    
+    validate(
+      need(input$plot_mlr > 0,
+           message = "Click 'Plot'")
+    )
     
     req(!is.null(airt_swt$df))
    
@@ -1032,7 +1048,7 @@ shinyServer(function(input, output, session) {
   mlr_ts_plot1 <- reactiveValues(main = NULL)
   
 
-  observeEvent(input$plot_mlr,{
+  observe({
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1040,6 +1056,11 @@ shinyServer(function(input, output, session) {
     )
     validate(
       need(!is.null(airt_swt$sub),
+           message = "Click 'Plot'")
+    )
+    
+    validate(
+      need(input$plot_mlr > 0,
            message = "Click 'Plot'")
     )
     
@@ -1148,7 +1169,7 @@ shinyServer(function(input, output, session) {
   all_mods_plot <- reactiveValues(main = NULL)
   all_mods_df <- reactiveValues(df = NULL)
   
-  observeEvent(input$plot_mlr,{
+  observe({
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1169,6 +1190,11 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(mlr_fit1$fit),
            message = "Be sure to fit all four models above!")
+    )
+    
+    validate(
+      need(input$plot_mlr > 0,
+           message = "Click 'Plot'")
     )
     
     df <- airt_swt$sub
@@ -1261,7 +1287,7 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(input$view_at_fc,
+      need(input$view_at_fc > 0,
            message = "Please click 'View forecast'")
     )
     
@@ -3936,42 +3962,43 @@ shinyServer(function(input, output, session) {
     rv3a$nxt <- readr::parse_number(curr_tab1) + 1
   })
   
-  # # Bookmarking
-  # bookmarkingWhitelist <- c("phy_ic","row_num","run_fc3","load_fc3","assess_fc4","update_fc2",
-  #                           "assess_fc3","run_fc2","load_fc2","conv_fc","add_lm3","run_qaqc2","add_lm2",
-  #                           "run_qaqc1","load_fc","submit_ques","run_mod_ann","run_mod_parm",
-  #                           "run_mod_ic","tabseries1","maintab","nut_uptake2","mort_rate2","phy_init2",
-  #                           "nut_uptake","mort_rate","phy_init","parm_mort_rate","members2",
-  #                           "add_newobs","add_obs","add_obs_parm","add_obs_ic","phy_init4","table01_rows_selected")
-  # 
+  # Bookmarking
+  bookmarkingWhitelist <- c("table01_rows_selected","plot_airt_swt","plot_airt_swt2","plot_persist", "plot_airt_swt3",
+  "plot_airt_swt4","add_lm","add_lm1","plot_mlr","view_at_fc","fc1_Pers","fc1_Wtemp",
+  "fc1_Atemp","fc1_Both","gen_proc_dist","fc2_Pers","fc2_Wtemp","fc2_Atemp","fc2_Both",
+  "fit_model_year_1","fit_model_year_2","param_Pers","fc3_Pers","param_Wtemp","fc3_Wtemp",
+  "param_Atemp","fc3_Atemp","param_Both","fc3_Both","gen_ic","fc4_Pers","fc4_Wtemp","fc4_Atemp",
+  "fc4_Both","load_noaa_at","fc5_Pers","fc5_Wtemp","fc5_Atemp","fc5_Both","mod_selec_tot_fc",
+  "run_tot_fcA","quant_ucA","run_tot_fcB","quant_ucB","dec_scen1","dec_scen2")
+  
   observeEvent(input$bookmarkBtn, {
     session$doBookmark()
   })
-  # 
-  # ExcludedIDs <- reactiveVal(value = NULL)
-  # 
-  # observe({
-  #   toExclude <- setdiff(names(input), bookmarkingWhitelist)
-  #   setBookmarkExclude(toExclude)
-  #   ExcludedIDs(toExclude)
-  # })
-  # 
-  # # Save extra values in state$values when we bookmark
-  # onBookmark(function(state) {
-  #   state$values$sel_row <- input$table01_rows_selected
-  # })
-  # 
-  # # Read values from state$values when we restore
-  # onRestore(function(state) {
-  #   updateTabsetPanel(session, "maintab",
-  #                     selected = "mtab4")
-  #   updateTabsetPanel(session, "tabseries1",
-  #                     selected = "obj1")
-  # })
-  # 
-  # onRestored(function(state) {
-  #   updateSelectizeInput(session, "row_num", selected = state$values$sel_row)
-  # })
+
+  ExcludedIDs <- reactiveVal(value = NULL)
+
+  observe({
+    toExclude <- setdiff(names(input), bookmarkingWhitelist)
+    setBookmarkExclude(toExclude)
+    ExcludedIDs(toExclude)
+  })
+
+  # Save extra values in state$values when we bookmark
+  onBookmark(function(state) {
+    state$values$sel_row <- input$table01_rows_selected
+  })
+
+  # Read values from state$values when we restore
+  onRestore(function(state) {
+    updateTabsetPanel(session, "maintab",
+                      selected = "mtab4")
+    updateTabsetPanel(session, "tabseries1",
+                      selected = "obj1")
+  })
+
+  onRestored(function(state) {
+    updateSelectizeInput(session, "row_num", selected = state$values$sel_row)
+  })
 
 
 })
