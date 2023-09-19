@@ -846,6 +846,7 @@ shinyServer(function(input, output, session) {
     )
     
     req(!is.null(airt_swt$sub))
+    
     tot_rows <- nrow(na.exclude(airt_swt$df))
     df <- airt_swt$sub
     df <- na.exclude(df)
