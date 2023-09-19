@@ -2706,19 +2706,28 @@ shinyServer(function(input, output, session) {
   ic_dist <- reactiveValues(df = NULL)
   
   # generate IC distribution 
-  observeEvent(input$gen_ic, {
+  observe({
+    
     req(input$table01_rows_selected != "")
     req(!is.null(wtemp_fc_data$hist))
+    
+    validate(
+      need(input$gen_ic > 0,
+           message = "")
+    )
+    
     mn_wtemp <- wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date == fc_date]
     ic_dist$df <- data.frame(value = rnorm(1000, mn_wtemp, 0.1)) #0.1 is assumed sensor observation error
   })
   
   # output code for plot of recent observations to inform IC
   output$ic_obs_plot <- renderPlotly({
+    
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
     )
+    
     df <- wtemp_fc_data$hist[2:5, ]
     
     p <- ggplot()
@@ -2755,7 +2764,11 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(ic_dist$df), "Click 'Generate distribution'")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Click 'Generate distribution'.")
     )
     
     df <- data.frame(x = wtemp_fc_data$hist$wtemp[wtemp_fc_data$hist$Date == fc_date],
@@ -2837,7 +2850,21 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out4 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
 
   # this code will run when user clicks "Run forecast"
-  observeEvent(input$fc4_Pers, {
+  wtemp_fc_out4_Pers <- reactive({
+    
+    if(input$fc4_Pers){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(ic_dist$df), "Click 'Generate distribution'.")
+      )
     
     out <- run_ic_forecast(model = 1, 
                                 data = airt_swt$df,
@@ -2847,15 +2874,42 @@ shinyServer(function(input, output, session) {
                                 mlr_pars = mlr_pars$dt,
                                 model_table = mod_selec_tab$dt)
     
-    wtemp_fc_out4$dist[[1]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out4$mlt[[1]] <- out$mlt
-    
-    wtemp_fc_out4$lst[[1]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc4_Wtemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out4_Pers()))){
+      
+      wtemp_fc_out4$dist[[1]] <- wtemp_fc_out4_Pers()$dist
+      
+      wtemp_fc_out4$mlt[[1]] <- wtemp_fc_out4_Pers()$mlt
+      
+      wtemp_fc_out4$lst[[1]] <- wtemp_fc_out4_Pers()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out4_Wtemp <- reactive({
+    
+    if(input$fc4_Wtemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(ic_dist$df), "Click 'Generate distribution'.")
+      )
     
     out <- run_ic_forecast(model = 2, 
                            data = airt_swt$df,
@@ -2865,15 +2919,42 @@ shinyServer(function(input, output, session) {
                            mlr_pars = mlr_pars$dt,
                            model_table = mod_selec_tab$dt)
     
-    wtemp_fc_out4$dist[[2]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out4$mlt[[2]] <- out$mlt
-    
-    wtemp_fc_out4$lst[[2]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc4_Atemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out4_Wtemp()))){
+      
+      wtemp_fc_out4$dist[[2]] <- wtemp_fc_out4_Wtemp()$dist
+      
+      wtemp_fc_out4$mlt[[2]] <- wtemp_fc_out4_Wtemp()$mlt
+      
+      wtemp_fc_out4$lst[[2]] <- wtemp_fc_out4_Wtemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out4_Atemp <- reactive({
+    
+    if(input$fc4_Atemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(ic_dist$df), "Click 'Generate distribution'.")
+      )
     
     out <- run_ic_forecast(model = 3, 
                            data = airt_swt$df,
@@ -2883,15 +2964,42 @@ shinyServer(function(input, output, session) {
                            mlr_pars = mlr_pars$dt,
                            model_table = mod_selec_tab$dt)
     
-    wtemp_fc_out4$dist[[3]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out4$mlt[[3]] <- out$mlt
-    
-    wtemp_fc_out4$lst[[3]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc4_Both, {
+  observe({
+    if(any(!is.na(wtemp_fc_out4_Atemp()))){
+      
+      wtemp_fc_out4$dist[[3]] <- wtemp_fc_out4_Atemp()$dist
+      
+      wtemp_fc_out4$mlt[[3]] <- wtemp_fc_out4_Atemp()$mlt
+      
+      wtemp_fc_out4$lst[[3]] <- wtemp_fc_out4_Atemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out4_Both <- reactive({
+    
+    if(input$fc4_Both){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(ic_dist$df), "Click 'Generate distribution'.")
+      )
     
     out <- run_ic_forecast(model = 4, 
                            data = airt_swt$df,
@@ -2901,12 +3009,25 @@ shinyServer(function(input, output, session) {
                            mlr_pars = mlr_pars$dt,
                            model_table = mod_selec_tab$dt)
     
-    wtemp_fc_out4$dist[[4]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out4$mlt[[4]] <- out$mlt
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
-    wtemp_fc_out4$lst[[4]] <- out$df[, c("Date", "forecast")]
-    
+  })
+  
+  observe({
+    if(any(!is.na(wtemp_fc_out4_Both()))){
+      
+      wtemp_fc_out4$dist[[4]] <- wtemp_fc_out4_Both()$dist
+      
+      wtemp_fc_out4$mlt[[4]] <- wtemp_fc_out4_Both()$mlt
+      
+      wtemp_fc_out4$lst[[4]] <- wtemp_fc_out4_Both()$lst
+      
+    }
   })
   
   
@@ -3028,14 +3149,10 @@ shinyServer(function(input, output, session) {
     slickR(driver_uc_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
   
-  # create a reactive value to hold the ensemble air temperature forecast
-  noaa_df <- reactiveValues(airt = NULL, swr = NULL)
-  
-  # create a reactive value to hold the data needed for driver uncertainty forecast
-  wtemp_fc_data5 <- reactiveValues(lst = NULL)
-  
   # this code will run when the user clicks "Load forecast"
-  observeEvent(input$load_noaa_at, {
+  noaa_df <- reactive({
+    
+    if(input$load_noaa_at > 0){
     
     req(input$table01_rows_selected != "")
     
@@ -3045,6 +3162,7 @@ shinyServer(function(input, output, session) {
                  detail = "This may take a while. This window will disappear
                      when it is finished loading.", value = 0.1)
     
+    noaa_data <- list()
     fpath <- file.path("data", "NOAAGEFS_1hr", siteID$lab)
     fc_date <- list.files(fpath)[1]
     fpath2 <- file.path(fpath, fc_date[1], "00")
@@ -3122,16 +3240,16 @@ shinyServer(function(input, output, session) {
     # out$`2020-09-25`$L1 <- "Air temperature"
     idx <- which(met_pars$Site == siteID$lab)
     
-    noaa_df$airt <- reshape::melt(out[[1]][out[[1]]$L1 == "air_temperature", ], id.vars = c("time", "L1"))
-    noaa_df$swr <- reshape::melt(out[[1]][out[[1]]$L1 == "surface_downwelling_shortwave_flux_in_air", ], id.vars = c("time", "L1"))
-    noaa_df$swt <- noaa_df$airt
-    noaa_df$swt$L1 <- "surface_water_temperature"
-    noaa_df$swt$value <- met_pars$airt_m[idx] * noaa_df$swt$value + met_pars$airt_b[idx]
-    noaa_df$upar <- noaa_df$swr
-    noaa_df$upar$L1 <- "underwater_photosynthetically_active_radiation"
-    noaa_df$upar$value <- met_pars$swr_m[idx] * noaa_df$upar$value + met_pars$swr_b[idx]
+    noaa_data$airt <- reshape::melt(out[[1]][out[[1]]$L1 == "air_temperature", ], id.vars = c("time", "L1"))
+    noaa_data$swr <- reshape::melt(out[[1]][out[[1]]$L1 == "surface_downwelling_shortwave_flux_in_air", ], id.vars = c("time", "L1"))
+    noaa_data$swt <- noaa_data$airt
+    noaa_data$swt$L1 <- "surface_water_temperature"
+    noaa_data$swt$value <- met_pars$airt_m[idx] * noaa_data$swt$value + met_pars$airt_b[idx]
+    noaa_data$upar <- noaa_data$swr
+    noaa_data$upar$L1 <- "underwater_photosynthetically_active_radiation"
+    noaa_data$upar$value <- met_pars$swr_m[idx] * noaa_data$upar$value + met_pars$swr_b[idx]
     
-    mlt <- noaa_df$airt
+    mlt <- noaa_data$airt
     mlt$Date <- as.Date(mlt$time)
     mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
     mlt <- mlt[mlt$Date <= "2020-10-02", ]
@@ -3150,7 +3268,7 @@ shinyServer(function(input, output, session) {
     lag_date <- (as.Date(fc_date) + 1)
     mn_date <- (as.Date(fc_date) + 1)
     
-    wtemp_fc_data5$lst <- lapply(1:30, function(x) {
+    noaa_data$lst <- lapply(1:30, function(x) {
       dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
       dat$wtemp[dat$Date > fc_date] <- NA
       dat$forecast <- NA
@@ -3163,6 +3281,10 @@ shinyServer(function(input, output, session) {
       df <- merge(dat, df, by = "Date", all.y = TRUE)
     })
     
+    return(list(airt = noaa_data$airt, swr = noaa_data$swr, lst = noaa_data$lst))
+    
+    }
+    
   })
   
   # this text lets the user know the forecast has loaded
@@ -3172,7 +3294,7 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
+      need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
     )
     return(paste0("Forecast loaded for ", siteID$lab))
   })
@@ -3184,10 +3306,10 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast'")
+      need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
     )
     
-    mlt <- noaa_df$airt
+    mlt <- noaa_df()$airt
     
     mlt$Date <- as.Date(mlt$time)
     mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
@@ -3278,80 +3400,188 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out5 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this code will run when user clicks "Run forecast"
-  observeEvent(input$fc5_Pers, {
+  wtemp_fc_out5_Pers <- reactive({
+    
+    if(input$fc5_Pers){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
+      )
     
     out <- run_driver_forecast(model = 1, 
                                data = airt_swt$df,
-                               airtemp_forecast = noaa_df$airt, 
+                               airtemp_forecast = noaa_df()$airt, 
                                lr_pars3 = lr_eqn1$dt,
                                lr_pars2 = lr_eqn$dt,
                                mlr_pars = mlr_pars$dt,
                                model_table = mod_selec_tab$dt,
-                               airtemp_forecast_data = wtemp_fc_data5$lst)
+                               airtemp_forecast_data = noaa_df()$lst)
     
-    wtemp_fc_out5$dist[[1]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out5$mlt[[1]] <- out$mlt
-    
-    wtemp_fc_out5$lst[[1]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc5_Wtemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out5_Pers()))){
+      
+      wtemp_fc_out5$dist[[1]] <- wtemp_fc_out5_Pers()$dist
+      
+      wtemp_fc_out5$mlt[[1]] <- wtemp_fc_out5_Pers()$mlt
+      
+      wtemp_fc_out5$lst[[1]] <- wtemp_fc_out5_Pers()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out5_Wtemp <- reactive({
+    
+    if(input$fc5_Wtemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
+      )
     
     out <- run_driver_forecast(model = 2, 
                                data = airt_swt$df,
-                               airtemp_forecast = noaa_df$airt, 
+                               airtemp_forecast = noaa_df()$airt, 
                                lr_pars3 = lr_eqn1$dt,
                                lr_pars2 = lr_eqn$dt,
                                mlr_pars = mlr_pars$dt,
                                model_table = mod_selec_tab$dt,
-                               airtemp_forecast_data = wtemp_fc_data5$lst)
+                               airtemp_forecast_data = noaa_df()$lst)
     
-    wtemp_fc_out5$dist[[2]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out5$mlt[[2]] <- out$mlt
-    
-    wtemp_fc_out5$lst[[2]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc5_Atemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out5_Wtemp()))){
+      
+      wtemp_fc_out5$dist[[2]] <- wtemp_fc_out5_Wtemp()$dist
+      
+      wtemp_fc_out5$mlt[[2]] <- wtemp_fc_out5_Wtemp()$mlt
+      
+      wtemp_fc_out5$lst[[2]] <- wtemp_fc_out5_Wtemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out5_Atemp <- reactive({
+    
+    if(input$fc5_Atemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
+      )
     
     out <- run_driver_forecast(model = 3, 
                                data = airt_swt$df,
-                               airtemp_forecast = noaa_df$airt, 
+                               airtemp_forecast = noaa_df()$airt, 
                                lr_pars3 = lr_eqn1$dt,
                                lr_pars2 = lr_eqn$dt,
                                mlr_pars = mlr_pars$dt,
                                model_table = mod_selec_tab$dt,
-                               airtemp_forecast_data = wtemp_fc_data5$lst)
+                               airtemp_forecast_data = noaa_df()$lst)
     
-    wtemp_fc_out5$dist[[3]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out5$mlt[[3]] <- out$mlt
-    
-    wtemp_fc_out5$lst[[3]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc5_Both, {
+  observe({
+    if(any(!is.na(wtemp_fc_out5_Atemp()))){
+      
+      wtemp_fc_out5$dist[[3]] <- wtemp_fc_out5_Atemp()$dist
+      
+      wtemp_fc_out5$mlt[[3]] <- wtemp_fc_out5_Atemp()$mlt
+      
+      wtemp_fc_out5$lst[[3]] <- wtemp_fc_out5_Atemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out5_Both <- reactive({
+    
+    if(input$fc5_Both){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(!is.null(noaa_df()$airt), "Please click 'Load forecast'")
+      )
     
     out <- run_driver_forecast(model = 4, 
                                data = airt_swt$df,
-                               airtemp_forecast = noaa_df$airt, 
+                               airtemp_forecast = noaa_df()$airt, 
                                lr_pars3 = lr_eqn1$dt,
                                lr_pars2 = lr_eqn$dt,
                                mlr_pars = mlr_pars$dt,
                                model_table = mod_selec_tab$dt,
-                               airtemp_forecast_data = wtemp_fc_data5$lst)
+                               airtemp_forecast_data = noaa_df()$lst)
     
-    wtemp_fc_out5$dist[[4]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out5$mlt[[4]] <- out$mlt
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
-    wtemp_fc_out5$lst[[4]] <- out$df[, c("Date", "forecast")]
-    
+  })
+  
+  observe({
+    if(any(!is.na(wtemp_fc_out5_Both()))){
+      
+      wtemp_fc_out5$dist[[4]] <- wtemp_fc_out5_Both()$dist
+      
+      wtemp_fc_out5$mlt[[4]] <- wtemp_fc_out5_Both()$mlt
+      
+      wtemp_fc_out5$lst[[4]] <- wtemp_fc_out5_Both()$lst
+      
+    }
   })
   
   # create output object for driver uncertainty forecast plot
@@ -3366,8 +3596,7 @@ shinyServer(function(input, output, session) {
            message = "Please fit models in Objective 3.")
     )
     validate(
-      need(!is.null(wtemp_fc_data5$lst),
-           message = "Please load forecast above.")
+      need(!is.null(noaa_df()$airt), "Please click 'Load forecast' above.")
     )
     validate(
       need(any(!is.na(wtemp_fc_out5$mlt)),
@@ -3551,7 +3780,7 @@ shinyServer(function(input, output, session) {
     
     idx <- which(mod_names == input$mod_selec_tot_fc[1])
     
-    req(!is.null(wtemp_fc_data5$lst))
+    req(!is.null(noaa_df()$lst))
     
     progress <- shiny::Progress$new()
     on.exit(progress$close())
@@ -3568,12 +3797,12 @@ shinyServer(function(input, output, session) {
       mat <- matrix(NA, 8, 500)
       
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        driv_mat <- sapply(1:30, function(x) noaa_df()$lst[[x]]$airt[noaa_df()$lst[[x]]$Date >= fc_date])
         tmes <- ceiling(500 / 30)
         M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
         driv_mat <- M[, 1:500]
       } else {
-        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        driv_mat <- sapply(1, function(x) noaa_df()$lst[[x]]$airt[noaa_df()$lst[[x]]$Date >= fc_date])
       }
       if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         
@@ -3711,7 +3940,7 @@ shinyServer(function(input, output, session) {
       )
     }
     validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 8.")
+      need(!is.null(noaa_df()$airt), "Please click 'Load forecast' in Objective 8.")
     )
     validate(
       need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
@@ -3887,12 +4116,12 @@ shinyServer(function(input, output, session) {
       
       
       if("Driver" %in% fc_uncertA | "Total" %in% fc_uncertA) {
-        driv_mat <- sapply(1:30, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        driv_mat <- sapply(1:30, function(x) noaa_df()$lst[[x]]$airt[noaa_df()$lst[[x]]$Date >= fc_date])
         tmes <- ceiling(500 / 30)
         M <- do.call(cbind, replicate(tmes, driv_mat, simplify = FALSE))
         driv_mat <- M[, 1:500]
       } else {
-        driv_mat <- sapply(1, function(x) wtemp_fc_data5$lst[[x]]$airt[wtemp_fc_data5$lst[[x]]$Date >= fc_date])
+        driv_mat <- sapply(1, function(x) noaa_df()$lst[[x]]$airt[noaa_df()$lst[[x]]$Date >= fc_date])
       }
       if("Parameter" %in% fc_uncertA | "Total" %in% fc_uncertA) {
         
@@ -4028,7 +4257,7 @@ shinyServer(function(input, output, session) {
       )
     }
     validate(
-      need(!is.null(noaa_df$airt), "Please click 'Load forecast' in Objective 8.")
+      need(!is.null(noaa_df()$airt), "Please click 'Load forecast' in Objective 8.")
     )
     validate(
       need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
