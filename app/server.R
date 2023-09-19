@@ -369,7 +369,7 @@ shinyServer(function(input, output, session) {
              message = "Please select a site in Objective 1.")
       )
       validate(
-        need(input$plot_airt_swt2 > 0 | exists("up_answers"),
+        need(input$plot_airt_swt2 > 0,
              message = "Click 'Plot air temperature'")
       )
       
@@ -2046,7 +2046,20 @@ shinyServer(function(input, output, session) {
                                                            b = c(NA,NA)))
   
   # calculate model params for first year and put in table and make plot
-  observeEvent(input$fit_model_year_1, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$fit_model_year_1 > 0,
+           message = "Click 'Fit model to one year of data'.")
+    )
     
     df <- airt_swt$sub
     df <- na.exclude(df)
@@ -2095,7 +2108,20 @@ shinyServer(function(input, output, session) {
   })
   
   # calculate model fit for second year and write plot
-  observeEvent(input$fit_model_year_2, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(input$fit_model_year_2 > 0,
+           message = "Click 'Fit model to one year of data'.")
+    )
     
     df <- airt_swt$sub
     df <- na.exclude(df)
@@ -2211,13 +2237,32 @@ shinyServer(function(input, output, session) {
                                  main = NULL)
   
   # this code will run when the user clicks 'Generate parameter distributions'
-  observeEvent(input$param_Pers, {
-
-    idx <- 1
-    
+  param_dist3b_Pers <- reactive({
+    if(input$param_Pers){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      
       df <- "None"
-
-    param_dist3b$dist[[idx]] <- df
+      return(list(dist = df))
+    }
+  })
+  
+  observe({
+    if(any(!is.na(param_dist3b_Pers()))){
+      param_dist3b$dist[[1]] <- param_dist3b_Pers()$dist
+    }
+  })
+  
+  observeEvent(input$param_Pers, {
+    
+    req(!is.na(param_dist3b$dist[[1]]))
     
     p <- ggplot() +
       annotate("text", x = 10,  y = 10,
@@ -2227,14 +2272,36 @@ shinyServer(function(input, output, session) {
     param_dist3b$main <- p
   })
   
-  observeEvent(input$param_Wtemp, {
-
-    idx <- 2
-    
+  param_dist3b_Wtemp <- reactive({
+    if(input$param_Wtemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      
       df <- data.frame(m = rnorm(5000, lr_pars$dt$m_est[1], lr_pars$dt$m_se[1]),
                        b = rnorm(5000, lr_pars$dt$b_est[1], lr_pars$dt$b_se[1]))
+      
+      return(list(dist = df))
+    }
+  })
   
-    param_dist3b$dist[[idx]] <- df
+  observe({
+    if(any(!is.na(param_dist3b_Wtemp()))){
+      param_dist3b$dist[[2]] <- param_dist3b_Wtemp()$dist
+    }
+  })
+  
+  observeEvent(input$param_Wtemp, {
+
+    req(!is.na(param_dist3b$dist[[2]]))
+    
+    idx <- 2
     
     mlt <- reshape::melt(param_dist3b$dist[[idx]])
     
@@ -2244,16 +2311,38 @@ shinyServer(function(input, output, session) {
       theme_bw(base_size = 16)
     
     param_dist3b$main <- p
+  })
+  
+  param_dist3b_Atemp <- reactive({
+    if(input$param_Atemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      
+      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
+                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
+      
+      return(list(dist = df))
+    }
+  })
+  
+  observe({
+    if(any(!is.na(param_dist3b_Atemp()))){
+      param_dist3b$dist[[3]] <- param_dist3b_Atemp()$dist
+    }
   })
   
   observeEvent(input$param_Atemp, {
+    
+    req(!is.na(param_dist3b$dist[[3]]))
 
     idx <- 3
-    
-      df <- data.frame(m = rnorm(5000, lr_pars1$dt$m_est[1], lr_pars1$dt$m_se[1]),
-                       b = rnorm(5000, lr_pars1$dt$b_est[1], lr_pars1$dt$b_se[1]))
-   
-    param_dist3b$dist[[idx]] <- df
     
     mlt <- reshape::melt(param_dist3b$dist[[idx]])
     
@@ -2265,15 +2354,37 @@ shinyServer(function(input, output, session) {
     param_dist3b$main <- p
   })
   
-  observeEvent(input$param_Both, {
-
-    idx <- 4
-    
+  param_dist3b_Both <- reactive({
+    if(input$param_Both){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      
       df <- data.frame(beta0 = rnorm(5000, mlr_pars$dt$b0_est[1], mlr_pars$dt$b0_se[1]),
                        beta1 = rnorm(5000, mlr_pars$dt$b1_est[1], mlr_pars$dt$b1_se[1]),
                        beta2 = rnorm(5000, mlr_pars$dt$b2_est[1], mlr_pars$dt$b2_se[1]))
+      
+      return(list(dist = df))
+    }
+  })
+  
+  observe({
+    if(any(!is.na(param_dist3b_Both()))){
+      param_dist3b$dist[[4]] <- param_dist3b_Both()$dist
+    }
+  })
+  
+  observeEvent(input$param_Both, {
+    
+    req(!is.na(param_dist3b$dist[[4]]))
 
-    param_dist3b$dist[[idx]] <- df
+    idx <- 4
     
     mlt <- reshape::melt(param_dist3b$dist[[idx]])
     
@@ -2308,55 +2419,169 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out3b <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this code will run when user clicks 'Run forecast'
-  observeEvent(input$fc3_Pers, {
+  wtemp_fc_out3b_Pers <- reactive({
+    
+    if(input$fc3_Pers){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(any(!is.na(param_dist3b$dist)),
+             message = "Click 'Generate parameter distributions.'")
+      )
 
     out <- run_param_forecast(model = 1, 
                                           data = airt_swt$df,
                                           airtemp_forecast = airt1_fc$df, 
                                           param_dist = param_dist3b$dist,
                                           model_table = mod_selec_tab$dt)
-    wtemp_fc_out3b$mlt[[1]] <- out$mlt
-    wtemp_fc_out3b$dist[[1]] <- out$dat
+    
+    return(list(dist = out$dat, mlt = out$mlt))
+    
+    } else {
+      return(list(dist = NA, mlt = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc3_Wtemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out3b_Pers()))){
+      
+      wtemp_fc_out3b$dist[[1]] <- wtemp_fc_out3b_Pers()$dist
+      
+      wtemp_fc_out3b$mlt[[1]] <- wtemp_fc_out3b_Pers()$mlt
+      
+    }
+  })
+  
+  wtemp_fc_out3b_Wtemp <- reactive({
+    
+    if(input$fc3_Wtemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(any(!is.na(param_dist3b$dist)),
+             message = "Click 'Generate parameter distributions.'")
+      )
     
     out <- run_param_forecast(model = 2, 
                                           data = airt_swt$df,
                                           airtemp_forecast = airt1_fc$df, 
                                           param_dist = param_dist3b$dist,
                                           model_table = mod_selec_tab$dt)
-      wtemp_fc_out3b$mlt[[2]] <- out$mlt
-    wtemp_fc_out3b$dist[[2]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt))
     
+    } else {
+      return(list(dist = NA, mlt = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc3_Atemp, {
+  observe({
+    if(any(!is.na(wtemp_fc_out3b_Wtemp()))){
+      
+      wtemp_fc_out3b$dist[[2]] <- wtemp_fc_out3b_Wtemp()$dist
+      
+      wtemp_fc_out3b$mlt[[2]] <- wtemp_fc_out3b_Wtemp()$mlt
+      
+    }
+  })
+  
+  wtemp_fc_out3b_Atemp <- reactive({
+    
+    if(input$fc3_Atemp){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(any(!is.na(param_dist3b$dist)),
+             message = "Click 'Generate parameter distributions.'")
+      )
     
     out <- run_param_forecast(model = 3, 
                                           data = airt_swt$df,
                                           airtemp_forecast = airt1_fc$df, 
                                           param_dist = param_dist3b$dist,
                                           model_table = mod_selec_tab$dt)
-      wtemp_fc_out3b$mlt[[3]] <- out$mlt
-    wtemp_fc_out3b$dist[[3]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt))
     
+    } else {
+      return(list(dist = NA, mlt = NA))
+      
+    }
     
   })
   
-  observeEvent(input$fc3_Both, {
+  observe({
+    if(any(!is.na(wtemp_fc_out3b_Atemp()))){
+      
+      wtemp_fc_out3b$dist[[3]] <- wtemp_fc_out3b_Atemp()$dist
+      
+      wtemp_fc_out3b$mlt[[3]] <- wtemp_fc_out3b_Atemp()$mlt
+      
+    }
+  })
+  
+  wtemp_fc_out3b_Both <- reactive({
+    
+    if(input$fc3_Both){
+      
+      validate(
+        need(input$table01_rows_selected != "",
+             message = "Select site in Objective 1.")
+      )
+      validate(
+        need(!is.null(all_mods_df$df),
+             message = "Fit models in Objective 3.")
+      )
+      validate(
+        need(any(!is.na(param_dist3b$dist)),
+             message = "Click 'Generate parameter distributions.'")
+      )
     
     out <- run_param_forecast(model = 4, 
                                           data = airt_swt$df,
                                           airtemp_forecast = airt1_fc$df, 
                                           param_dist = param_dist3b$dist,
                                           model_table = mod_selec_tab$dt)
-      wtemp_fc_out3b$mlt[[4]] <- out$mlt
-    wtemp_fc_out3b$dist[[4]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt))
     
+    } else {
+      return(list(dist = NA, mlt = NA))
+      
+    }
     
+  })
+  
+  observe({
+    if(any(!is.na(wtemp_fc_out3b_Both()))){
+      
+      wtemp_fc_out3b$dist[[4]] <- wtemp_fc_out3b_Both()$dist
+      
+      wtemp_fc_out3b$mlt[[4]] <- wtemp_fc_out3b_Both()$mlt
+      
+    }
   })
   
   # code to render plot
@@ -2373,7 +2598,7 @@ shinyServer(function(input, output, session) {
     )
 
     validate(
-      need(!is.null(param_dist3b$main),
+      need(any(!is.na(param_dist3b$dist)),
            message = "Please select a model and generate parameter distributions.")
     )
 
