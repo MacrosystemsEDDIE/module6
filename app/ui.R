@@ -957,7 +957,7 @@ ui <- function(request) {
                                                       )
                                                ),
                                                column(6,
-                                                      h4("Water temperature forecast"),
+                                                      h4("Water temperature forecasts"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc1a")
                                                       ),
@@ -1144,6 +1144,7 @@ ui <- function(request) {
                                                       )
                                                ),
                                                column(6,
+                                                      h4("Water temperature forecasts"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc2")
                                                       ),
@@ -1256,12 +1257,10 @@ ui <- function(request) {
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(4,
+                                               column(6,
                                                       h4("Generate Parameter Distributions"),
                                                       p(id = "txt_j", "To account for this ", tags$b("parameter uncertainty,"), " we will build distributions for each parameter in our forecasting models. We will then draw 100 samples from these distributions to create an ", tags$b("ensemble forecast"), " using multiple different parameter sets."),
                                                       p(id = "txt_j", "Generate parameter distributions and run the forecast for each model in the list below."),
-                                               ),
-                                               column(8,
                                                       fluidRow(
                                                         column(8,
                                                                h4("List of models:")),
@@ -1270,58 +1269,54 @@ ui <- function(request) {
                                                       ),
                                                       hr(),
                                                       fluidRow(
-                                                        column(8,
+                                                        column(7,
                                                                p(tags$b("Persistence model (Pers):")),
                                                                uiOutput("persUI_3"),
                                                                br()),
-                                                        column(4,
+                                                        column(3,
                                                                actionButton("param_Pers","Generate parameter distributions"),
                                                                br(),br(),
                                                                actionButton("fc3_Pers","Run forecast"))
                                                       ),
                                                       hr(),
                                                       fluidRow(
-                                                        column(8,
+                                                        column(7,
                                                                p(tags$b("Water temperature linear regression model (Wtemp):")),
                                                                uiOutput("wtempUI_3"),
                                                                br()),
-                                                        column(4,
+                                                        column(3,
                                                                actionButton("param_Wtemp","Generate parameter distributions"),
                                                                br(),br(),
                                                                actionButton("fc3_Wtemp","Run forecast"))
                                                       ),
                                                       hr(),
                                                       fluidRow(
-                                                        column(8,
+                                                        column(7,
                                                                p(tags$b("Air temperature linear regression model (Atemp):")),
                                                                uiOutput("atempUI_3"),
                                                                br()),
-                                                        column(4,
+                                                        column(3,
                                                                actionButton("param_Atemp","Generate parameter distributions"),
                                                                br(),br(),
                                                                actionButton("fc3_Atemp","Run forecast"))
                                                       ),
                                                       hr(),
                                                       fluidRow(
-                                                        column(8,
+                                                        column(7,
                                                                p(tags$b("Multiple linear regression model (Both):")),
                                                                uiOutput("bothUI_3"),
                                                                br()),
-                                                        column(4,
+                                                        column(3,
                                                                actionButton("param_Both","Generate parameter distributions"),
                                                                br(),br(),
                                                                actionButton("fc3_Both","Run forecast"))
                                                       )
-                                                      )
-                                             ),
-                                             fluidRow(
+                                               ),
                                                column(6,
                                                       h4("Parameter Distributions"),
                                                       wellPanel(
                                                         plotOutput("param_dist3b")
-                                                      )
                                                       ),
-                                               column(6,
                                                       h4("Water Temperature Forecasts"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc3b")
@@ -1332,11 +1327,12 @@ ui <- function(request) {
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
                                                                                     inline = TRUE)
-                                                                       )
                                                       )
-                                               ),
+                                                      )
+                                             ),
                                              hr(),
                                              fluidRow(
+                                               column(10, align = "left",
                                                box(id = "box2", width = 12, status = "primary",
                                                    solidHeader = TRUE,
                                                    fluidRow(
@@ -1348,6 +1344,7 @@ ui <- function(request) {
                                                             p(tags$b(quest["q29", 1]))
                                                      )
                                                    )
+                                               )
                                                )
                                              ),
                                              hr(),
@@ -1486,22 +1483,10 @@ ui <- function(request) {
                                                                br()),
                                                         column(4,
                                                                actionButton("fc4_Both","Run forecast"))
-                                                      ),
-                                                      br(),
-                                                      box(id = "box2", width = 12, status = "primary",
-                                                          solidHeader = TRUE,
-                                                          fluidRow(
-                                                            column(10, offset = 1,
-                                                                   h3("Questions"),
-                                                                   p(tags$b(quest["q32", 1])),
-                                                                   p(tags$em(quest["q32a", 1])),
-                                                                   p(tags$em(quest["q32b", 1])),
-                                                                   p(tags$b(quest["q33", 1]))
-                                                                   )
-                                                            )
-                                                          )
+                                                      )
                                                       ),
                                                column(6,
+                                                      h4("Water Temperature Forecasts"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc4")
                                                       ),
@@ -1514,6 +1499,23 @@ ui <- function(request) {
                                                       )
                                                       )
                                                ),
+                                             hr(),
+                                             fluidRow(
+                                               column(10, align = "left",
+                                               box(id = "box2", width = 12, status = "primary",
+                                                   solidHeader = TRUE,
+                                                   fluidRow(
+                                                     column(10, offset = 1,
+                                                            h3("Questions"),
+                                                            p(tags$b(quest["q32", 1])),
+                                                            p(tags$em(quest["q32a", 1])),
+                                                            p(tags$em(quest["q32b", 1])),
+                                                            p(tags$b(quest["q33", 1]))
+                                                     )
+                                                   )
+                                               )
+                                               )
+                                             ),
                                              hr(),
                                              fluidRow(
                                                column(5, offset = 1,
@@ -1627,6 +1629,7 @@ ui <- function(request) {
                                                       br()
                                                ),
                                                column(6,
+                                                      h4("Water Temperature Forecasts"),
                                                       wellPanel(
                                                         plotlyOutput("wtemp_fc5")
                                                       ),
@@ -1640,7 +1643,7 @@ ui <- function(request) {
                                              ),
                                              hr(),
                                              fluidRow(
-                                               column(10, offset = 1,
+                                               column(10, align = "left",
                                                       box(id = "box2", width = 12, status = "primary",
                                                           solidHeader = TRUE,
                                                           fluidRow(
