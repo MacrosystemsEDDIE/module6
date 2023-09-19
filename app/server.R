@@ -1363,7 +1363,20 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out1a <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # code to run forecasts when students press action button
-  observeEvent(input$fc1_Pers, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc1_Pers > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     df <- run_deterministic_forecast(model = 1,
                                data = airt_swt$df,
@@ -1376,7 +1389,20 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[1]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$fc1_Wtemp, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc1_Wtemp > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     df <- run_deterministic_forecast(model = 2, 
                                      data = airt_swt$df,
@@ -1389,7 +1415,20 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[2]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$fc1_Atemp, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc1_Atemp > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     df <- run_deterministic_forecast(model = 3, 
                                      data = airt_swt$df,
@@ -1402,7 +1441,20 @@ shinyServer(function(input, output, session) {
     wtemp_fc_out1a$lst[[3]] <- df[, c("Date", "forecast")]
   })
   
-  observeEvent(input$fc1_Both, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc1_Both > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     df <- run_deterministic_forecast(model = 4, 
                                      data = airt_swt$df,
@@ -1420,6 +1472,15 @@ shinyServer(function(input, output, session) {
   wtemp_fc1a <- reactiveValues(main = NULL)
   
   observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
     
     if(any(!is.na(wtemp_fc_out1a$lst))) {
       sub_lst <- wtemp_fc_out1a$lst[!is.null(wtemp_fc_out1a$lst)]
@@ -1520,7 +1581,20 @@ shinyServer(function(input, output, session) {
   sigma_table <- reactiveValues(df = NULL)
   
   # when you click 'Generate distributions', this will run
-  observeEvent(input$gen_proc_dist,{
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$gen_proc_dist > 0,
+           message = "Click 'Generate distributions'.")
+    )
     
     df <- all_mods_df$df 
     
@@ -1675,7 +1749,20 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this will run when the user clicks 'Run forecast' in Objective 5
-  observeEvent(input$fc2_Pers, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc2_Pers > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     out <- run_process_forecast(model = 1, 
                                data = airt_swt$df,
@@ -1694,7 +1781,20 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$fc2_Wtemp, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc2_Wtemp > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     out <- run_process_forecast(model = 2, 
                                 data = airt_swt$df,
@@ -1713,7 +1813,20 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$fc2_Atemp, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc2_Atemp > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     out <- run_process_forecast(model = 3, 
                                 data = airt_swt$df,
@@ -1732,7 +1845,20 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$fc2_Both, {
+  observe({
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Select site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Fit models in Objective 3.")
+    )
+    validate(
+      need(input$fc2_Both > 0,
+           message = "Click 'Run forecast.'")
+    )
     
     out <- run_process_forecast(model = 4, 
                                 data = airt_swt$df,
@@ -1804,17 +1930,17 @@ shinyServer(function(input, output, session) {
     }
     
     if(input$plot_type2 == "Line") {
-        
-        p <- p0 +
-          geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)+
-          labs(color = NULL)
+      
+      p <- p0 +
+        geom_line(data = mlt, aes(Date, value, color = Level, group = variable), alpha = 0.6)+
+        labs(color = NULL)
       
     } else if(input$plot_type2 == "Distribution") {
       
-        p <- p0 +
-          geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
-          geom_line(data = mlt1, aes(Date, p50, color = Level))+
-          labs(color = NULL, fill = NULL)
+      p <- p0 +
+        geom_ribbon(data = mlt1, aes(Date, ymin = p5, ymax = p95, fill = Level), alpha = 0.3) +
+        geom_line(data = mlt1, aes(Date, p50, color = Level))+
+        labs(color = NULL, fill = NULL)
       
     }
     
@@ -1835,7 +1961,7 @@ shinyServer(function(input, output, session) {
       scale_fill_manual(values = c("Pers" = l.cols[1], "Wtemp" = l.cols[2],
                                    "Atemp" = l.cols[3], "Both" = l.cols[4]))+
       labs(color = NULL, fill = NULL)
-
+    
     gp <- ggplotly(p1, dynamicTicks = TRUE)
     # Code to remove parentheses in plotly
     for (i in 1:length(gp$x$data)){
