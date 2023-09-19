@@ -3703,21 +3703,6 @@ shinyServer(function(input, output, session) {
   
   #### Objective 9 - Quantifying Uncertainty
   
-  # this code will run when the user selects a pair of models (A and B)
-  observeEvent(input$mod_selec_tot_fc, {
-    tot_fc_dataA$mlt <- NULL
-    tot_fc_dataA$dist <- NULL
-    tot_fc_dataA$mat <- NULL
-    tot_fc_dataA$lab <- NULL
-    
-    tot_fc_dataB$mlt <- NULL
-    tot_fc_dataB$dist <- NULL
-    tot_fc_dataB$mat <- NULL
-    tot_fc_dataB$lab <- NULL
-    
-    quantfcA$df <- NULL
-  })
-  
   # output showing text of model A 
   output$modA_txt <- renderText({
     validate(
@@ -3766,18 +3751,38 @@ shinyServer(function(input, output, session) {
     )
   })
   
-  # create reactive value for forecast output for Model A
-  tot_fc_dataA <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
-  
-  # create reactive value for partitioned uncertainty results
-  quantfcA <- reactiveValues(df = NULL)
-  
   # this code will run when user pushes run forecast button for Model A
-  observeEvent(input$run_tot_fcA, {
+  tot_fc_dataA <- reactive({
+    
+    if(input$run_tot_fcA){
     
     req(input$table01_rows_selected != "")
     req(length(input$mod_selec_tot_fc) == 2)
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(sigma_table$df),
+      message = "Need to generate process uncertainty distributions in Objective 5.")
+  )
+  validate(
+    need(any(!is.na(param_dist3b$dist)),
+         message = "Need to generate parameter uncertainty distributions in Objective 6.")
+  )
+  validate(
+    need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+  )
+  validate(
+    need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
+  )
     
+  tot_fc_dataA <- list(mlt = NULL, dist = NULL, mat = NULL, lab = NULL, quant_df = NULL)
+  
     idx <- which(mod_names == input$mod_selec_tot_fc[1])
     
     req(!is.null(noaa_df()$lst))
@@ -3904,20 +3909,22 @@ shinyServer(function(input, output, session) {
         df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
                           sd = std, label = fc_uncertA)
         
-        if(is.null(quantfcA$df)) {
-          quantfcA$df <- df2
+        if(is.null(tot_fc_dataA$quant_df)) {
+          tot_fc_dataA$quant_df <- df2
         } else {
           # Overwrite previous Std Dev.
-          if((df2$label[1] %in% quantfcA$df$label)) {
-            idx <- which(quantfcA$df$label %in% df2$label[1])
-            quantfcA$df[idx, ] <- df2
+          if((df2$label[1] %in% tot_fc_dataA$quant_df$label)) {
+            idx <- which(tot_fc_dataA$quant_df$label %in% df2$label[1])
+            tot_fc_dataA$quant_df[idx, ] <- df2
           } else {
-            quantfcA$df <- rbind(quantfcA$df, df2)
+            tot_fc_dataA$quant_df <- rbind(tot_fc_dataA$quant_df, df2)
           }
         }
       }
       
       progress$set(value = (pidx / length(uc_sources)))
+    }
+    return(tot_fc_dataA)
     }
   })
   
@@ -3928,22 +3935,32 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
     )
+    validate(
+      need(!is.null(sigma_table$df),
+      message = "Need to generate process uncertainty distributions in Objective 5.")
+  )
+  validate(
+    need(any(!is.na(param_dist3b$dist)),
+         message = "Need to generate parameter uncertainty distributions in Objective 6.")
+  )
+  validate(
+    need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+  )
+  validate(
+    need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
+  )
+  validate(
+    need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+  )
     
     idx <- which(mod_names == input$mod_selec_tot_fc[1])
     sel_col <- cols[idx]
-    
-    if(idx != 1) {
-      validate(
-        need(!is.na(param_dist3b$dist[[idx]]), "Need to generate parameters in Objective 6.")
-      )
-    }
+  
     validate(
-      need(!is.null(noaa_df()$airt), "Please click 'Load forecast' in Objective 8.")
-    )
-    validate(
-      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+      need(!is.null(tot_fc_dataA()$dist), "Click 'Run forecast'")
     )
     
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
@@ -3957,17 +3974,17 @@ shinyServer(function(input, output, session) {
       labs(color = NULL)
     
     if(input$plot_type_totA == "Line") {
-      if(!is.null(tot_fc_dataA$mlt)) {
+      if(!is.null(tot_fc_dataA()$mlt)) {
         
-        mlt <- tot_fc_dataA$mlt
+        mlt <- tot_fc_dataA()$mlt
         
         p <- p +
           geom_line(data = mlt, aes(Date, value, group = variable, color = input$mod_selec_tot_fc[1]), alpha = 0.6) +
           labs(color = NULL)
       }
     } else if(input$plot_type_totA == "Distribution") {
-      if(!is.null(tot_fc_dataA$dist)) {
-        mlt <- tot_fc_dataA$dist
+      if(!is.null(tot_fc_dataA()$dist)) {
+        mlt <- tot_fc_dataA()$dist
         
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = input$mod_selec_tot_fc[1]), alpha = 0.3) +
@@ -4004,14 +4021,35 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(quantfcA$df), "Click 'Run forecast' above.")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(sigma_table$df),
+           message = "Need to generate process uncertainty distributions in Objective 5.")
+    )
+    validate(
+      need(any(!is.na(param_dist3b$dist)),
+           message = "Need to generate parameter uncertainty distributions in Objective 6.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+    )
+    validate(
+      need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataA()$quant_df), "Click 'Run forecast' above.")
     )
     validate(
       need(input$quant_ucA > 0, "Click 'Quantify uncertainty'")
     )
     
     p <- ggplot() +
-      geom_bar(data = quantfcA$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+      geom_bar(data = tot_fc_dataA()$quant_df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
@@ -4088,22 +4126,44 @@ shinyServer(function(input, output, session) {
     )
   })
   
-  # create reactive value for data needed for total uncertainty forecast for Model B
-  tot_fc_dataB <- reactiveValues(mlt = NULL, dist = NULL, mat = NULL, lab = NULL)
-  
-  # create reactive value to hold uncertainty partitioning results for Model B
-  quantfcB <- reactiveValues(df = NULL)
-  
   # this code will run when user clicks "Run forecast" for Model B
-  observeEvent(input$run_tot_fcB, {
+  tot_fc_dataB <- reactive({
     
-    req(input$table01_rows_selected != "")
+    if(input$run_tot_fcB){
+    
+    validate(
+      need(input$table01_rows_selected != "",
+           message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(sigma_table$df),
+           message = "Need to generate process uncertainty distributions in Objective 5.")
+    )
+    validate(
+      need(any(!is.na(param_dist3b$dist)),
+           message = "Need to generate parameter uncertainty distributions in Objective 6.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+    )
+    validate(
+      need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
     
     progress <- shiny::Progress$new()
     on.exit(progress$close())
     progress$set(message = paste0("Forecasting water temperature"),
                  detail = "This may take a while. This window will disappear
                      when it is finished loading.", value = 0.05)
+    
+    tot_fc_dataB <- list(mlt = NULL, dist = NULL, mat = NULL, lab = NULL, quant_df = NULL)
     
     df <- data.frame(Date = airt_swt$df$Date, wtemp = airt_swt$df$wtemp)
     
@@ -4222,19 +4282,21 @@ shinyServer(function(input, output, session) {
         df2 <- data.frame(Date = seq.Date(from = as.Date(fc_date), length.out = 8, by = 1),
                           sd = std, label = fc_uncertA)
         
-        if(is.null(quantfcB$df)) {
-          quantfcB$df <- df2
+        if(is.null(tot_fc_dataB$quant_df)) {
+          tot_fc_dataB$quant_df <- df2
         } else {
           # Overwrite previous Std Dev.
-          if((df2$label[1] %in% quantfcB$df$label)) {
-            idx <- which(quantfcB$df$label %in% df2$label[1])
-            quantfcB$df[idx, ] <- df2
+          if((df2$label[1] %in% tot_fc_dataB$quant_df$label)) {
+            idx <- which(tot_fc_dataB$quant_df$label %in% df2$label[1])
+            tot_fc_dataB$quant_df[idx, ] <- df2
           } else {
-            quantfcB$df <- rbind(quantfcB$df, df2)
+            tot_fc_dataB$quant_df <- rbind(tot_fc_dataB$quant_df, df2)
           }
         }
       }
       progress$set(value = (pidx / length(uc_sources)))
+    }
+    return(tot_fc_dataB)
     }
   })
   
@@ -4243,6 +4305,24 @@ shinyServer(function(input, output, session) {
     validate(
       need(input$table01_rows_selected != "",
            message = "Please select a site in Objective 1.")
+    )
+    validate(
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(sigma_table$df),
+           message = "Need to generate process uncertainty distributions in Objective 5.")
+    )
+    validate(
+      need(any(!is.na(param_dist3b$dist)),
+           message = "Need to generate parameter uncertainty distributions in Objective 6.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+    )
+    validate(
+      need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
     )
     validate(
       need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
@@ -4260,7 +4340,7 @@ shinyServer(function(input, output, session) {
       need(!is.null(noaa_df()$airt), "Please click 'Load forecast' in Objective 8.")
     )
     validate(
-      need(!is.null(tot_fc_dataA$dist), "Click 'Run forecast'")
+      need(!is.null(tot_fc_dataB()$dist), "Click 'Run forecast'")
     )
     
     dat <- wtemp_fc_data$hist[wtemp_fc_data$hist$Date >= (as.Date(fc_date) - 1), ]
@@ -4273,17 +4353,17 @@ shinyServer(function(input, output, session) {
       labs(color = NULL)
     
     if(input$plot_type_totB == "Line") {
-      if(!is.null(tot_fc_dataB$mlt)) {
+      if(!is.null(tot_fc_dataB()$mlt)) {
         
-        mlt <- tot_fc_dataB$mlt
+        mlt <- tot_fc_dataB()$mlt
         
         p <- p +
           geom_line(data = mlt, aes(Date, value, group = variable, color = input$mod_selec_tot_fc[2]), alpha = 0.6) +
           labs(color = NULL)
       }
     } else if(input$plot_type_totB == "Distribution") {
-      if(!is.null(tot_fc_dataB$dist)) {
-        mlt <- tot_fc_dataB$dist
+      if(!is.null(tot_fc_dataB()$dist)) {
+        mlt <- tot_fc_dataB()$dist
         
         p <- p +
           geom_ribbon(data = mlt, aes(Date, ymin = p5, ymax = p95, fill = input$mod_selec_tot_fc[2]), alpha = 0.3) +
@@ -4321,14 +4401,35 @@ shinyServer(function(input, output, session) {
            message = "Please select a site in Objective 1.")
     )
     validate(
-      need(!is.null(quantfcB$df), "Click 'Run forecast' above.")
+      need(!is.null(all_mods_df$df),
+           message = "Please fit models in Objective 3.")
+    )
+    validate(
+      need(!is.null(sigma_table$df),
+           message = "Need to generate process uncertainty distributions in Objective 5.")
+    )
+    validate(
+      need(any(!is.na(param_dist3b$dist)),
+           message = "Need to generate parameter uncertainty distributions in Objective 6.")
+    )
+    validate(
+      need(!is.null(ic_dist$df), "Need to generate initial conditions uncertainty distribution in Objective 7.")
+    )
+    validate(
+      need(!is.null(noaa_df()$airt), "Need to load NOAA air temperature forecast in Objective 8.")
+    )
+    validate(
+      need(length(input$mod_selec_tot_fc) == 2, "Select two models above.")
+    )
+    validate(
+      need(!is.null(tot_fc_dataB()$quant_df), "Click 'Run forecast' above.")
     )
     validate(
       need(input$quant_ucB > 0, "Click 'Quantify uncertainty'")
     )
     
     p <- ggplot() +
-      geom_bar(data = quantfcB$df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
+      geom_bar(data = tot_fc_dataB()$quant_df, aes(Date, sd, fill = label), stat = "identity", position = "stack") +
       ylab("Standard Deviation (\u00B0C)") +
       scale_fill_manual(values = c("Process" = cols2[1], "Parameter" = cols2[2], "Initial Conditions" = cols2[3],
                                    "Driver" = cols2[4], "Total" = cols2[5])) +
@@ -4583,12 +4684,12 @@ shinyServer(function(input, output, session) {
   })
   
   # Bookmarking
-  bookmarkingWhitelist <- c("table01_rows_selected","plot_airt_swt","plot_airt_swt2","plot_persist", "plot_airt_swt3",
+  bookmarkingWhitelist <- c("plot_airt_swt","plot_airt_swt2","plot_persist", "plot_airt_swt3",
   "plot_airt_swt4","add_lm","add_lm1","plot_mlr","view_at_fc","fc1_Pers","fc1_Wtemp",
   "fc1_Atemp","fc1_Both","gen_proc_dist","fc2_Pers","fc2_Wtemp","fc2_Atemp","fc2_Both",
   "fit_model_year_1","fit_model_year_2","param_Pers","fc3_Pers","param_Wtemp","fc3_Wtemp",
   "param_Atemp","fc3_Atemp","param_Both","fc3_Both","gen_ic","fc4_Pers","fc4_Wtemp","fc4_Atemp",
-  "fc4_Both","load_noaa_at","fc5_Pers","fc5_Wtemp","fc5_Atemp","fc5_Both","mod_selec_tot_fc",
+  "fc4_Both","load_noaa_at","fc5_Pers","fc5_Wtemp","fc5_Atemp","fc5_Both",
   "run_tot_fcA","quant_ucA","run_tot_fcB","quant_ucB","dec_scen1","dec_scen2")
   
   observeEvent(input$bookmarkBtn, {
@@ -4606,6 +4707,7 @@ shinyServer(function(input, output, session) {
   # Save extra values in state$values when we bookmark
   onBookmark(function(state) {
     state$values$sel_row <- input$table01_rows_selected
+    state$values$sel_mods <- input$mod_selec_tot_fc
   })
 
   # Read values from state$values when we restore
@@ -4618,6 +4720,7 @@ shinyServer(function(input, output, session) {
 
   onRestored(function(state) {
     updateSelectizeInput(session, "row_num", selected = state$values$sel_row)
+    updateSelectizeInput(session, "mod_selec_tot_fc", selected = state$values$sel_mods)
   })
 
 
