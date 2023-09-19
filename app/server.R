@@ -1749,7 +1749,9 @@ shinyServer(function(input, output, session) {
   wtemp_fc_out2 <- reactiveValues(mlt = as.list(rep(NA, 4)), dist = as.list(rep(NA, 4)), lst = as.list(rep(NA, 4)))
   
   # this will run when the user clicks 'Run forecast' in Objective 5
-  observe({
+  wtemp_fc_out2_Pers <- reactive({
+    
+    if(input$fc2_Pers){
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1759,11 +1761,7 @@ shinyServer(function(input, output, session) {
       need(!is.null(all_mods_df$df),
            message = "Fit models in Objective 3.")
     )
-    validate(
-      need(input$fc2_Pers > 0,
-           message = "Click 'Run forecast.'")
-    )
-    
+
     out <- run_process_forecast(model = 1, 
                                data = airt_swt$df,
                                airtemp_forecast = airt1_fc$df, 
@@ -1773,15 +1771,29 @@ shinyServer(function(input, output, session) {
                                model_table = mod_selec_tab$dt,
                                sigmas = sigma_table$df)
     
-    wtemp_fc_out2$dist[[1]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out2$mlt[[1]] <- out$mlt
-    
-    wtemp_fc_out2$lst[[1]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
   observe({
+    if(any(!is.na(wtemp_fc_out2_Pers()))){
+      wtemp_fc_out2$dist[[1]] <- wtemp_fc_out2_Pers()$dist
+
+      wtemp_fc_out2$mlt[[1]] <- wtemp_fc_out2_Pers()$mlt
+
+      wtemp_fc_out2$lst[[1]] <- wtemp_fc_out2_Pers()$lst
+
+    }
+  })
+  
+  wtemp_fc_out2_Wtemp <- reactive({
+    
+    if(input$fc2_Wtemp){
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1790,10 +1802,6 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(all_mods_df$df),
            message = "Fit models in Objective 3.")
-    )
-    validate(
-      need(input$fc2_Wtemp > 0,
-           message = "Click 'Run forecast.'")
     )
     
     out <- run_process_forecast(model = 2, 
@@ -1805,15 +1813,29 @@ shinyServer(function(input, output, session) {
                                 model_table = mod_selec_tab$dt,
                                 sigmas = sigma_table$df)
     
-    wtemp_fc_out2$dist[[2]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out2$mlt[[2]] <- out$mlt
-    
-    wtemp_fc_out2$lst[[2]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
   observe({
+    if(any(!is.na(wtemp_fc_out2_Wtemp()))){
+      wtemp_fc_out2$dist[[2]] <- wtemp_fc_out2_Wtemp()$dist
+      
+      wtemp_fc_out2$mlt[[2]] <- wtemp_fc_out2_Wtemp()$mlt
+      
+      wtemp_fc_out2$lst[[2]] <- wtemp_fc_out2_Wtemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out2_Atemp <- reactive({
+    
+    if(input$fc2_Atemp){
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1822,10 +1844,6 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(all_mods_df$df),
            message = "Fit models in Objective 3.")
-    )
-    validate(
-      need(input$fc2_Atemp > 0,
-           message = "Click 'Run forecast.'")
     )
     
     out <- run_process_forecast(model = 3, 
@@ -1837,15 +1855,29 @@ shinyServer(function(input, output, session) {
                                 model_table = mod_selec_tab$dt,
                                 sigmas = sigma_table$df)
     
-    wtemp_fc_out2$dist[[3]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out2$mlt[[3]] <- out$mlt
-    
-    wtemp_fc_out2$lst[[3]] <- out$df[, c("Date", "forecast")]
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
   })
   
   observe({
+    if(any(!is.na(wtemp_fc_out2_Atemp()))){
+      wtemp_fc_out2$dist[[3]] <- wtemp_fc_out2_Atemp()$dist
+      
+      wtemp_fc_out2$mlt[[3]] <- wtemp_fc_out2_Atemp()$mlt
+      
+      wtemp_fc_out2$lst[[3]] <- wtemp_fc_out2_Atemp()$lst
+      
+    }
+  })
+  
+  wtemp_fc_out2_Both <- reactive({
+    
+    if(input$fc2_Both){
     
     validate(
       need(input$table01_rows_selected != "",
@@ -1854,10 +1886,6 @@ shinyServer(function(input, output, session) {
     validate(
       need(!is.null(all_mods_df$df),
            message = "Fit models in Objective 3.")
-    )
-    validate(
-      need(input$fc2_Both > 0,
-           message = "Click 'Run forecast.'")
     )
     
     out <- run_process_forecast(model = 4, 
@@ -1869,12 +1897,24 @@ shinyServer(function(input, output, session) {
                                 model_table = mod_selec_tab$dt,
                                 sigmas = sigma_table$df)
     
-    wtemp_fc_out2$dist[[4]] <- out$dat
+    return(list(dist = out$dat, mlt = out$mlt, lst = out$df[, c("Date", "forecast")]))
     
-    wtemp_fc_out2$mlt[[4]] <- out$mlt
+    } else {
+      return(list(dist = NA, mlt = NA, lst = NA))
+      
+    }
     
-    wtemp_fc_out2$lst[[4]] <- out$df[, c("Date", "forecast")]
-    
+  })
+  
+  observe({
+    if(any(!is.na(wtemp_fc_out2_Both()))){
+      wtemp_fc_out2$dist[[4]] <- wtemp_fc_out2_Both()$dist
+      
+      wtemp_fc_out2$mlt[[4]] <- wtemp_fc_out2_Both()$mlt
+      
+      wtemp_fc_out2$lst[[4]] <- wtemp_fc_out2_Both()$lst
+      
+    }
   })
   
   # plot process uncertainty forecast output
