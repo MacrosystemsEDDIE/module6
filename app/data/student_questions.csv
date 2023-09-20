@@ -1,81 +1,81 @@
-﻿q_no,Question,location
-q1,Q1. What is meant by the term 'uncertainty' in the context of ecological forecasting?,Introduction:
-q2,"Q2. How do you think knowing the uncertainty in a forecast helps natural resource managers? For example, if a drinking water manager received a toxic algal bloom forecast with high vs. low uncertainty in a bloom prediction, how might that affect their decision-making?",Introduction:
-q3,Q3. Fill out information about your selected NEON site:,Site Selection: Objective 1
-q3a,a. Name of selected site:,
-q3b,b. Four letter site identifier:,
-q3c,c. Latitude:,
-q3d,d. Longitude:,
-q3e,e. Lake area (km2):,
-q3f,f. Elevation (m):,
-q4,Q4. List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.,Activity A: Objective 2
-q5,Q5. Describe any patterns you see in the surface water temperature data for your lake.,Activity A: Objective 2
-q6,Q6. Fill out the table in your Word document with the summary statistics of water temperature:,Activity A: Objective 2
-q7,Q7. Fill out the table in your Word document with the summary statistics of air temperature:,
-q8,Q8. Assess a possible relationship between air and water temperature data at your lake.,
-q8a,"a. Click 'Download plot' to save the plot of air and water temperature at your lake to your computer; then, copy-paste it into your report.",
-q8b,b. Do you think there is a relationship between air temperature and water temperature at this lake? Explain your reasoning.,
-q9,"Q9. Describe, in your own words, the difference between a linear regression model and a multiple linear regression model.",Activity A: Objective 3
-q10,"Q10. Based on your exploration of water and air temperature data at your lake site in the previous objective, do you think it is reasonable to use air temperature as an independent variable in a model to predict water temperature? Why or why not?",Activity A: Objective 3
-q11,Q11. Assess the persistence model predictions compared to observations.,
-q11a,"a. Click 'Download plot' to save the plot of persistence model predictions and water temperature observations at your lake to your computer; then, copy-paste it into your report.",
-q11b,"b. Based on the plot of observations and model predictions, do you think the persistence model does a good job of predicting model temperature? Why or why not?",Activity A: Objective 3
-q12,12. Let's pretend a lake manager has asked you to provide a 30-day forecast of water temperature. Do you think a persistence model would be a good choice for generating such a forecast? Why or why not?,Activity A: Objective 3
-q13,Q13. Assess the linear relationship between yesterday and today's water temperature.,
-q13a,a. Click 'Download plot' to download the scatterplot of today's water temperature vs. yesterday's water temperature and copy-paste it into your report.,
-q13b,b. Does today's water temperature exhibit a positive or negative linear relationship with yesterday's water temperature? Record your answer in your report.,Activity A: Objective 4
-q14,Q14. Assess the linear relationship between air and water temperature.,
-q14a,a. Click 'Download plot' to download the scatterplot of today's water temperature vs. today's air temperature and copy-paste it into your report.,
-q14b,b. Does today's water temperature exhibit a positive or negative linear relationship with today's air temperature? Record your answer in your report.,Activity A: Objective 5
-q15,"Q15. In a scatterplot of a perfect linear relationship, all the points fall exactly on the 1:1 line (see example figure to the right). Knowing this, assess the linear relationships between: 1) today's water temperature and yesterday's water temperature;  and 2) today's water temperature and today's air temperature. Which plot do you think exhibits a stronger linear relationship, and why?",Activity A: Objective 5
-q16,Q16. Interpret the parameters of the linear regression models.,
-q16a,a. Record the values of the model parameters for BOTH linear models in the Q16a table in your report.,
-q16b,"b. A positive linear regression model with a perfect fit has a slope (m = 1) and an intercept (b = 0). Knowing this, use the parameter values of your two linear regression models to assess the fit of: 1) the model using yesterday's water temperature to predict today's water temperature;  and 2) the module using today's air temperature and today's water temperature. Which model do you think exhibits a better fit, and why?",Activity A: Objective 5
-q17,Q17. Interpret the parameters of the multiple linear regression model.,
-q17a,a. Record the values of the model parameters for multiple linear regression model in the Q17a table in your report.,
-q17b,"b. Because both of our independent variables have the same units (degrees Celsius), we can compare the values of the coefficients to understand which independent variable has a stronger relationship with the dependent variable. Knowing this, is yesterday's water temperature or today's air temperature more strongly associated with today's water temperature?",Activity A: Objective 5
-q18,Q18. Assess the model predictions.,
-q18a,a. Click 'Download plot' to download the timeseries of all model predictions and water temperature observations and copy-paste it into your report.,
-q18b,b. Which model do you think will produce the best forecasts of water temperature? Why?,Activity B: Overview
-q19,Q19. Use your forecasts to estimate future water temperature.,
-q19a,a. Click 'Download plot' to download the plot of deterministic forecasts and copy-paste it into your report.,
-q19b,"b. Using the forecasts you have generated, what is your best estimate of what the water temperature will be 7 days in the future? Explain your reasoning.",Activity B: Objective 6
-q20,"Q20. Describe, in your own words, the difference between a deterministic and a probabilistic forecast.",Activity B: Objective 7
-q21,Q21. What are model residuals?,Activity B: Objective 7
-q22,"Q22. Briefly explain, in your own words, how the residuals of a model can be used to generate a process uncertainty distribution.",Activity B: Objective 8
-q23,Q23. Define 'ensemble forecast' in your own words.,Activity B: Objective 8
-q24,Q24. Interpret the process uncertainty distribution plot.,
-q24a,a. Click 'Download plot' to download the process uncertainty distribution figure and copy-paste it into your report.,
-q24b,b. Examine the plot of process uncertainty distributions on the right. Which model do you think has the smallest amount of process uncertainty? Explain your reasoning.,Activity B: Objective 8
-q25,Q25. Describe how forecast uncertainty changes into the future.,
-q25a,a. Click 'Download plot' to download the plot of forecasts with process uncertainty and copy-paste it into your report.,
-q25b,b. Examine the plot of forecasts with process uncertainty. How does uncertainty change as the forecast goes farther into the future?,Activity B: Objective 9
-q26,"Q26. You have learned that process uncertainty arises when our models do not perfectly represent what is occurring in the real world. Knowing this, describe one way that you think process uncertainty in our water temperature forecasts could be reduced.",Activity B: Objective 9
-q27,Q27. Compare the parameter values of the two models.,
-q27a,a. Record the parameter values for the models fit to one and two years of data in your report.,
-q27b,b. How do the parameter values of the models fit to one year vs. two years of data compare? Why do you think this might be?,Activity B: Summary
-q28,Q28. Assess the contribution of parameter uncertainty across models.,
-q28a,a. Click 'Download plot' to download the plot of forecasts with parameter uncertainty and copy-paste it into your report.,
-q28b,b. Which model is affected most by the addition of parameter uncertainty? Why do you think that is?,Activity B: Summary
-q29,"Q29. You have learned that parameter uncertainty arises when we do not have enough data or when our data do not accurately represent the true relationship between environmental variables. Knowing this, describe one way that you think parameter uncertainty in our water temperature forecasts could be reduced.",Activity B: Summary
-q30,Q30. What initial conditions from your chosen lake site are required to run the forecast models we are using today?,Activity C: Objective 10
-q31,Q31. One of the four models we are using for forecasting does not require any initial conditions. Which one is it? Explain how you know.,Activity C: Objective 10
-q32,Q32. Assess the contribution of initial conditions uncertainty across models.,
-q32a,a. Click 'Download plot' to download the plot of forecasts with initial conditions uncertainty and copy-paste it into your report.,
-q32b,"b. Which model had the least initial conditions uncertainty, and why?",Activity C: Objective 10
-q33,"Q33. You have learned that initial conditions uncertainty arises from observation error and missing observations. Knowing this, describe one way that you think initial conditions uncertainty in our water temperature forecasts could be reduced.",Activity C: Objective 11
-q34,Q34. Assess the contribution of driver uncertainty across models.,
-q34a,a. Click 'Download plot' to download the plot of forecasts with driver uncertainty and copy-paste it into your report.,
-q34b,b. Why do only two of the models exhibit driver uncertainty in their water temperature forecasts?,Activity C: Objective 11
-q35,"Q35. You have learned that driver uncertainty arises because we cannot perfectly know what the future values of our model inputs will be. Knowing this, describe one way that you think driver uncertainty in our water temperature forecasts could be reduced.",
-q36,Q36. Describe the sources of uncertainty for model 1.,
-q36a,a. Record the name of the model you chose.,
-q36b,b. Click 'Download plot' to download the plot of quantified uncertainty for model 1 and copy-paste it into your report.,
-q36c,c. Which source of uncertainty contributes the most to total forecast uncertainty for this model?,
-q37,Q37. Describe the sources of uncertainty for model 2.,
-q37a,a. Record the name of the model you chose.,
-q37b,b. Click 'Download plot' to download the plot of quantified uncertainty for model 2 and copy-paste it into your report.,
-q37c,c. Which source of uncertainty contributes the most to total forecast uncertainty for this model?,
-q38,"Q38. Compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models.",
-q39,Q39. Did the uncertainty visualization affect your decision? How?,
-q40,Q40. Can you think of any potential risks when using a forecast without all soures of uncertainty included?,
+﻿q_no,Question
+q1,Q1. What is meant by the term 'uncertainty' in the context of ecological forecasting?
+q2,"Q2. How do you think knowing the uncertainty in a forecast helps natural resource managers? For example, if a drinking water manager received a toxic algal bloom forecast with high vs. low uncertainty in a bloom prediction, how might that affect their decision-making?"
+q3,Q3. Fill out information about your selected NEON site:
+q3a,a. Name of selected site:
+q3b,b. Four letter site identifier:
+q3c,c. Latitude:
+q3d,d. Longitude:
+q3e,e. Lake area (km2):
+q3f,f. Elevation (m):
+q4,Q4. List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.
+q5,Q5. Describe any patterns you see in the surface water temperature data for your lake.
+q6,Q6. Fill out the table in your Word document with the summary statistics of water temperature:
+q7,Q7. Fill out the table in your Word document with the summary statistics of air temperature:
+q8,Q8. Assess a possible relationship between air and water temperature data at your lake.
+q8a,"a. Click 'Download plot' to save the plot of air and water temperature at your lake to your computer; then, copy-paste it into your report."
+q8b,b. Do you think there is a relationship between air temperature and water temperature at this lake? Explain your reasoning.
+q9,"Q9. Describe, in your own words, the difference between a linear regression model and a multiple linear regression model."
+q10,"Q10. Based on your exploration of water and air temperature data at your lake site in the previous objective, do you think it is reasonable to use air temperature as an independent variable in a model to predict water temperature? Why or why not?"
+q11,Q11. Assess the persistence model predictions compared to observations.
+q11a,"a. Click 'Download plot' to save the plot of persistence model predictions and water temperature observations at your lake to your computer; then, copy-paste it into your report."
+q11b,"b. Based on the plot of observations and model predictions, do you think the persistence model does a good job of predicting model temperature? Why or why not?"
+q12,Q12. Let's pretend a lake manager has asked you to provide a 30-day forecast of water temperature. Do you think a persistence model would be a good choice for generating such a forecast? Why or why not?
+q13,Q13. Assess the linear relationship between yesterday and today's water temperature.
+q13a,a. Click 'Download plot' to download the scatterplot of today's water temperature vs. yesterday's water temperature and copy-paste it into your report.
+q13b,b. Does today's water temperature exhibit a positive or negative linear relationship with yesterday's water temperature? Record your answer in your report.
+q14,Q14. Assess the linear relationship between air and water temperature.
+q14a,a. Click 'Download plot' to download the scatterplot of today's water temperature vs. today's air temperature and copy-paste it into your report.
+q14b,b. Does today's water temperature exhibit a positive or negative linear relationship with today's air temperature? Record your answer in your report.
+q15,"Q15. In a scatterplot of a perfect linear relationship, all the points fall exactly on the 1:1 line (see example figure to the right). Knowing this, assess the linear relationships between: 1) today's water temperature and yesterday's water temperature;  and 2) today's water temperature and today's air temperature. Which plot do you think exhibits a stronger linear relationship, and why?"
+q16,Q16. Interpret the parameters of the linear regression models.
+q16a,a. Record the values of the model parameters for BOTH linear models in the Q16a table in your report.
+q16b,"b. A positive linear regression model with a perfect fit has a slope (m = 1) and an intercept (b = 0). Knowing this, use the parameter values of your two linear regression models to assess the fit of: 1) the model using yesterday's water temperature to predict today's water temperature;  and 2) the module using today's air temperature and today's water temperature. Which model do you think exhibits a better fit, and why?"
+q17,Q17. Interpret the parameters of the multiple linear regression model.
+q17a,a. Record the values of the model parameters for multiple linear regression model in the Q17a table in your report.
+q17b,"b. Because both of our independent variables have the same units (degrees Celsius), we can compare the values of the coefficients to understand which independent variable has a stronger relationship with the dependent variable. Knowing this, is yesterday's water temperature or today's air temperature more strongly associated with today's water temperature?"
+q18,Q18. Assess the model fits.
+q18a,a. Click 'Download plot' to download the timeseries of all model predictions and water temperature observations and copy-paste it into your report.
+q18b,b. Which model do you think will produce the best forecasts of water temperature? Why?
+q19,Q19. Use your forecasts to estimate future water temperature.
+q19a,a. Click 'Download plot' to download the plot of deterministic forecasts and copy-paste it into your report.
+q19b,"b. Using the forecasts you have generated, what is your best estimate of what the water temperature will be 7 days in the future? Explain your reasoning."
+q20,"Q20. Describe, in your own words, the difference between a deterministic and a probabilistic forecast."
+q21,Q21. What are model residuals?
+q22,"Q22. Briefly explain, in your own words, how the residuals of a model can be used to generate a process uncertainty distribution."
+q23,Q23. Define 'ensemble forecast' in your own words.
+q24,Q24. Interpret the process uncertainty distribution plot.
+q24a,a. Click 'Download plot' to download the process uncertainty distribution figure and copy-paste it into your report.
+q24b,b. Examine the plot of process uncertainty distributions on the right. Which model do you think has the smallest amount of process uncertainty? Explain your reasoning.
+q25,Q25. Describe how forecast uncertainty changes into the future.
+q25a,a. Click 'Download plot' to download the plot of forecasts with process uncertainty and copy-paste it into your report.
+q25b,b. Examine the plot of forecasts with process uncertainty. How does uncertainty change as the forecast goes farther into the future?
+q26,"Q26. You have learned that process uncertainty arises when our models do not perfectly represent what is occurring in the real world. Knowing this, describe one way that you think process uncertainty in our water temperature forecasts could be reduced."
+q27,Q27. Compare the parameter values of the two models.
+q27a,a. Record the parameter values for the models fit to one and two years of data in the Q27a table your report.
+q27b,b. How do the parameter values of the models fit to one year vs. two years of data compare? Why do you think this might be?
+q28,Q28. Assess the contribution of parameter uncertainty across models.
+q28a,a. Click 'Download plot' to download the plot of forecasts with parameter uncertainty and copy-paste it into your report.
+q28b,b. Which model is affected most by the addition of parameter uncertainty? Why do you think that is?
+q29,"Q29. You have learned that parameter uncertainty arises when we do not have enough data or when our data do not accurately represent the true relationship between environmental variables. Knowing this, describe one way that you think parameter uncertainty in our water temperature forecasts could be reduced."
+q30,Q30. What initial conditions from your chosen lake site are required to run the forecast models we are using today?
+q31,Q31. One of the four models we are using for forecasting does not require any initial conditions. Which one is it? Explain how you know.
+q32,Q32. Assess the contribution of initial conditions uncertainty across models.
+q32a,a. Click 'Download plot' to download the plot of forecasts with initial conditions uncertainty and copy-paste it into your report.
+q32b,"b. Which model had the least initial conditions uncertainty, and why?"
+q33,"Q33. You have learned that initial conditions uncertainty arises from observation error and missing observations. Knowing this, describe one way that you think initial conditions uncertainty in our water temperature forecasts could be reduced."
+q34,Q34. Assess the contribution of driver uncertainty across models.
+q34a,a. Click 'Download plot' to download the plot of forecasts with driver uncertainty and copy-paste it into your report.
+q34b,b. Why do only two of the models exhibit driver uncertainty in their water temperature forecasts?
+q35,"Q35. You have learned that driver uncertainty arises because we cannot perfectly know what the future values of our model inputs will be. Knowing this, describe one way that you think driver uncertainty in our water temperature forecasts could be reduced."
+q36,Q36. Describe the sources of uncertainty for model 1.
+q36a,a. Record the name of the model you chose.
+q36b,b. Click 'Download plot' to download the plot of quantified uncertainty for model 1 and copy-paste it into your report.
+q36c,c. Which source of uncertainty contributes the most to total forecast uncertainty for this model?
+q37,Q37. Describe the sources of uncertainty for model 2.
+q37a,a. Record the name of the model you chose.
+q37b,b. Click 'Download plot' to download the plot of quantified uncertainty for model 2 and copy-paste it into your report.
+q37c,c. Which source of uncertainty contributes the most to total forecast uncertainty for this model?
+q38,"Q38. Compare how the sources of uncertainty differed between your forecasts. Explain why each of the uncertainties (process, parameter, initial conditions & driver) is different between your models."
+q39,Q39. Did the uncertainty visualization affect your decision? How?
+q40,Q40. Can you think of any potential risks when using a forecast without all soures of uncertainty included?

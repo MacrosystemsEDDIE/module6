@@ -293,7 +293,7 @@ ui <- function(request) {
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
-                                           h2("Activity A - Build A Model With Uncertainty"),
+                                           h2("Activity A - Build Models and Generate Forecasts"),
                                            p(module_text["act_A", ])
                                  )
                           )

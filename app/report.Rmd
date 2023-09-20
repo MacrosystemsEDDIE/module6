@@ -3,26 +3,12 @@ title: "Module 6: Understanding Uncertainty in Ecological Forecasts - Student Ha
 output: 
    word_document:
     reference_docx: report-style.docx
-  # officedown::rdocx_document:
-  #   reference_docx: report-style.docx
-  #   tables:
-  #     style: My Table
-params:
-  name: ""
-  id_number: ""
-  answers: ""
-  plot_list: ""
-  tab_list: ""
-  pheno_file: NULL
-  mod_selec1: NULL
-  mod_selec2: NULL
-  dec1: NULL
-  dec2: NULL
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
 ```{r}
 time <- Sys.time()
 
@@ -31,109 +17,47 @@ app_time <- format(file.info("ui.R")$mtime, "%Y-%m-%d")
 app_update_txt <- paste0("This app was last updated on: ", app_time)
 
 # Read in assessment questions
-# Load and format questions
 quest <- read.csv("data/student_questions.csv", row.names = 1)
 
-idx <- which(grepl("Name of selected ", quest$Question))
-idx2 <- which(grepl("Elevation", quest$Question))
-# Number rows
-row.names(quest) <- NULL
-row.names(quest)[1:(idx-1)] <- paste0("q", 1:(idx-1))
-row.names(quest)[idx:(idx2)] <- paste0("q", (idx-1), letters[1:length(idx:idx2)])
-row.names(quest)[(idx2+1):nrow(quest)] <- paste0("q", ((idx2+1):nrow(quest) - 6))
-qid <- row.names(quest)
-# Number location
-quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1))
-# quest$location[idx:(idx2)] <- paste0(quest$location[idx:idx2],letters[1:length(idx:idx2)], ". ", )
-quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
+# Make tables
+lake_tab <- data.frame("Characteristic" = c(substr(quest["q3a", ], 3, nchar(quest["q3a", ])),substr(quest["q3b", ], 3, nchar(quest["q3b", ])),substr(quest["q3c", ], 3, nchar(quest["q3c", ])),substr(quest["q3d", ], 3, nchar(quest["q3d", ])),substr(quest["q3e", ], 3, nchar(quest["q3e", ])),
+                                            substr(quest["q3f", ], 3, nchar(quest["q3f", ]))),
+                       "Answer" = rep("",6))
 
-answers <- params$answers
+wtemp_tab <- data.frame("Variable" = c("Surface water temperature"),
+                          "Mean" = rep("",1),
+                          "Minimum" = rep("",1),
+                          "Maximum" = rep("",1))
 
-if(length(params$plot_list) == 1) {
-  plot_list <- list(airt_wtemp_ts = NA,
-                      lr_mod_ts = NA,
-                      param_dist_lr = NA,
-                      pers_mod = NA,
-                      mlr_mod_ts = NA,
-                      deter_fc = NA,
-                      proc_uc_fc = NA,
-                      param_dist_fc = NA,
-                      param_uc_fc = NA,
-                      ic_ts_dist = NA,
-                      ic_uc_fc = NA,
-                      airt_fc = NA,
-                      driver_uc_fc = NA,
-                      all_fc = NA,
-                      tot_uc_fc1 = NA,
-                      quant_uc_fc1 = NA,
-                      tot_uc_fc2 = NA,
-                      quant_uc_fc2 = NA,
-                      dec1 = NA,
-                      dec2 = NA)
-} else {
-  plot_list <- params$plot_list
-}
+atemp_tab <- data.frame("Variable" = c("Air temperature"),
+                          "Mean" = rep("",1),
+                          "Minimum" = rep("",1),
+                          "Maximum" = rep("",1))
 
-# plot_list[[1]] <- "www/out_plots/airt_wtemp_ts.png"
+lr_pars_tab <- data.frame("Model" = c("Water temp.","Air temp."),
+                          "Slope (m)" = rep("",2),
+                          "Intercept (b)" = rep("",2))
 
-plt_chk <- lapply(plot_list, function(x) {
-  if(is.na(x)) {
-    return(FALSE)
-  } else {
-    file.exists(x)
-  }
-})
-incr <- 1
+mlr_pars_tab <- data.frame("Model" = c("Water temp. and air temp."),
+                          "β0" = rep("",1),
+                          "β1" = rep("",1),
+                          "β2" = rep("",1))
 
-# Read in tables
-tab_lr <- read.csv("data/out_tables/tab_lr.csv")
-tab_lr[is.na(tab_lr)] <- ""
-tab_mlr <- read.csv("data/out_tables/tab_mlr.csv")
-tab_mlr[is.na(tab_mlr)] <- ""
-tab_models <- read.csv("data/out_tables/tab_models.csv", row.names = 1)
-tab_models[is.na(tab_models)] <- ""
-
-test_eqn <- "$$wtemp_{t+1} =  1 \\times  wtemp_{t}-0.02 $$"
-
-if(length(answers) == 1) {
-  answers <- quest
-  quest$location <- NULL
-  colnames(answers)[1] <- "Answer"
-  answers[, 1] <- ""
-}
+evolving_pars_tab <- data.frame("Model" = c("1 year model","2 year model"),
+                          "Slope (m)" = rep("",2),
+                          "Intercept (b)" = rep("",2))
 
 # Load in text
 module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
-
-# Check for existence of files
-pheno_chk <- !is.null(params$pheno_file)
-
-if(!is.null(params$mod_selec1)) {
-  idx <- which(row.names(tab_models) == params$mod_selec1)
-  mod_eqn1 <- tab_models[idx, 1]
-} else{
-    mod_eqn1 <- ""
-}
-
-if(!is.null(params$mod_selec2)) {
-  idx <- which(row.names(tab_models) == params$mod_selec2)
-  mod_eqn2 <- tab_models[idx, 1]
-} else {
-  mod_eqn2 <- ""
-}
-
-dec1 <- params$dec1
-dec2 <- params$dec2
-
-
 ```
 
 ![](www/report-header.png)
 
 ***
-### Name: `r params$name`  
-### Student ID: `r params$id_number` 
-#### Completed on: `r time`
+### Name: 
+### Student ID: 
+#### Completed on: 
+#### Copy-paste your save progress link from the Shiny app here for ease of reference:
 ***
 
 # **Macrosystems EDDIE Module 6: Understanding Uncertainty in Ecological Forecasts**
@@ -150,11 +74,6 @@ By the end of this module, you will be able to:
 - Describe how forecast horizon affects forecast uncertainty
 - Explain the importance of specifying uncertainty in ecological forecasts for application
 \
-
-```{r, echo=FALSE, fig.align="center", out.width="200px", fig.cap=""}
-knitr::include_graphics("www/Schematic_Draft_v3.png")
-```
-
 
 # Why macrosystems ecology and ecological forecasting?
 
@@ -201,25 +120,63 @@ Videos:
 
 - NEON&#39;s [Ecological Forecast: The Science of Predicting Ecosystems](https://www.youtube.com/watch?v=Lgi_e7N-C8E&amp;t=196s&amp;pbjreload=101)
 - Fundamentals of Ecological Forecasting Series: [Why Forecast?](https://www.youtube.com/watch?v=kq0DTcotpA0&amp;list=PLLWiknuNGd50Lc3rft4kFPc_oxAhiQ-6s&amp;index=1)
+\
 
-The questions you must answer are embedded in the Shiny interface. You can answer the questions there and generate a report at the end or you can fill out the questions within this document.
+## Pre-class activity: Explore how uncertainty in predictions can affect decision-making
+\
+Read the following paper, which you can either access independently online or obtain from your instructor:  
+*Pielke, R. A. (1999). Who decides? Forecasts and responsibilities in the 1997 Red River flood. Applied Behavioral Science Review, 7(2), 83–101.*
+\
+
+#### Refer to the paper you read to answer the questions below. 
+
+\
+A.  Ahead of the 1997 Red River flood in East Grand Forks, the National Weather Service (NWS) provided two river crest predictions of 47.5 and 49 ft. How were these two different predictions made? (What was the difference between the two predictions?)
+
+**Answer:** 
+
+\
+B.  Pielke reports that many people misinterpreted the two river crest predictions provided by the NWS. Describe two ways in which the river crest predictions were incorrectly interpreted.
+
+**Answer:** 
+
+\
+C.  The NWS did not quantify or report the uncertainty associated with its river crest predictions for the 1997 Red River flood event. Referring to Fig. 2 in the paper, what do you think would be a reasonable estimate of the uncertainty associated with NWS river crest predictions? Explain your reasoning.
+
+**Answer:** 
+
+\
+D.  Pielke concludes that "Confusion about the uncertainty of the [river crest] predictions led to misplaced responsibility for flood fight decision making." Explain what is meant by this statement in your own words.
+
+**Answer:** 
+
+\
+E.  Reflecting on what you have read, explain how reporting, or failing to report, the uncertainty associated with future predictions of natural phenomena can affect decision-making.
+
+**Answer:** 
+
+\
+Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/module5) to answer the rest of the questions.
+
+The questions you must answer are written both in the Shiny interface as well as in this handout. As you go, you should fill out your answers in this document.
 
 # Think about it!
 \
 Answer the following questions:
 
-1. `r quest[qid[1], 1]`  
+1. `r substr(quest["q1", ], 4, nchar(quest["q1", ]))` 
 \
-**Answer:** `r answers[qid[1], 1]`\
-
-2. `r quest[qid[2], 1]`   
+**Answer:** 
 \
-**Answer:** `r answers[qid[2], 1]`\
+2. `r substr(quest["q2", ], 4, nchar(quest["q2", ]))`  
+\
+**Answer:** 
+\
 
 
-Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/module6) to answer the rest of the questions.
+# Activity A - Build Models and Generate Forecasts
 
-# Site Selection
+`r module_text["act_A", ]`
 
 ## Objective 1: Select and view a NEON site\
 
@@ -228,609 +185,389 @@ Now navigate to the [Shiny interface](https://macrosystemseddie.shinyapps.io/mod
 
 ***
 
-```{r results='asis', echo=FALSE}
-if (!pheno_chk) {cat("<!---")}
-```
-![](`r params$pheno_file`)  
-*Figure 1. Phenocam image downloaded for `r answers[qid[4], 1]`.*
-```{r results='asis', echo=FALSE}
-if (!pheno_chk) {cat("-->")}
-```
-\
-
-3. `r quest[qid[3], 1]`  
-\
+3. `r substr(quest["q3", ], 4, nchar(quest["q3", ]))`  
 
 *Table 1. Site Characteristics*
+```{r}
+knitr::kable(lake_tab) 
+```
 
-| | |
-| --- | --- |
-| `r quest[qid[4], 1]` | `r answers[qid[4], 1]` |
-| `r quest[qid[5], 1]` | `r answers[qid[5], 1]` |
-| `r quest[qid[6], 1]` | `r answers[qid[6], 1]` |
-| `r quest[qid[7], 1]` | `r answers[qid[7], 1]` |
-| `r quest[qid[8], 1]` | `r answers[qid[8], 1]` |
-| `r quest[qid[9], 1]` | `r answers[qid[9], 1]` |
-\
-
-## Objective 2: Explore data\
+## Objective 2: Explore water temperature\
 
 ***
-If there are some variables which you are not familiar with, visit the [NEON Data Portal](https://data.neonscience.org/home) and click 'Explore Data Products' to learn more about how the data are collected.
+`r module_text["obj_02", ]`
 
 ***
 
-4. `r quest[qid[10], 1]`  
+4. `r substr(quest["q4", ], 4, nchar(quest["q4", ]))`  
 \
-**Answer:** `r answers[qid[10], 1]`\
-
-5. `r quest[qid[11], 1]`   
+**Answer:** 
 \
-**Answer:** `r answers[qid[11], 1]`\
+5. `r substr(quest["q5", ], 4, nchar(quest["q5", ]))`    
+\
+**Answer:**
+\
+6. `r substr(quest["q6", ], 4, nchar(quest["q6", ]))`    
+\
+*Table 2. Water Temperature Statistics*
+```{r}
+knitr::kable(wtemp_tab) 
+```
+\
+7. `r substr(quest["q7", ], 4, nchar(quest["q7", ]))`    
+\
+*Table 3. Air Temperature Statistics*
+```{r}
+knitr::kable(atemp_tab) 
+```
+\
+8. `r substr(quest["q8", ], 4, nchar(quest["q8", ]))`\
+
+   a.  `r substr(quest["q8a", ], 3, nchar(quest["q8a", ]))`\ 
+\
+*Please copy-paste your Q-8a-plot.png image here.*\
+\
+*Figure 1. Time series of air and water temperature for your selected NEON lake.*\
+
+   b.  `r substr(quest["q8b", ], 3, nchar(quest["q8b", ]))`\ 
+\
+    **Answer:**   
+\
 
 
-# Activity A - Build a Model with Uncertainty
 
-`r module_text["act_A", ]`
 
-## Objective 3: Build a water temperature model\
+## Objective 3: Build models\
 
 ***
 `r module_text["obj_03", ]`
 
 ***
 
-### Water Temperature
+9. `r substr(quest["q9", ], 4, nchar(quest["q9", ]))`    
 \
-**Water temperature** exerts a major influence on biological activity and growth, has an effect on water chemistry, can influence water quantity measurements, and governs the kinds of organisms that live in water bodies. Water temperature can have important effects on water quality, as changes in water temperature can directly or indirectly affect water quality variables such as dissolved oxygen, nutrient and heavy metal concentrations, and algae concentrations. Freshwater ecosystems are currently experiencing a multitude of stressors such as land use change and climate change, which can affect water temperature. Being able to predict how water temperature may change in the short-term (up to 7-days into the future) can provide natural resource managers with critical information to take pro-active actions to prevent degradation of water quality.
+**Answer:**
+\
+10. `r substr(quest["q10", ], 5, nchar(quest["q10", ]))`    
+\
+**Answer:**
+\
+11. `r substr(quest["q11", ], 5, nchar(quest["q11", ]))`\
+
+    a.  `r substr(quest["q11a", ], 3, nchar(quest["q11a", ]))`\ 
+\
+*Please copy-paste your Q-11a-plot.png image here.*\
+\
+*Figure 2. Time series of persistence model predictions and water temperature observations for your selected NEON lake.*\
+
+    b.  `r substr(quest["q11b", ], 3, nchar(quest["q11b", ]))`\ 
+\
+    **Answer:**   
 \
 
-6. `r quest[qid[12], 1]`  
+12. `r substr(quest["q12", ], 5, nchar(quest["q12", ]))`    
 \
-**Answer:** `r answers[qid[12], 1]`  
+**Answer:**
+\
+13. `r substr(quest["q13", ], 5, nchar(quest["q13", ]))`
+\
+    a.  `r substr(quest["q13a", ], 3, nchar(quest["q13a", ]))`: 
+\
+*Please copy-paste your Q-13a-plot.png image here.*\
+\
+*Figure 3. Scatterplot of today's water temperature observations versus yesterday's water temperature observations for your selected NEON lake.*
+\
+    b.  `r substr(quest["q13b", ], 3, nchar(quest["q13b", ]))`: 
+    **Answer:**   
 \
 
+14. `r substr(quest["q14", ], 5, nchar(quest["q14", ]))`
+\
+    a.  `r substr(quest["q14a", ], 3, nchar(quest["q14a", ]))`: 
+\
+*Please copy-paste your Q-14a-plot.png image here.*\
+\
+*Figure 4. Scatterplot of today's water temperature observations versus today's air temperature observations for your selected NEON lake.*
+\
+    b.  `r substr(quest["q14b", ], 3, nchar(quest["q14b", ]))`: 
+    **Answer:**   
+\
 
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$airt_wtemp_ts) {cat("<!---")}
+15. `r substr(quest["q15", ], 5, nchar(quest["q15", ]))`    
+\
+![](www/example_linear_relationship.png)
+**Answer:**
+\
+16. `r substr(quest["q16", ], 5, nchar(quest["q16", ]))`
+\
+    a.  `r substr(quest["q16a", ], 3, nchar(quest["q16a", ]))`: 
+*Table 4. Linear Regression Parameters*
+```{r}
+knitr::kable(lr_pars_tab) 
 ```
-![](`r plot_list$airt_wtemp_ts`)  
-*Figure 2. Timeseries of air temperature and water temperature measurements.*
-```{r results='asis', echo=FALSE}
-if (!plt_chk$airt_wtemp_ts) {cat("-->")}
+\
+    b.  `r substr(quest["q16b", ], 3, nchar(quest["q16b", ]))`: 
+    **Answer:**   
+\
+
+17. `r substr(quest["q17", ], 5, nchar(quest["q17", ]))`
+\
+    a.  `r substr(quest["q17a", ], 3, nchar(quest["q17a", ]))`: 
+*Table 5. Multiple Linear Regression Parameters*
+```{r}
+knitr::kable(mlr_pars_tab) 
 ```
-
-7. `r quest[qid[13], 1]`  
 \
-**Answer:** `r answers[qid[13], 1]`  
-\
-
-8. `r quest[qid[14], 1]`  
-\
-**Answer:** `r answers[qid[14], 1]`  
+    b.  `r substr(quest["q17b", ], 3, nchar(quest["q17b", ]))`: 
+    **Answer:**   
 \
 
-```{r results='asis', echo=FALSE}
-if (!plt_chk$lr_mod_ts) {cat("<!---")}
-```
-![](`r plot_list$lr_mod_ts`)  
-*Figure 3. Timeseries of observed water temperature (points) with linear regression models fitted to data collected at different frequencies. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$lr_mod_ts) {cat("-->")}
-```
-
-9. `r quest[qid[15], 1]`  
+18. `r substr(quest["q18", ], 5, nchar(quest["q18", ]))`
 \
-**Answer:** `r answers[qid[15], 1]`  
+    a.  `r substr(quest["q18a", ], 3, nchar(quest["q18a", ]))`: 
+\
+*Please copy-paste your Q-18a-plot.png image here.*\
+\
+*Figure 6. Time series of model predictions and water temperature observations for your selected NEON lake.*
+\
+    b.  `r substr(quest["q18b", ], 3, nchar(quest["q18b", ]))`: 
+    **Answer:**   
 \
 
-10. `r quest[qid[16], 1]`  
-\
-**Answer:** `r answers[qid[16], 1]`  
-\
-
-Table 2. Linear regression models fitted using data collected at different frequencies.
-
-| **Frequency** | **Slope (m)** | **Intercept (b)** | **N** | **RMSE** |
-| --- | --- | --- | --- | --- |
-| Monthly | `r tab_lr[1, "m_est"]` | `r tab_lr[1, "b_est"]` | `r tab_lr[1, "N"]` | `r tab_lr[1, "rmse"]` |
-| Fortnightly | `r tab_lr[2, "m_est"]` | `r tab_lr[2, "b_est"]` | `r tab_lr[2, "N"]` | `r tab_lr[2, "rmse"]` |
-| Weekly |`r tab_lr[3, "m_est"]` | `r tab_lr[3, "b_est"]` | `r tab_lr[3, "N"]` | `r tab_lr[3, "rmse"]` |
-| Daily | `r tab_lr[4, "m_est"]` | `r tab_lr[4, "b_est"]` | `r tab_lr[4, "N"]` | `r tab_lr[4, "rmse"]` |
-\
-
-
-## Objective 4: Explore Parameters\
+## Objective 4: Generate Forecasts\
 
 ***
 `r module_text["obj_04", ]`
 
 ***
 
-### Generate distributions for intercept & slope
+19. `r substr(quest["q19", ], 5, nchar(quest["q19", ]))`
 \
-When fitting the models to the data in the previous objective, a standard error of the estimated parameters is calculated. The standard error of the coefficient measures how precisely the model estimates the coefficient's unknown value. It is the standard deviation around the estimate of the parameter and can be visualized by drawing a normal distribution with the mean as the parameter estimate and the standard error as the standard deviation. Generate plots of the normal distribution of the parameters (m and b) using the mean and standard deviation from the models you fit by selecting a row in the table and clicking 'Generate plot'. **Density plots** are used to observe the distribution of a variable in a dataset. Density plots are a variation of histograms and they are better at determining the distribution shape.
+    a.  `r substr(quest["q19a", ], 3, nchar(quest["q19a", ]))`: 
+\
+*Please copy-paste your Q-19a-plot.png image here.*\
+\
+*Figure 7. Deterministic water temperature forecasts for your selected NEON lake.*
+\
+    b.  `r substr(quest["q19b", ], 3, nchar(quest["q19b", ]))`: 
+    **Answer:**   
 \
 
-11. `r quest[qid[17], 1]`  
+20. `r substr(quest["q20", ], 5, nchar(quest["q20", ]))`
 \
-**Answer:** `r answers[qid[17], 1]`  
+**Answer:** 
 \
 
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_dist_lr) {cat("<!---")}
-```
-![](`r plot_list$param_dist_lr`)  
-*Figure 4. Distribution of parameter values calculated from linear regressions fit to data collected at different frequencies. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_dist_lr) {cat("-->")}
-```
+# Activity B - Explore Forecast Uncertainty\
 
-## Objective 5: Improve Model for Forecasting\
+`r module_text["act_B", ]`
+
+## Objective 5: Process Uncertainty\
 
 ***
 `r module_text["obj_05", ]`
 
 ***
 
-### Create a Forecast model
+21. `r substr(quest["q21", ], 5, nchar(quest["q21", ]))`
 \
-The model built in Objective 3 uses current air temperature to predict current water temperature. But, if we want to make a forecast of future water temperature, we would be unable to use this model unless we used forecasted (future) air temperature. The simplest forecast model that we can create is to predict that tomorrow's water temperature will be the same as today’s water temperature. This is called a **persistence model.**
+**Answer:** 
 \
-
-### Persistence model\
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$pers_mod) {cat("<!---")}
-```
-![](`r plot_list$pers_mod`)  
-*Figure 5. Timeseries of water temperature observations (points) and persistence model predictions (line). *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$pers_mod) {cat("-->")}
-```
-
-
-### Build a better model
+22. `r substr(quest["q22", ], 5, nchar(quest["q22", ]))`
 \
-We are now going to build two models that we will use to forecast water temperature.
+**Answer:** 
 \
+23. `r substr(quest["q23", ], 5, nchar(quest["q23", ]))`
 \
-A. A linear regression using today's water temperature to predict tomorrow's water temperature
+**Answer:** 
 \
-B. A multiple linear regression using today's water temperature and tomorrow's air temperature to predict tomorrow's water temperature
+24. `r substr(quest["q24", ], 5, nchar(quest["q24", ]))`
+\
+    a.  `r substr(quest["q24a", ], 3, nchar(quest["q24a", ]))`: 
+\
+*Please copy-paste your Q-24a-plot.png image here.*\
+\
+*Figure 8. Distributions of process uncertainty for all four models.*
+\
+    b.  `r substr(quest["q24b", ], 3, nchar(quest["q24b", ]))`: 
+    **Answer:**   
 \
 
-12. `r quest[qid[18], 1]`  
+25. `r substr(quest["q25", ], 5, nchar(quest["q25", ]))`
 \
-**Answer:** `r answers[qid[18], 1]`  
+    a.  `r substr(quest["q25a", ], 3, nchar(quest["q25a", ]))`: 
 \
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$mlr_mod_ts) {cat("<!---")}
-```
-![](`r plot_list$mlr_mod_ts`)  
-*Figure 6. Timeseries of water temperature observations (points) with linear regression and multiple linear regression predictions (lines).*
-```{r results='asis', echo=FALSE}
-if (!plt_chk$mlr_mod_ts) {cat("-->")}
-```
+*Please copy-paste your Q-25a-plot.png image here.*\
 \
-Table 3. Models fit to the data that are more suitable for forecasting.
-
-| **Model** | **Equation** | **RMSE** |
-| --- | --- | --- |
-| Wtemp |`r tab_mlr[1, 1]` | `r tab_mlr[1, 3]` |
-| Both | `r tab_mlr[2, 1]` | `r tab_mlr[2, 3]` |
+*Figure 9. Water temperature forecasts with process uncertainty for your selected NEON lake.*
+\
+    b.  `r substr(quest["q25b", ], 3, nchar(quest["q25b", ]))`: 
+    **Answer:**   
 \
 
-
-13. `r quest[qid[19], 1]`  
+26. `r substr(quest["q26", ], 5, nchar(quest["q26", ]))`
 \
-**Answer:** `r answers[qid[19], 1]`  
-\
-14. `r quest[qid[20], 1]`  
-\
-**Answer:** `r answers[qid[20], 1]`  
-\
-15. `r quest[qid[21], 1]`  
-\
-**Answer:** `r answers[qid[21], 1]`  
-\
+**Answer:** 
 
-
-# Activity B: Explore Forecast Uncertainty\
-
-`r module_text["act_B", ]`  
-
-## Overview\
-
-***
-`r module_text["act_B_overview", ]`
-
-***
-
-### Deterministic forecasts\
-
-A **deterministic** forecast is one which predicts a specific value (e.g. temperature) at a specific time. It does not include uncertainty. In contrast, a **probabilistic** forecast tries to quantify the probability or likelihood of an event occurring. Probabilistic forecasts includes uncertainty.
-
-Table 4. Models that are used to explore forecast uncertainty.
-
-| **Model** | **Equation** | **RMSE** |
-| --- | --- | --- |
-| Pers | `r tab_models[1, 1]` | `r tab_models[1, 5]` |
-| Wtemp | `r tab_models[2, 1]` | `r tab_models[2, 5]` |
-| Atemp |`r tab_models[3, 1]` | `r tab_models[3, 5]` |
-| Both | `r tab_models[4, 1]` | `r tab_models[4, 5]` |
-\
-
-```{r}
-
-# knitr::kable(tab_models[, c(1, 5)], col.names = c("Equation", "RMSE"))
-```
-
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$deter_fc) {cat("<!---")}
-```
-![](`r plot_list$deter_fc`)  
-*Figure 7. Deterministic forecasts generated for water temperature using four different forecasting models. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$deter_fc) {cat("-->")}
-```
-\
-
-16. `r quest[qid[22], 1]`  
-\
-**Answer:** `r answers[qid[22], 1]`  
-\
-
-
-## Objective 6: Process Uncertainty\
+## Objective 6: Parameter Uncertainty\
 
 ***
 `r module_text["obj_06", ]`
 
 ***
 
-**Process uncertainty** is uncertainty caused by our inability to model all processes as observed in the real world.
-
-Our "simple" water temperature model uses today's water temperature and tomorrow's forecasted air temperature to forecast tomorrow's water temperature. 
-  
-$$WaterTemp_{t+1} = \beta_0 + \beta_1*AirTemp_{t+1} + \beta_2*WaterTemp_t$$
-
-But we know that water temperature can be affected by other processes as well (such as rain, inflow streams to a lake, or water column mixing, to name a few) and that our model has simplified or ignored these. To account for the uncertainty these simplifications introduce to our model, we can add in process noise (W) to our model at each time step. In this model, water temperature tomorrow is equal to water temperature today plus air temperature tomorrow plus some noise (W),
-
-$$WaterTemp_{t+1} = \beta_0 + \beta_1*AirTemp_{t+1} + \beta_2*WaterTemp_t + W$$
-where process noise is equal to a random number drawn from a normal distribution with a mean of zero and a standard deviation ($\sigma$).
-
-$$W \sim {\mathrm Norm}(0, \sigma)$$
-To account for uncertainty in the noise, we can run the model multiple times with random noise added to each model run. More noise is associated with high process uncertainty, and vice versa. Using multiple model runs is called an **ensemble.** Each individual run is referred to as an **ensemble member.** Forecasters typically run tens to hundreds of ensemble members to build uncertainty in their forecasts.  
+27. `r substr(quest["q27", ], 5, nchar(quest["q27", ]))`
 \
-```{r results='asis', echo=FALSE}
-if (!plt_chk$proc_uc_fc) {cat("<!---")}
-```
-![](`r plot_list$proc_uc_fc`)  
-*Figure 8. Forecasts generated for water temperature using the different models and including **process uncertainty**. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$proc_uc_fc) {cat("-->")}
+    a.  `r substr(quest["q27a", ], 3, nchar(quest["q27a", ]))`: 
+*Table 6. Parameters for Linear Regressions Fit to Different Datasets*
+```{r}
+knitr::kable(evolving_pars_tab) 
 ```
 \
-
-17. `r quest[qid[23], 1]`  
-\
-**Answer:** `r answers[qid[23], 1]`  
+    b.  `r substr(quest["q27b", ], 3, nchar(quest["q27b", ]))`: 
+    **Answer:**   
 \
 
+28. `r substr(quest["q28", ], 5, nchar(quest["q28", ]))`
+\
+    a.  `r substr(quest["q28a", ], 3, nchar(quest["q28a", ]))`: 
+\
+*Please copy-paste your Q-28a-plot.png image here.*\
+\
+*Figure 10. Water temperature forecasts with parameter uncertainty for your selected NEON lake.*
+\
+    b.  `r substr(quest["q28b", ], 3, nchar(quest["q28b", ]))`: 
+    **Answer:**   
+\
 
+29. `r substr(quest["q29", ], 5, nchar(quest["q29", ]))`
+\
+**Answer:** 
+\
 
-## Objective 7: Parameter Uncertainty\
+## Objective 7: Initial Conditions Uncertainty\
 
 ***
 `r module_text["obj_07", ]`
 
 ***
 
-**Parameter uncertainty** refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used.
-
-With traditional modelling efforts, people general find one set of the 'best fit' parameters and use them to predict with their model. 
-
-This method does not account for the uncertainty around the estimation of these parameters.  
-
-There is often the possibility that different parameter sets can yield similar metrics of model performance, e.g., similar RMSE values.
-
-Using parameter distributions allows for a better representation of the potential predicted outcomes, leading to better quantification of the uncertainty.
+30. `r substr(quest["q30", ], 5, nchar(quest["q30", ]))`
 \
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_dist_fc) {cat("<!---")}
-```
-![](`r plot_list$param_dist_fc`)  
-*Figure 9. Distribution of the parameters used for generating forecasts for each of the different models. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_dist_fc) {cat("-->")}
-```
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_uc_fc) {cat("<!---")}
-```
-![](`r plot_list$param_uc_fc`)  
-*Figure 10. Forecasts generated for water temperature using the different models and including **parameter uncertainty**. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$param_uc_fc) {cat("-->")}
-```
+**Answer:**
+\
+31. `r substr(quest["q31", ], 5, nchar(quest["q31", ]))`
+\
+**Answer:**
+\
+32. `r substr(quest["q32", ], 5, nchar(quest["q32", ]))`
+\
+    a.  `r substr(quest["q32a", ], 3, nchar(quest["q32a", ]))`: 
+\
+*Please copy-paste your Q-32a-plot.png image here.*\
+\
+*Figure 11. Water temperature forecasts with initial conditions uncertainty for your selected NEON lake.*
+\
+    b.  `r substr(quest["q32b", ], 3, nchar(quest["q32b", ]))`: 
+    **Answer:**   
 \
 
-18. `r quest[qid[24], 1]`  
+33. `r substr(quest["q33", ], 5, nchar(quest["q33", ]))`
 \
-**Answer:** `r answers[qid[24], 1]`  
-\
-19. `r quest[qid[25], 1]`  
-\
-**Answer:** `r answers[qid[25], 1]`  
+**Answer:**
 \
 
-## Objective 8: Initial Conditions Uncertainty\
+## Objective 8: Driver Uncertainty\
 
 ***
 `r module_text["obj_08", ]`
 
 ***
 
-**Initial conditions uncertainty** refers to uncertainty arising because the initial conditions are not precisely known or because the calculations cannot be performed with the precise initial conditions.
-
-Even though we have measurements of water temperature from our lake, we know that water temperature varies throughout the day so this measurement might not capture exactly the temperature in our lake at this time. Additionally, there may be observation error in our temperature measurements.
-
-To account for initial condition uncertainty we can generate a distribution around the initial condition and then run our model with slightly different initial conditions.
+34. `r substr(quest["q34", ], 5, nchar(quest["q34", ]))`
 \
-```{r results='asis', echo=FALSE}
-if (!plt_chk$ic_ts_dist) {cat("<!---")}
-```
-![](`r plot_list$ic_ts_dist`)  
-*Figure 11. Distribution of the range of possible values for the forecast initial condition. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$ic_ts_dist) {cat("-->")}
-```
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$ic_uc_fc) {cat("<!---")}
-```
-![](`r plot_list$ic_uc_fc`)  
-*Figure 12. Forecasts generated for water temperature using the different models and including **initial conditions uncertainty**. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$ic_uc_fc) {cat("-->")}
-```
+    a.  `r substr(quest["q34a", ], 3, nchar(quest["q34a", ]))`: 
+\
+*Please copy-paste your Q-34a-plot.png image here.*\
+\
+*Figure 12. Water temperature forecasts with driver uncertainty for your selected NEON lake.*
+\
+    b.  `r substr(quest["q34b", ], 3, nchar(quest["q34b", ]))`: 
+    **Answer:**   
 \
 
-20. `r quest[qid[26], 1]`  
+35. `r substr(quest["q35", ], 5, nchar(quest["q35", ]))`
 \
-**Answer:** `r answers[qid[26], 1]`  
-\
-21. `r quest[qid[27], 1]`  
-\
-**Answer:** `r answers[qid[27], 1]`  
-\
-22. `r quest[qid[28], 1]`  
-\
-**Answer:** `r answers[qid[28], 1]`  
+**Answer:**
 \
 
-## Objective 9: Driver Uncertainty\
+
+# Activity C - Managing Uncertainty\
+
+`r module_text["act_C", ]`
+
+## Objective 9: Quantify Uncertainty\
 
 ***
 `r module_text["obj_09", ]`
 
 ***
 
-**Driver uncertainty** comes from inaccuracies in the forecasted variables used to drive the model. The driver variable for our model is air temperature. To generate a forecast of future water temperature, we need to use forecasted air temperature to drive the model. Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.
+36. `r substr(quest["q36", ], 6, nchar(quest["q36", ]))`
 \
-```{r results='asis', echo=FALSE}
-if (!plt_chk$airt_fc) {cat("<!---")}
-```
-![](`r plot_list$airt_fc`)  
-*Figure 13. Forecast of air temperature from NOAA GEFS 30-member ensemble for the next seven days showing the individual ensemble members (A) and the median and 95% confidence interval (B). *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$airt_fc) {cat("-->")}
-```
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$driver_uc_fc) {cat("<!---")}
-```
-![](`r plot_list$driver_uc_fc`)  
-*Figure 14. Forecasts generated for water temperature using the different models and including **driver uncertainty**. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$driver_uc_fc) {cat("-->")}
-```
+    a.  `r substr(quest["q36a", ], 3, nchar(quest["q36a", ]))`  
+    \
+    **Answer:**  
+    \
+    b.  `r substr(quest["q36b", ], 3, nchar(quest["q36b", ]))`  
+    \
+    *Please copy-paste your Q-36b-plot.png image here.*\
 \
-
-23. `r quest[qid[29], 1]`  
+*Figure 13. Total forecast uncertainty partitioned among process, parameter, initial conditions, and driver uncertainty for model 1.*
 \
-**Answer:** `r answers[qid[29], 1]`  
+    c.  `r substr(quest["q36c", ], 3, nchar(quest["q36c", ]))`  
+    \
+    **Answer:**   
+    \
+    
+37. `r substr(quest["q37", ], 6, nchar(quest["q37", ]))`
 \
-24. `r quest[qid[30], 1]`  
+    a.  `r substr(quest["q37a", ], 3, nchar(quest["q37a", ]))`  
+    \
+    **Answer:**  
+    \
+    b.  `r substr(quest["q37b", ], 3, nchar(quest["q37b", ]))`  
+    \
+    *Please copy-paste your Q-37b-plot.png image here.*\
 \
-**Answer:** `r answers[qid[30], 1]`  
+*Figure 14. Total forecast uncertainty partitioned among process, parameter, initial conditions, and driver uncertainty for model 2.*
 \
+    c.  `r substr(quest["q37c", ], 3, nchar(quest["q37c", ]))`  
+    \
+    **Answer:**   
+    \
 
-## Summary\
-***
-`r module_text["act_B_summ", ]`
-
-***
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$all_fc) {cat("<!---")}
-```
-![](`r plot_list$all_fc`)  
-*Figure 15. Summary plot of forecasts generated using the different models and accounting for all the sources of uncertainty. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$all_fc) {cat("-->")}
-```
-
-### Discussion Questions\
-
-_Use the figures above to answer the questions._
+38. `r substr(quest["q38", ], 5, nchar(quest["q38", ]))`
+\
+**Answer:**
+\
 
 
-\
-
-25. `r quest[qid[31], 1]`  
-\
-**Answer:** `r answers[qid[31], 1]`  
-\
-26. `r quest[qid[32], 1]`  
-\
-**Answer:** `r answers[qid[32], 1]`  
-\
-27. `r quest[qid[33], 1]`  
-\
-**Answer:** `r answers[qid[33], 1]`  
-\
-
-# Activity C: Managing Uncertainty\
-
-## Objective 10: Quantify Uncertainty\
+## Objective 10: Management Scenario\
 
 ***
 `r module_text["obj_10", ]`
 
 ***
+
+39. `r substr(quest["q39", ], 5, nchar(quest["q39", ]))`
 \
-**Uncertainty quantification** is the science of characterizing and reducing uncertainty in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known.
-\
-
-## Think, Pair, Share!\
-`r module_text["tps1", 1]`\
-
-### Model 1\
-
-Model selected:
-`r mod_eqn1`
-
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$tot_uc_fc1) {cat("<!---")}
-```
-![](`r plot_list$tot_uc_fc1`)  
-*Figure 16. Forecast of water temperature for the next seven days including all the four different sources of uncertainty. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$tot_uc_fc1) {cat("-->")}
-```
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$quant_uc_fc1) {cat("<!---")}
-```
-![](`r plot_list$quant_uc_fc1`)  
-*Figure 17. Quantification of the different sources of uncertainty on each forecast day. Uncertainty is measured as the standard deviation across the ensemble members. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$quant_uc_fc1) {cat("-->")}
-```
+**Answer:**
 \
 
-28. `r quest[qid[34], 1]`  
+40. `r substr(quest["q40", ], 5, nchar(quest["q40", ]))`
 \
-**Answer:** `r answers[qid[34], 1]`  
-\
-
-### Model 2\
-
-Model selected:
-`r mod_eqn2`
-
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$tot_uc_fc2) {cat("<!---")}
-```
-![](`r plot_list$tot_uc_fc2`)  
-*Figure 18. Forecast of water temperature for the next seven days including all the four different sources of uncertainty. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$tot_uc_fc2) {cat("-->")}
-```
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$quant_uc_fc2) {cat("<!---")}
-```
-![](`r plot_list$quant_uc_fc2`)  
-*Figure 19. Quantification of the different sources of uncertainty on each forecast day. Uncertainty is measured as the standard deviation across the ensemble members. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$quant_uc_fc2) {cat("-->")}
-```
-\
-
-29. `r quest[qid[35], 1]`  
-\
-**Answer:** `r answers[qid[35], 1]`  
-\
-
-30. `r quest[qid[36], 1]`  
-\
-**Answer:** `r answers[qid[36], 1]`  
-\
-
-## Objective 11: Management Scenario\
-
-***
-`r module_text["obj_11", ]`
-
-***
-
-`r module_text["mgmt_scen1", ]`
-`r module_text["mgmt_scen2", ]`
-`r module_text["mgmt_scen3", ]`
-`r module_text["mgmt_scen4", ]`
-Some fish species, such as Chinook salmon (*Oncorhynchus tshawytscha*), have eggs which have higher rates of survival at colder temperatures.
-`r module_text["mgmt_scen5", ]`\
-
-
-### Decision #1\
-
-Use the forecast of surface and bottom temperature (across) to make a decision.
-
-This forecast was generated only including parameter uncertainty.
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$dec1) {cat("<!---")}
-```
-![](`r plot_list$dec1`)  
-*Figure 20. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$dec1) {cat("-->")}
-```
-
-Which level should be used to release water from the dam?\
-\
-Decision: `r dec1`
-\
-
-***
-
-### Decision #2\
-
-Use the forecast of surface and bottom temperature (across) to make a decision.
-
-This forecast was generated including process, parameter, initial conditions and driver uncertainty.
-
-
-```{r results='asis', echo=FALSE}
-if (!plt_chk$dec2) {cat("<!---")}
-```
-![](`r plot_list$dec2`)  
-*Figure 21. Forecast of surface (red) and bottom (blue) temperatures for a reservoir. The horizontal dashed line indicates the threshold above which Chinook salmon survival decreases. *
-```{r results='asis', echo=FALSE}
-if (!plt_chk$dec2) {cat("-->")}
-```
-
-Which level should be used to release water from the dam?\
-\
-Decision: `r dec2`
-\
-
-31. `r quest[qid[37], 1]`  
-\
-**Answer:** `r answers[qid[37], 1]`  
-\
-
-32. `r quest[qid[38], 1]`  
-\
-**Answer:** `r answers[qid[38], 1]`  
+**Answer:**
 \
 
 `r module_text["acknowledgement", ]`
