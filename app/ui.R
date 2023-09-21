@@ -369,7 +369,7 @@ ui <- function(request) {
                                                             column(7, offset = 1,
                                                                    h3("Questions"),
                                                                    p(tags$b(quest["q3", 1])),
-                                                                   p(id = "txt_j", "If the information for your lake is not on the NEON website then you can input NA (Not Available) into the text box.")
+                                                                   p(id = "txt_j", "If the information for your lake is not on the NEON website then you can put NA (Not Available) as your answer.")
                                                             )
                                                           ),
                                                           fluidRow(
