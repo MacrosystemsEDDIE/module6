@@ -434,6 +434,7 @@ ui <- function(request) {
                                                column(5,
                                                       h3("Explore water temperature"),
                                                       p(id = "txt_j", "Click 'Plot water temperature' to view a time series of the real water temperature data measured at the lake you chose."),
+                                                      p(tags$b("Note that gaps in water temperature data are normal, as buoys cannot always be left in lakes through the winter in cold climates.")),
                                                       fluidRow(
                                                         column(10, offset = 1,
                                                                actionButton("plot_airt_swt", "Plot water temperature")
@@ -453,11 +454,6 @@ ui <- function(request) {
                                                                    )
                                                                    )
                                                           ),
-                                                            fluidRow(
-                                                              column(10, offset = 1,
-                                                                     DTOutput("q6_tab")
-                                                                     )
-                                                            ),
                                                                    br(),
                                                       ),
                                                       hr(),
@@ -497,7 +493,6 @@ ui <- function(request) {
                                                           ),
                                                           fluidRow(
                                                             column(10, offset = 1,
-                                                                   DTOutput("q8_tab"),
                                                                    br(),
                                                                    p(tags$b(quest["q8", 1])),
                                                                    p(tags$em(quest["q8a", 1])),
@@ -550,7 +545,7 @@ ui <- function(request) {
                                                column(8,
                                                       h5("Click the arrows to navigate through the slides", align = "center"),
                                                       wellPanel(
-                                                        slickROutput("model_slides", width = "600px", height = "450px")
+                                                        slickROutput("model_slides", width = "640px", height = "480px")
                                                       )
                                                )
                                              ),
@@ -737,7 +732,7 @@ ui <- function(request) {
                                       column(6,
                                              br(),br(),
                                              actionButton("add_lm", "Get model parameters"),
-                                             DTOutput("lr_DT", width = "100%"),
+                                             DTOutput("lr_DT", width = "50%"),
                                              br(), br(),
                                              wellPanel(
                                                uiOutput("lm_mod")
@@ -750,7 +745,7 @@ ui <- function(request) {
                                       column(6,
                                              br(),br(),
                                              actionButton("add_lm1", "Get model parameters"),
-                                             DTOutput("lr_DT1", width = "100%"),
+                                             DTOutput("lr_DT1", width = "50%"),
                                              br(),br(),
                                              wellPanel(
                                                uiOutput("lm_mod1")
@@ -815,7 +810,7 @@ ui <- function(request) {
                                              wellPanel(
                                                plotlyOutput("mlr_ts_plot1")
                                              ),
-                                             DTOutput("mlr_DT", width = "100%"),
+                                             DTOutput("mlr_DT", width = "50%"),
                                              br(),
                                              wellPanel(
                                                uiOutput("mlr_mod1")
@@ -1154,7 +1149,8 @@ ui <- function(request) {
                                                                                     inline = TRUE),
                                                                        p(id = "txt_j", "Click on items in the legend to show/hide them from the plot.")
                                                       ),
-                                                      downloadButton("save_proc_fc_plot", "Download plot", icon = icon("download"))
+                                                      downloadButton("save_proc_fc_plot", "Download plot", icon = icon("download")),
+                                                      p(tags$i("Note: the plot will always download in the distribution format."))
                                                )
                                              ),
                                              hr(),
@@ -1322,11 +1318,13 @@ ui <- function(request) {
                                                         plotlyOutput("wtemp_fc3b")
                                                       ),
                                                       downloadButton("save_param_fc_plot", "Download plot", icon = icon("download")),
+                                                      p(tags$i("Note: the plot will always download in the distribution format.")),
                                                       br(),br(),
                                                       conditionalPanel("input.fc3_Both > 0 || input.fc3_Pers > 0 || input.fc3_Wtemp > 0 || input.fc3_Atemp > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type3b", "Plot type", c("Line", "Distribution"),
-                                                                                    inline = TRUE)
+                                                                                    inline = TRUE),
+                                                                       p(id = "txt_j", "Click on items in the legend to show/hide them from the plot.")
                                                       )
                                                       )
                                              ),
@@ -1341,7 +1339,8 @@ ui <- function(request) {
                                                             p(tags$b(quest["q28", 1])),
                                                             p(tags$em(quest["q28a", 1])),
                                                             p(tags$em(quest["q28b", 1])),
-                                                            p(tags$b(quest["q29", 1]))
+                                                            p(tags$b(quest["q29", 1])),
+                                                            p(tags$i("Hint: Revisit the slides on 'Managing Uncertainty' under the 'Presentation' tab."))
                                                      )
                                                    )
                                                )
@@ -1418,8 +1417,10 @@ ui <- function(request) {
                                              fluidRow(
                                                column(4,
                                                       h4("Generate Initial Condition Distribution"),
-                                                      p("Our water temperature has an observation uncertainty of ",tags$b("0.1 degrees Celsius.")),
-                                                      p(id = "txt_j", "Click the button below to generate a normal distribution around the initial condition (which is our most recent observation) with a standard deviation of 0.1 degrees C."),
+                                                      p("Our water temperature sensor has an observation uncertainty of "),
+                                                      h3(tags$b("0.1 degrees Celsius.")),
+                                                      p("So, we will assign 0.1 degrees Celsius as the standard deviation of our initial condition distribution."),
+                                                      p(id = "txt_j", "Click the button below to generate a normal distribution around the initial condition (which is our most recent observation) with a standard deviation of 0.1 degrees Celsius."),
                                                       actionButton("gen_ic", "Generate distribution")
                                                       ),
                                                column(4,
@@ -1491,11 +1492,13 @@ ui <- function(request) {
                                                         plotlyOutput("wtemp_fc4")
                                                       ),
                                                       downloadButton("save_ic_fc_plot", "Download plot", icon = icon("download")),
+                                                      p(tags$i("Note: the plot will always download in the distribution format.")),
                                                       br(),br(),
                                                       conditionalPanel("input.fc4_Both > 0 || input.fc4_Pers > 0 || input.fc4_Wtemp > 0 || input.fc4_Atemp > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type4", "Plot type", c("Line", "Distribution"),
-                                                                                    inline = TRUE)
+                                                                                    inline = TRUE),
+                                                                       p(id = "txt_j", "Click on items in the legend to show/hide them from the plot.")
                                                       )
                                                       )
                                                ),
@@ -1510,7 +1513,8 @@ ui <- function(request) {
                                                             p(tags$b(quest["q32", 1])),
                                                             p(tags$em(quest["q32a", 1])),
                                                             p(tags$em(quest["q32b", 1])),
-                                                            p(tags$b(quest["q33", 1]))
+                                                            p(tags$b(quest["q33", 1])),
+                                                            p(tags$i("Hint: Revisit the slides on 'Managing Uncertainty' under the 'Presentation' tab."))
                                                      )
                                                    )
                                                )
@@ -1634,10 +1638,12 @@ ui <- function(request) {
                                                         plotlyOutput("wtemp_fc5")
                                                       ),
                                                       downloadButton("save_driver_fc_plot", "Download plot", icon = icon("download")),
+                                                      p(tags$i("Note: the plot will always download in the distribution format.")),
                                                       conditionalPanel("input.fc5_Both > 0 || input.fc5_Pers > 0 || input.fc5_Wtemp > 0 || input.fc5_Atemp > 0",
                                                                        p("Using the properties of a normal distribution, we can calculate the confidence intervals of these samples and use this to visualize uncertainty in our forecast."),
                                                                        radioButtons("plot_type5", "Plot type", c("Line", "Distribution"),
-                                                                                    inline = TRUE)
+                                                                                    inline = TRUE),
+                                                                       p(id = "txt_j", "Click on items in the legend to show/hide them from the plot.")
                                                       )
                                                )
                                              ),
@@ -1652,7 +1658,8 @@ ui <- function(request) {
                                                                    p(tags$b(quest["q34", 1])),
                                                                    p(tags$em(quest["q34a", 1])),
                                                                    p(tags$em(quest["q34b", 1])),
-                                                                   p(tags$b(quest["q35", 1]))
+                                                                   p(tags$b(quest["q35", 1])),
+                                                                   p(tags$i("Hint: Revisit the slides on 'Managing Uncertainty' under the 'Presentation' tab."))
                                                             )
                                                             )
                                                           )

@@ -44,7 +44,7 @@ options(shiny.maxRequestSize=30*1024^2)
 # Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
 scale_fill_discrete <- ggthemes::scale_fill_colorblind
-cols <- RColorBrewer::brewer.pal(8, "Dark2")
+cols <- c("#1B9E77", "#D95F02"  ,"#2580F3" ,"#E7298A", "#66A61E", "#E6AB02","#A6761D", "#666666")
 cols2 <- ggthemes::ggthemes_data$colorblind$value
 l.cols <- RColorBrewer::brewer.pal(8, "Set2")[-c(1, 2)]
 p.cols <- RColorBrewer::brewer.pal(12, "Paired")

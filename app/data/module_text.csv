@@ -67,9 +67,9 @@ scne_p2,Within
 phenocam,A 'phenocam' is a digital camera capturing time-lapse images of foliage and lake sites. It can be used to generate quantitative measures of plant phenology.
 rmse,(RMSE) is a metric used to assess how well a model fits a dataset. It tells us the average distance between the predicted values from the model and the actual values in the dataset.
 uc_quant1,Uncertainty quantification is the science of quantitative characterization and reduction of uncertainties in both computational and real world applications. It tries to determine how likely certain outcomes are if some aspects of the system are not exactly known.
-tps1,"With your partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss your findings with your partner."
-mgmt_scen1,"For this activity you are a water resource manager for the local hydroelectric dam, which provides water to agricultural users downstream and energy to the local town."
+tps1,"If you are working with a partner, each of you select two  of the four models (make sure you select different models) and explore how uncertainty differs between the models. Complete the activities below by yourself and then discuss your findings with your partner."
+mgmt_scen1,"For this activity you are a water resource manager for a hydroelectric dam in the Pacific Northwest of the United States, which provides water to agricultural users downstream and energy to the local town."
 mgmt_scen2,"During the summer, water temperatures at the surface of the reservoir increase substantially, while temperatures at the bottom increase more slowly, creating a difference in temperature between the surface and the bottom waters."
 mgmt_scen3,This reservoir can release water either from the surface or the bottom of the dam.
 mgmt_scen4,Fish downstream of the dam are influenced by stream water temperature.
-mgmt_scen5,You will decide from which depth water should be released for the next 7 days to optimize survival rates for Chinook salmon. You will use forecasts of surface and bottom water temperatures within the reservoir to help inform your decision.
+mgmt_scen5,"You will decide from which depth water should be released for the next 7 days to optimize survival rates for Chinook salmon, an ecologically and societally important fish species. You will use forecasts of surface and bottom water temperatures within the reservoir to help inform your decision."

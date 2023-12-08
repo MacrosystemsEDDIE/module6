@@ -399,8 +399,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 8, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = plot.airt_swt1$main, device = device)
     }
@@ -523,8 +523,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = persist_plot$main + persist_plot$layer1, device = device)
     }
@@ -674,8 +674,8 @@ shinyServer(function(input, output, session) {
       xlab("Yesterday's water temperature (\u00B0C)") +
       geom_point(data = df, aes(wtemp_yday, wtemp, color = "Obs")) +
       scale_color_manual(values = c("Mod" = cols[4], "Obs" = "black"), name = "") +
-      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12)+
+      ggtitle("Note: the dashed line (- - -) is the 1:1 line")
     
     pars <- na.exclude(lr_pars$dt)
     
@@ -736,8 +736,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = swt_swt_plot_lines$main, device = device)
     }
@@ -892,8 +892,8 @@ shinyServer(function(input, output, session) {
       xlab("Air temperature (\u00B0C)") +
       geom_point(data = df, aes(airt, wtemp, color = "Obs")) +
       scale_color_manual(values = c("Mod" = cols[5], "Obs" = "black"), name = "") +
-      coord_cartesian(xlim = c(-5, 30), ylim = c(-5, 30)) +
-      theme_bw(base_size = 12)
+      theme_bw(base_size = 12)+
+      ggtitle("Note: the dashed line (- - -) is the 1:1 line")
     
     pars <- na.exclude(lr_pars$dt)
     
@@ -959,8 +959,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = airt_swt_plot_lines$main, device = device)
     }
@@ -1269,8 +1269,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 8, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = all_mods_plot$main, device = device)
     }
@@ -1557,8 +1557,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = wtemp_fc1a$main, device = device)
     }
@@ -1656,8 +1656,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = proc_dist_plot$main, device = device)
     }
@@ -2021,8 +2021,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = proc_fc_plot$main, device = device)
     }
@@ -2687,8 +2687,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = param_fc_plot$main, device = device)
     }
@@ -3134,8 +3134,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = ic_fc_plot$main, device = device)
     }
@@ -3692,8 +3692,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 6, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = driver_fc_plot$main, device = device)
     }
@@ -4071,8 +4071,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 8, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = fc_quantA_plot$main, device = device)
     }
@@ -4451,8 +4451,8 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       device <- function(..., width, height) {
-        grDevices::png(..., width = width, height = height,
-                       res = 300, units = "in")
+        grDevices::png(..., width = 8, height = 4,
+                       res = 200, units = "in")
       }
       ggsave(file, plot = fc_quantB_plot$main, device = device)
     }
