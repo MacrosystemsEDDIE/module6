@@ -604,7 +604,7 @@ ui <- function(request) {
                                                         div("$$wtemp_{t} = wtemp_{t-1}$$"),
                                                         p("where t = today and t = yesterday.")
                                                       ),
-                                                      p(id = "txt_j", "Let's plot this model versus observations."),
+                                                      p(id = "txt_j", "Let's plot this model versus observations. On the plot, observe that each day's prediction is the same as the previous day's observation."),
                                                       br(),
                                                       actionButton("plot_persist", "Plot"),
                                                       br(), br(),
