@@ -8,6 +8,35 @@ suppressPackageStartupMessages(library(plotly, quietly = TRUE))
 suppressPackageStartupMessages(library(ggpubr, quietly = TRUE))
 suppressPackageStartupMessages(library(kableExtra, quietly = TRUE))
 suppressPackageStartupMessages(library(shinyalert, quietly = TRUE))
+suppressPackageStartupMessages(library(shinyBS, quietly = TRUE))
+suppressPackageStartupMessages(library(shinydashboard, quietly = TRUE))
+suppressPackageStartupMessages(library(rintrojs, quietly = TRUE))
+suppressPackageStartupMessages(library(slickR, quietly = TRUE))
+suppressPackageStartupMessages(library(sortable, quietly = TRUE))
+suppressPackageStartupMessages(library(ncdf4, quietly = TRUE))
+suppressPackageStartupMessages(library(ggplot2, quietly = TRUE))
+suppressPackageStartupMessages(library(stringr, quietly = TRUE))
+suppressPackageStartupMessages(library(hover, quietly = TRUE))
+suppressPackageStartupMessages(library(lubridate, quietly = TRUE))
+suppressPackageStartupMessages(library(tidyverse, quietly = TRUE))
+suppressPackageStartupMessages(library(glue, quietly = TRUE))
+
+# Enable bookmarking
+enableBookmarking(store = "url")
+
+# Help documentation
+help_text <- read.csv("data/help_text.csv", row.names = 1)
+
+# Load text input
+module_text <- read.csv("data/module_text.csv", row.names = 1, header = FALSE)
+
+# colors for theme
+obj_bg <- "#D4ECE1"
+ques_bg <- "#B8E0CD"
+nav_bg <- "#DDE4E1"
+nav_butt <- "#31ED92"
+nav_txt <- "#000000" # white = #fff; black = #000000
+slider_col <- "#2CB572"
 
 # Change maximum upload file size
 options(shiny.maxRequestSize=30*1024^2)
@@ -15,7 +44,7 @@ options(shiny.maxRequestSize=30*1024^2)
 # Colors for plots
 scale_colour_discrete <- ggthemes::scale_colour_colorblind
 scale_fill_discrete <- ggthemes::scale_fill_colorblind
-cols <- RColorBrewer::brewer.pal(8, "Dark2")
+cols <- c("#1B9E77", "#D95F02"  ,"#2580F3" ,"#E7298A", "#66A61E", "#E6AB02","#A6761D", "#666666")
 cols2 <- ggthemes::ggthemes_data$colorblind$value
 l.cols <- RColorBrewer::brewer.pal(8, "Set2")[-c(1, 2)]
 p.cols <- RColorBrewer::brewer.pal(12, "Paired")
@@ -42,24 +71,12 @@ qid <- row.names(quest)
 idx <- which(grepl("Name of selected ", quest$Question))
 idx2 <- which(grepl("Elevation", quest$Question))
 
-# Number questions
-quest$Question[1:(idx-1)] <- paste0("Q.", 1:(idx-1), " ", quest$Question[1:(idx-1)])
-quest$Question[idx:(idx2)] <- paste0(letters[1:length(idx:idx2)], ". ", quest$Question[idx:idx2])
-quest$Question[(idx2+1):nrow(quest)] <- paste0("Q.", ((idx2+1):nrow(quest) - 6), " ", quest$Question[(idx2+1):nrow(quest)])
-
-# Number location
-quest$location[1:(idx-1)] <- paste0(quest$location[1:(idx-1)], " - Q.", 1:(idx-1))
-# quest$location[idx:(idx2)] <- paste0(quest$location[idx:idx2],letters[1:length(idx:idx2)], ". ", )
-quest$location[(idx2+1):nrow(quest)] <- paste0(quest$location[(idx2+1):nrow(quest)], " - Q.", ((idx2+1):nrow(quest) - 6))
-
-# Create dataframe for answers
-answers <- quest
-quest$location <- NULL
-colnames(answers)[1] <- "Answer"
-answers[, 1] <- ""
+# Read in assessment questions
+quest <- read.csv("data/student_questions.csv", row.names = 1)
 
 # Slides
 recap_slides <- list.files("www/shiny_slides", full.names = TRUE)
+model_slides <- list.files("www/model_slides", full.names = TRUE)
 proc_uc_slides <- list.files("www/proc_uc_slides", full.names = TRUE)
 param_uc_slides <- list.files("www/param_uc_slides", full.names = TRUE)
 ic_uc_slides <- list.files("www/ic_uc_slides", full.names = TRUE)
@@ -89,34 +106,19 @@ neon_sites_df <- neon_sites_df[neon_sites_df$type == "Aquatic", ]
 neon_vars <- read.csv("data/neon_variables.csv")
 
 # Statistics
-stats <- list("Minimum" = "Min.", "1st Quartile" = "1st Qu.", "Median" = "Median", "Mean" = "Mean", "3rd Quartile" = "3rd Qu.", "Maximum" = "Max.", "Standard Deviation" = "sd")
-mod_choices <- c("Negative", "No change", "Positive")
-# Sorting variables
-state_vars <- c("Phytoplankton", "Nitrogen")
-process_vars <- c("Mortality", "Uptake")
-
-# Parameters for NP model
-parms <- c(
-  maxUptake = 1.0, #day-1
-  kspar=120, #uEinst m-2 s-1
-  ksdin=0.5, #mmol m-3
-  maxGrazing=1.0, # day-1
-  ksphyto=1, #mmol N m-3
-  pFaeces=0.3, #unitless
-  mortalityRate=0.4, #(mmmolN m-3)-1 day-1
-  excretionRate=0.1, #day-1
-  mineralizationRate=0.1, #day-1
-  Chl_Nratio = 1, #mg chl (mmolN)-1
-  Q10 = 2,  #unitless
-  refTEMP = 20 # Reference temperature for q10
+stats0 <- list("Minimum" = "Min.", "Maximum" = "Max.", "Mean" = "Mean")
+q6_table <- data.frame(
+  Mean = rep(NA, 1),
+  Min = rep(NA, 1),
+  Max = rep(NA, 1), row.names = c("Water temperature")
+)
+q8_table <- data.frame(
+  Mean = rep(NA, 1),
+  Min = rep(NA, 1),
+  Max = rep(NA, 1), row.names = c("Air temperature")
 )
 
-calib_model_png <- gsub("www/", "", list.files("www/calib_model/", full.names = TRUE))
-
-# Initial conditions for NP
-yini <- c(
-  PHYTO = 2, #mmolN m-3
-  DIN = 9) #mmolN m-3
+stats <- list("Minimum" = "Min.", "1st Quartile" = "1st Qu.", "Median" = "Median", "Mean" = "Mean", "3rd Quartile" = "3rd Qu.", "Maximum" = "Max.", "Standard Deviation" = "sd")
 
 mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = element_line(colour = "black"),
                  axis.text.x=element_text(size=18, colour='black'), axis.text.y=element_text(size=18, colour='black'),
@@ -131,16 +133,13 @@ mytheme <- theme(axis.line.x = element_line(colour = "black"), axis.line.y = ele
 png_theme <- theme(legend.position = "bottom",
                    legend.text = element_text(size = 14),
                    legend.title = element_text(size = 14))
+
 # Linear regression variables ----
 lin_reg_vars <- read.csv("data/multiple_linear_regression_variables.csv",
                          fileEncoding = "UTF-8-BOM")
 
 # Forecast Date
 fc_date <- "2020-09-25"
-
-# Sampling frequency
-samp_freq <- c("Monthly", "Fortnightly", "Weekly", "Daily")
-samp_freq2 <- c("Month", "Fortnight", "Week", "Day")
 
 # Uncertainty sources to include
 uc_sources <- c("Process", "Parameter", "Initial Conditions", "Driver", "Total")
@@ -154,7 +153,6 @@ tab_names <- read.csv("data/tab_names.csv", fileEncoding = "UTF-8-BOM")
 
 # Model names
 mod_names <- c("Pers", "Wtemp", "Atemp", "Both")
-
 
 # Dam levels
 dam_lev <- c("Surface", "Bottom")
@@ -191,5 +189,357 @@ scen_fc2$surf_lci[5] <- scen_fc2$surftemp[5] - max(ssd)
 
 scen_fc2$bot_uci <- scen_fc2$bottemp + bsd[order(bsd)]
 scen_fc2$bot_lci <- scen_fc2$bottemp - bsd[order(bsd)]
+
+# Icons
+neonIcons <- iconList(
+  Aquatic = makeIcon("icons/water-icon.png", iconWidth = 28, iconHeight = 28),
+  Terrestrial = makeIcon("icons/mountain-icon.png", iconWidth =  28, iconHeight = 28)
+)
+
+# Reference for downloading variables
+neon_vars <- read.csv("data/neon_variables.csv")
+met_pars <- read.csv("data/met_params.csv", fileEncoding = "UTF-8-BOM")
+
+# a table container with complex header
+sketch1 = htmltools::withTags(table(
+  class = 'display',
+  thead(
+    tr(
+      th(colspan = 2, 'Slope (m)'),
+      th(colspan = 2, 'Intercept (b)')
+    ),
+    tr(
+      lapply(rep(c('Mean', 'Std. Dev.'), 2), th)
+    )
+  )
+))
+
+# function to run deterministic forecasts
+run_deterministic_forecast <- function(model, data, airtemp_forecast, 
+                                       lr_pars3, lr_pars2, mlr_pars,
+                                       model_table){
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, 
+                    wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+  dat$wtemp[dat$Date > fc_date] <- NA
+  dat$forecast <- NA
+  dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+  dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+  dat$wtemp_yday[dat$Date > lag_date] <- NA
+  dat$airt_yday[dat$Date > mn_date] <- NA
+  
+  df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+  df <- merge(dat, df, by = "Date", all.y = TRUE)
+  
+  fc_days <- which(df$Date >= fc_date)
+  if(model == 3) {
+    for(i in fc_days[-1]) {
+      df$forecast[i] <- df$airt[i] * lr_pars3$m[1] + lr_pars3$b[1]
+    }
+  } else if(model == 1) {
+    for(i in fc_days[-1]) {
+      df$forecast[i] <- df$forecast[i-1]
+    }
+  } else if(model == 2) {
+    for(i in fc_days[-1]) {
+      df$forecast[i] <- df$forecast[i-1] * lr_pars2$m[1] + lr_pars2$b[1]
+    }
+  } else if(model == 4) {
+    for(i in fc_days[-1]) {
+      df$forecast[i] <- df$forecast[i-1] * mlr_pars$b1_est[1] + df$airt[i] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1]
+    }
+  }
+  return(df)
+}
+
+# function to run process forecasts
+run_process_forecast <- function(model, data, airtemp_forecast, 
+                                       lr_pars3, lr_pars2, mlr_pars,
+                                       model_table, sigmas){
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+  dat$wtemp[dat$Date > fc_date] <- NA
+  dat$forecast <- NA
+  dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+  dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+  dat$wtemp_yday[dat$Date > lag_date] <- NA
+  dat$airt_yday[dat$Date > mn_date] <- NA
+  
+  df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+  df <- merge(dat, df, by = "Date", all.y = TRUE)
+  
+  mat <- matrix(NA, 8, 100)
+  mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+  df <- df[(df$Date >= fc_date), ]
+
+  for(mem in 2:nrow(mat)) {
+    if(idx == 3) {
+      Wt <- sigmas[3,2]
+      mat[mem, ] <- df$airt[mem] * lr_pars3$m[1] + lr_pars3$b[1] + rnorm(100, 0, Wt)
+    } else if(idx == 1) {
+      Wt <- sigmas[1,2]
+      mat[mem, ] <- mat[mem-1, ] + rnorm(100, 0, Wt)
+    } else if(idx == 2) {
+      Wt <- sigmas[2,2]
+      mat[mem, ] <- mat[mem-1, ] * lr_pars2$m[1] + lr_pars2$b[1] + rnorm(100, 0, Wt)
+    } else if(idx == 4) {
+      Wt <- sigmas[4,2]
+      mat[mem, ] <- mat[mem-1, ] * mlr_pars$b1_est[1] + df$airt[mem] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1] + rnorm(100, 0, Wt)
+    }
+  }
+  
+  # Calculate distributions
+  dat <- apply(mat, 1, function(x){
+    quantile(x, c(0.05, 0.5, 0.95))
+  })
+  dat <- as.data.frame(t(dat))
+  colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+  dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  dat$Level <- as.character(idx)
+
+  df2 <- as.data.frame(mat)
+  df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  mlt <- reshape::melt(df2, id.vars = "Date")
+  mlt$Level <- as.character(idx)
+  
+  return(list(df = df, dat = dat, mlt = mlt))
+  
+}
+
+# create action buttons for table function - delete this eventually
+create_btns <- function(x, label) {
+  x %>%
+    purrr::map_chr(~
+                     paste0(
+                       '<button id=',.x,' type="button" class="btn btn-default action-button">',label,'</button>'
+                     ))
+}
+
+# function to run parameter forecasts
+run_param_forecast <- function(model, data, airtemp_forecast, 
+                                 param_dist,
+                                 model_table){
+  
+idx <- model
+
+pars <- param_dist[[idx]]
+
+if(idx != 1) {
+  pars <- pars[sample(1:nrow(pars), size = 100), ]
+}
+
+dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                  airt = data$airt,
+                  wtemp_yday = NA,
+                  airt_yday = NA)
+
+dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+
+lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+mn_date <- (as.Date(fc_date) + 1)
+
+dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+dat$wtemp[dat$Date > fc_date] <- NA
+dat$forecast <- NA
+dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+dat$wtemp_yday[dat$Date > lag_date] <- NA
+dat$airt_yday[dat$Date > mn_date] <- NA
+
+df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+df <- merge(dat, df, by = "Date", all.y = TRUE)
+
+mat <- matrix(NA, 8, 100)
+mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+df <- df[(df$Date >= fc_date), ]
+
+for(mem in 2:nrow(mat)) {
+  
+  if(idx == 3) {
+    mat[mem, ] <- df$airt[mem] * pars$m + pars$b
+  } else if(idx == 1) {
+    mat[mem, ] <- mat[mem-1, ]
+  } else if(idx == 2) {
+    mat[mem, ] <- mat[mem-1, ] * pars$m + pars$b
+  } else if(idx == 4) {
+    mat[mem, ] <- mat[mem-1, ] * pars$beta1 + df$airt[mem] * pars$beta2 + pars$beta0
+    
+  }
+}
+
+# Calculate distributions
+dat <- apply(mat, 1, function(x){
+  quantile(x, c(0.05, 0.5, 0.95))
+})
+dat <- as.data.frame(t(dat))
+colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+dat$Level <- as.character(idx)
+
+df2 <- as.data.frame(mat)
+df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+mlt <- reshape::melt(df2, id.vars = "Date")
+mlt$Level <- as.character(idx)
+
+return(list(mlt = mlt, dat = dat))
+
+}
+
+# function to run ic forecasts
+run_ic_forecast <- function(model, data, airtemp_forecast, 
+                                 lr_pars3, lr_pars2, mlr_pars,
+                                 model_table){
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  
+  dat <- dat[dat$Date <= as.Date("2020-10-02") & dat$Date >= "2020-09-22", ]
+  dat$wtemp[dat$Date > fc_date] <- NA
+  dat$forecast <- NA
+  dat$forecast[dat$Date == fc_date] <- dat$wtemp[dat$Date == fc_date]
+  dat$airt[dat$Date > fc_date] <- airtemp_forecast$value[2:8]
+  dat$wtemp_yday[dat$Date > lag_date] <- NA
+  dat$airt_yday[dat$Date > mn_date] <- NA
+  
+  df <- data.frame(Date = seq.Date(as.Date("2020-09-22"), as.Date("2020-10-02"), by = 1))
+  df <- merge(dat, df, by = "Date", all.y = TRUE)
+  
+  mat <- matrix(NA, 8, 100)
+  mat[1, ] <- rnorm(100, df$wtemp[which(df$Date == fc_date)], sd = 0.1) #0.1 is sensor error value
+  df <- df[(df$Date >= fc_date), ]
+
+  for(mem in 2:nrow(mat)) {
+    if(idx == 3) {
+      mat[1, ] <- df$wtemp[which(df$Date == fc_date)] #no IC uc here!
+      mat[mem, ] <- df$airt[mem] * lr_pars3$m[1] + lr_pars3$b[1]
+    } else if(idx == 1) {
+      mat[mem, ] <- mat[mem-1, ]
+    } else if(idx == 2) {
+      mat[mem, ] <- mat[mem-1, ] * lr_pars2$m[1] + lr_pars2$b[1]
+    } else if(idx == 4) {
+      mat[mem, ] <- mat[mem-1, ] * mlr_pars$b1_est[1] + df$airt[mem] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1]
+    }
+  }
+  
+  # Calculate distributions
+  dat <- apply(mat, 1, function(x){
+    quantile(x, c(0.05, 0.5, 0.95))
+  })
+  dat <- as.data.frame(t(dat))
+  colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+  dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  dat$Level <- as.character(idx)
+
+  df2 <- as.data.frame(mat)
+  df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  mlt <- reshape::melt(df2, id.vars = "Date")
+  mlt$Level <- as.character(idx)
+  
+  return(list(df = df, mlt = mlt, dat = dat))
+  
+}
+
+# function to run driver forecasts
+run_driver_forecast <- function(model, data, airtemp_forecast, 
+                            lr_pars3, lr_pars2, mlr_pars,
+                            model_table, airtemp_forecast_data){
+
+  mlt <- airtemp_forecast
+  mlt$Date <- as.Date(mlt$time)
+  mlt <- plyr::ddply(mlt, c("Date", "L1", "variable"), function(x) data.frame(value = mean(x$value, na.rm = TRUE)))
+  mlt <- mlt[mlt$Date <= "2020-10-02", ]
+  
+  wid <- tidyr::pivot_wider(mlt, c(Date, L1), names_from = variable, values_from = value)
+  wid <- as.data.frame(wid)
+  
+  idx <- model
+  
+  dat <- data.frame(Date = data$Date, wtemp = data$wtemp,
+                    airt = data$airt,
+                    wtemp_yday = NA,
+                    airt_yday = NA)
+  
+  dat$wtemp_yday[-c(1:model_table$lag[idx])] <- dat$wtemp[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  dat$airt_yday[-c(1:model_table$lag[idx])] <- dat$airt[-c((nrow(dat)+1-model_table$lag[idx]):nrow(dat))]
+  
+  lag_date <- (as.Date(fc_date) + model_table$lag[idx])
+  mn_date <- (as.Date(fc_date) + 1)
+  
+  df <- airtemp_forecast_data[[1]]
+  
+  mat <- matrix(NA, 8, 30)
+  mat[1, ] <- df$wtemp[which(df$Date == fc_date)]
+  df <- df[(df$Date >= fc_date), ]
+  idx <- model
+  driv_mat <- sapply(1:30, function(x) airtemp_forecast_data[[x]]$airt[airtemp_forecast_data[[x]]$Date >= fc_date] )
+  
+  for(mem in 2:nrow(mat)) {
+    if(idx == 1) {
+      mat[mem, ] <- mat[mem-1, ]
+    } else if(idx == 2) {
+      mat[mem, ] <- mat[mem-1, ] * lr_pars2$m[1] + lr_pars2$b[1]
+    } else if(idx == 3) {
+      mat[mem, ] <- driv_mat[mem, ] * lr_pars3$m[1] + lr_pars3$b[1]
+    } else if(idx == 4) {
+      mat[mem, ] <- mat[mem-1, ] * mlr_pars$b1_est[1] + driv_mat[mem, ] * mlr_pars$b2_est[1] + mlr_pars$b0_est[1]
+    }
+  }
+  
+  # Calculate distributions
+  dat <- apply(mat, 1, function(x){
+    quantile(x, c(0.05, 0.5, 0.95))
+  })
+  dat <- as.data.frame(t(dat))
+  colnames(dat) <- paste0("p", gsub("%", "", colnames(dat)))
+  dat$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  dat$Level <- as.character(idx)
+  
+  df2 <- as.data.frame(mat)
+  df2$Date <- seq.Date(from = as.Date(fc_date), length.out = 8, by = 1)
+  mlt <- reshape::melt(df2, id.vars = "Date")
+  mlt$Level <- as.character(idx)
+
+  return(list(dat = dat, mlt = mlt, df = df))
+  
+}
+
 
 # end
