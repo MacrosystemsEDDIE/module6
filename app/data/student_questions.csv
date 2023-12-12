@@ -6,9 +6,9 @@ q3a,a. Name of selected site:
 q3b,b. Four letter site identifier:
 q3c,c. Latitude:
 q3d,d. Longitude:
-q3e,e. Lake area (km2):
+q3e,e. Lake or watershed area (specify which you are providing in km2):
 q3f,f. Elevation (m):
-q4,Q4. List two potential impacts on lakes and inland water bodies as a result of increasing water temperature.
+q4,Q4. List two potential impacts on freshwater ecosystems as a result of increasing water temperature.
 q5,Q5. Describe any patterns you see in the surface water temperature data for your lake.
 q6,Q6. Fill out the table in your Word document with the summary statistics of water temperature.
 q7,Q7. Fill out the table in your Word document with the summary statistics of air temperature.

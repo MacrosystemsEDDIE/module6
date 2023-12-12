@@ -190,7 +190,7 @@ ui <- function(request) {
                           hr(),
                           column(4,
                                  h3("Presentation"),
-                                 p(id = "txt_j", "The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty and the importance and relevance of quantifying uncertainty within ecological forecasts."),
+                                 p(id = "txt_j", "The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty, and the importance and relevance of quantifying uncertainty within ecological forecasts."),
                                  p(id = "txt_j", tags$b("What is ecological forecast uncertainty?")),
                                  tags$ul(
                                    tags$li(module_text["uncertainty", ])
@@ -391,7 +391,7 @@ ui <- function(request) {
                                              fluidRow(
                                                column(5, offset = 1,
                                                       h3("Next step"),
-                                                      p("We will explore the water temperature data which has been measured at this site by NEON."))
+                                                      p("We will explore the water temperature data which have been measured at this site by NEON."))
                                              )
                                     ),
                                    
@@ -881,7 +881,7 @@ ui <- function(request) {
                                                       h3("Weather forecast data"),
                                                       p(id = "txt_j", "We just received a weather forecast data from NOAA. It is a 7-day forecast of air temperature at our site. We will need this data for our forecasts as some of our models depend on forecasted air temperature. Click the button below to view it."),
                                                       actionButton("view_at_fc", "View forecast"),
-                                                      p(id = "txt_j", "With this air temperature forecast we can use the models that we built in Objective 3 that require air temperature, to forecast water temperature.")
+                                                      p(id = "txt_j", "With this air temperature forecast we can use the models that we built in Objective 3 that require air temperature as model inputs to forecast water temperature.")
                                                ),
                                                column(6,
                                                       h4("Air temperature forecast"),
@@ -963,7 +963,7 @@ ui <- function(request) {
                                              fluidRow(
                                                column(6,
                                                       h4("What is wrong with deterministic forecasts?"),
-                                                      p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (e.g. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
+                                                      p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (i.e. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
                                                       p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
                                                       p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
                                                ),
@@ -1195,13 +1195,7 @@ ui <- function(request) {
                                              ),
                                              fluidRow(
                                                column(6,
-                                                      p(id = "txt_j", tags$b("Parameter uncertainty")," refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the calibration process used."),
-                                                      p(id = "txt_j", "With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model."),
-                                                      p(id = "txt_j", "This method does not account for the uncertainty around the estimation of these parameters.")
-                                               ),
-                                               column(6,
-                                                      p(id = "txt_j", "There is often the possibility that different parameter sets can yield similarly good model fits during calibration."),
-                                                      p(id = "txt_j", "Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty.") 
+                                                      p(id = "txt_j", tags$b("Parameter uncertainty")," refers to the uncertainty in the model parameter values, which can be due to uncertainties in the data or the model calibration. With traditional modelling efforts, people generally find one set of the 'best fit' parameters and use them to predict with their model. This method does not account for the uncertainty around the estimation of these parameters. There is often the possibility that different parameter sets can yield similarly good model fits during calibration. Using ", tags$b("parameter distributions"), " allows for a better representation of potential predicted outcomes, leading to better quantification of uncertainty."),
                                                )
                                              ),
                                              hr(),
@@ -1371,13 +1365,13 @@ ui <- function(request) {
                                              ),
                                              fluidRow(
                                                column(6,
-                                                      p(tags$b("Initial conditions")," are the starting conditions used by a model. For example, in our persistence model:"),
+                                                      p(tags$b("Initial conditions")," are the starting conditions used by a model. For example, take our persistence model:"),
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),
                                                         div("$$wtemp_{t+1} = wtemp_{t}$$"),
                                                         p("where t = today and t+1 = tomorrow")
                                                       ),
-                                                      p("the initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature.")
+                                                      p("The initial condition is today's water temperature, which is the starting condition we need to forecast tomorrow's water temperature.")
                                                       
                                                ),
                                                column(6,
@@ -1418,7 +1412,7 @@ ui <- function(request) {
                                                column(4,
                                                       h4("Generate Initial Condition Distribution"),
                                                       p("Our water temperature sensor has an observation uncertainty of "),
-                                                      h3(tags$b("0.1 degrees Celsius.")),
+                                                      h5(tags$b("0.1 degrees Celsius.")),
                                                       p("So, we will assign 0.1 degrees Celsius as the standard deviation of our initial condition distribution."),
                                                       p(id = "txt_j", "Click the button below to generate a normal distribution around the initial condition (which is our most recent observation) with a standard deviation of 0.1 degrees Celsius."),
                                                       actionButton("gen_ic", "Generate distribution")
@@ -1545,11 +1539,7 @@ ui <- function(request) {
                                              ),
                                              fluidRow(
                                                column(6,
-                                                      p(id = "txt_j", tags$b("Driver uncertainty")," comes from the forecasted variables needed as inputs to run a forecast model into the future. These input variables are referred to as ",tags$b("drivers,"), " hence ",tags$b("driver uncertainty.")),
-                                                      p(id = "txt_j", "Our driver variable is",tags$b("air temperature."), "To generate a forecast of future water temperature, some of our models require forecasted air temperature.")
-                                                      ),
-                                               column(6,
-                                                      p(id = "txt_j", "Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
+                                                      p(id = "txt_j", tags$b("Driver uncertainty")," comes from the forecasted variables needed as inputs to run a forecast model into the future. These input variables are referred to as ",tags$b("drivers,"), " hence ",tags$b("driver uncertainty."), " Our driver variable is",tags$b("air temperature."), "To generate a forecast of future water temperature, some of our models require forecasted air temperature. Luckily for us, the National Oceanic and Atmospheric Administration (NOAA) generate ensemble forecasts of air temperature.")
                                                       )
                                                ),
                                              hr(),
@@ -1702,8 +1692,8 @@ ui <- function(request) {
                                                column(4,
                                                       h3("Quantifying Uncertainty"),
                                                       p(id = "txt_j", tags$b("Uncertainty quantification")," is the science of characterizing and reducing uncertainty. In ecological forecasting, our goal with uncertainty quantification is to determine how likely certain outcomes are if some aspects of the ecosystem are not exactly known."),
-                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will compare how much each source of uncertainty contributes to total forecast uncertainty at each forecast horizon and for different models."),
-                                                      p(id = "txt_j", "We will generate forecasts with two of the models including all sources of uncertainty. This will allow us to determine if some sources of uncertainty contribute more to the forecast depending on which model we choose."),
+                                                      p(id = "txt_j", "So far we have explored where uncertainty comes from. Now we will compare how much each source of uncertainty contributes to total forecast uncertainty at each forecast horizon for different models."),
+                                                      p(id = "txt_j", "We will generate forecasts with two different models that both include four sources of uncertainty. We will then explore if the contribution of different sources of uncertainty vary between the models."),
                                                       br(),
                                                       wellPanel(
                                                       h3("Think, Pair, Share!"),
@@ -1830,7 +1820,7 @@ ui <- function(request) {
                                              fluidRow(
                                                column(6,
                                                       h3("Which source of uncertainty is contributing the most?"),
-                                                      p(id = "txt_j", "This is the key question for forecasters. If we can identify which uncertainty is contributing the most then we can take steps to manage this uncertainty and reduce it in our forecasts."),
+                                                      p(id = "txt_j", "This is the key question for forecasters. If we can identify which forecast uncertainty source contributes the most, then we can take steps to manage this uncertainty and reduce it in our forecasts."),
                                                       br()
                                                ),
                                                column(4, offset = 1,
@@ -1970,8 +1960,8 @@ ui <- function(request) {
                                              fluidRow(
                                                column(12,
                                                       h2("Completed Module!"),
-                                                      p("Congratulations! This is the end of the module. Please check through the answers in your final report and be sure you have copy-pasted in all the required plots before you submit to your instructor."),
-                                                      p("Your instructor may ask you to prepare a short presentation of your forecasts with quantified uncertainty (Objective 9) to share with other students in the class. This will permit you to compare forecast uncertainty among lakes in different eco-regions."),
+                                                      p("You have completed the module! Congratulations! Please check through the answers in your final report and be sure you have copy-pasted in all the required plots before you submit your report to your instructor."),
+                                                      p("Your instructor may ask you to prepare a short presentation of your forecasts with quantified uncertainty (Objective 9) to share with other students in the class. This will enable you to compare forecast uncertainty among lakes in different eco-regions."),
                                                       p("You’ve now made forecasts with quantified uncertainty - well done! If you are interested in learning more about how forecasts are generated, updated, and used for decision-making, we encourage you to visit other Macrosystems EDDIE modules:"),
                                                       fluidRow(
                                                         column(10, align = "left",

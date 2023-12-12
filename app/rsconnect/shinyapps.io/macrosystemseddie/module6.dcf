@@ -5,10 +5,8 @@ account: macrosystemseddie
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4489576
-bundleId: 7015092
+bundleId: 8035145
 url: https://macrosystemseddie.shinyapps.io/module6/
-when: 1679947340.2924
-lastSyncTime: 1679947340.29244
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: install_packages.R|R/create_np_inputs.R|R/NP_model.R|test_adding_regLines.R|test_noaa_idea_IC_UC.R
+ignoredFiles: install_packages.R|test_adding_regLines.R|test_noaa_idea_IC_UC.R
