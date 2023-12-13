@@ -4,11 +4,11 @@
 [![](https://img.shields.io/badge/Shiny-shinyapps.io-blue?style=flat&labelColor=white&logo=RStudio&logoColor=blue)](https://macrosystemseddie.shinyapps.io/module6/)
 <a href="url"><img src="app/www/Schematic_Draft_v3.png" align="right" height="220" width="269" ></a>
 ### Summary
-Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Uncertainty in Ecological Forecasts_. Below are instructions on how to access the Shiny app *via* a web browser and also a detailed guide below for launching the R Shiny App locally on your own computer. For more details about teaching this module please visit our [website](https://serc.carleton.edu/eddie/teaching_materials/modules/module6.html).
+Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Uncertainty in Ecological Forecasts_. Below are instructions on how to access the Shiny app via a web browser and also a detailed guide below for launching the R Shiny App locally on your own computer. For more details about teaching this module, please visit our [website](https://serc.carleton.edu/eddie/teaching_materials/modules/module6.html).
 
 ## Accessing the Shiny App _via_ a web browser
 The Shiny app for this module can be accessed through any internet browser either on [shinyapps.io](https://macrosystemseddie.shinyapps.io/module6/) or [mybinder.org](https://mybinder.org/v2/gh/MacrosystemsEDDIE/module6/main?urlpath=shiny/app/).
-When launching first it will take a while for the Shiny app to boot up. If you are using this in a large class (>20 users at the same time), we would recommend splitting the group into two and using **both** [shinyapps.io](https://macrosystemseddie.shinyapps.io/module6/) and [mybinder.org](https://mybinder.org/v2/gh/MacrosystemsEDDIE/module6/main?urlpath=shiny/app/).
+When launching for the first time, it may take a while for the Shiny app to boot up. If you are using this module in a large class (>20 users at the same time), we would recommend splitting the group into two and using **both** [shinyapps.io](https://macrosystemseddie.shinyapps.io/module6/) and [mybinder.org](https://mybinder.org/v2/gh/MacrosystemsEDDIE/module6/main?urlpath=shiny/app/).
 
 ##  Running the Shiny App on your computer
 ### Pre-requisites
@@ -21,10 +21,10 @@ There are two options:
     a.  Click the green "Code" button on this page and select "Download ZIP".  
     b.  Unzip this file on your computer.  
 2. Clone this repository into RStudio.  
-		a.  Open RStudio.  
-		b.  Click "File > New Project...".  
-		c.  In the "Create Project dialog select "Version Control: Checkout a project from a version control repository".  
-		d. Select "Git: Clone a project from a Git repository.  
+		a. Open RStudio.  
+		b. Click "File > New Project...".  
+		c. In the "Create Project dialog select "Version Control: Checkout a project from a version control repository".  
+		d. Select "Git: Clone a project from a Git repository".  
 		e. In the "Repository URL:" option input the URL to this repository, select where to save the project directory.  
 		f. Click "Create Project".  
 		g. You will then have a project with all the files from this repository.  
@@ -51,5 +51,5 @@ shiny::runGitHub("module6", "MacrosystemsEDDIE", ref = "main", subdir = "app")
 ```
 
 ## Questions & Feedback
-If you have any questions, comments or feedback related to these materials you can send an email to [macrosystemseddie@gmail.com]().
+If you have any questions, comments or feedback related to these materials, you can email [macrosystemseddie@gmail.com]().
  
