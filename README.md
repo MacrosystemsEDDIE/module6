@@ -6,7 +6,7 @@
 ### Summary
 Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Uncertainty in Ecological Forecasts_. Below are instructions on how to access the Shiny app via a web browser and also a detailed guide below for launching the R Shiny App locally on your own computer. For more details about teaching this module, please visit our [website](https://serc.carleton.edu/eddie/teaching_materials/modules/module6.html).
 
-## Accessing the Shiny App _via_ a web browser
+## Accessing the Shiny App via a web browser
 The Shiny app for this module can be accessed through any internet browser either on [shinyapps.io](https://macrosystemseddie.shinyapps.io/module6/) or [mybinder.org](https://mybinder.org/v2/gh/MacrosystemsEDDIE/module6/main?urlpath=shiny/app/).
 When launching for the first time, it may take a while for the Shiny app to boot up. If you are using this module in a large class (>20 users at the same time), we would recommend splitting the group into two and using **both** [shinyapps.io](https://macrosystemseddie.shinyapps.io/module6/) and [mybinder.org](https://mybinder.org/v2/gh/MacrosystemsEDDIE/module6/main?urlpath=shiny/app/).
 
