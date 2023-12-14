@@ -3,6 +3,8 @@
 ## Module 6: Understanding Uncertainty in Ecological Forecasts
 [![](https://img.shields.io/badge/Shiny-shinyapps.io-blue?style=flat&labelColor=white&logo=RStudio&logoColor=blue)](https://macrosystemseddie.shinyapps.io/module6/)
 <a href="url"><img src="app/www/Schematic_Draft_v3.png" align="right" height="220" width="269" ></a>
+[![DOI](https://zenodo.org/badge/392770350.svg)](https://zenodo.org/doi/10.5281/zenodo.10380759)
+
 ### Summary
 Here is the code for running the Macrosystems EDDIE Module 6: _Understanding Uncertainty in Ecological Forecasts_. Below are instructions on how to access the Shiny app via a web browser and also a detailed guide below for launching the R Shiny App locally on your own computer. For more details about teaching this module, please visit our [website](https://serc.carleton.edu/eddie/teaching_materials/modules/module6.html).
 
