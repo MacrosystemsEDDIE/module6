@@ -48,4 +48,4 @@ data/site.html
 # Rendered report files
 app/data/out_tables/*
 app/www/out_plots/*
-report.docx
+
