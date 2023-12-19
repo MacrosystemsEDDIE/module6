@@ -602,7 +602,7 @@ ui <- function(request) {
                                                       wellPanel(
                                                         h4("Persistence model (Pers):"),
                                                         div("$$wtemp_{t} = wtemp_{t-1}$$"),
-                                                        p("where t = today and t = yesterday.")
+                                                        p("where t = today and t-1 = yesterday.")
                                                       ),
                                                       p(id = "txt_j", "Let's plot this model versus observations. On the plot, observe that each day's prediction is the same as the previous day's observation."),
                                                       br(),
