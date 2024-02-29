@@ -1,7 +1,6 @@
 ui <- function(request) {
 
   tagList( # Added functionality for not losing your settings
-    # shinythemes::themeSelector(), # user-defined theme
     # Java to prompt the students to click a button
     # Java script https://community.rstudio.com/t/keeping-track-of-idle-time-during-app-usage/1735
     tags$script("
@@ -25,28 +24,34 @@ ui <- function(request) {
     tags$html(lang = "en"), # Add language attribute
     tags$head(tags$link(rel = "shortcut icon", href = "macroeddi_ico_green.ico")), # Add icon for web bookmarks
     tags$head(includeHTML(("google-analytics.html"))),
+    tags$header(
+      introBox(
+        img(src = "project-eddie-banner-2020_green.png", height = 100,
+            width = 1544, top = 5, alt = "Banner for Macrosystems EDDIE"),
+        data.step = 1,
+        data.intro = help_text["welcome", 1]
+      )
+    ),
     fluidPage(
-      column(10,
+      column(11,
              br(),
              p(tags$b("Teaching materials associated with this module can be found at ",
                       tags$a(href="http://module6.macrosystemseddie.org", 
-                             "http://module6.macrosystemseddie.org.", target="_blank")))
+                             "http://module6.macrosystemseddie.org.", target="_blank"))),
+             h2(tags$b("Module 6: Understanding Uncertainty in Ecological Forecasts")),
+             bookmarkButton(id = "bookmarkBtn", label = "Bookmark my progress"),
+             p(tags$em("At any time, use this button to obtain a link that saves your progress."))
+      ),
+      column(1, align = "right",
+             br(),
+             introBox(
+               actionButton("help", label = "Help", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
+             )
       )
     ),
-    navbarPage(title = tags$b("Module 6: Understanding Uncertainty in Ecological Forecasts"),
-               position = "static-top", id = "maintab",
+    navbarPage(position = "static-top", id = "maintab",
                tags$header(
                  fluidRow(
-                   column(11,
-                          bookmarkButton(id = "bookmarkBtn", label = "Bookmark my progress"),
-                          br(), 
-                          p(tags$em("At any time, use this button to obtain a link that saves your progress."))
-                   ),
-                   column(1, align = "right",
-                          introBox(
-                            actionButton("help", label = "Help", icon = icon("question-circle")), data.step = 7, data.intro = help_text["help", 1]
-                          )
-                   )
                  )
                 ),
                # 1. Module Overview ----
@@ -56,12 +61,6 @@ ui <- function(request) {
                ),
                value = "mtab1",
                introjsUI(), # must include in UI
-               introBox(
-                 img(src = "project-eddie-banner-2020_green.png", height = 100,
-                     width = 1544, top = 5),
-                 data.step = 1,
-                 data.intro = help_text["welcome", 1]
-               ),
                withMathJax(), # NEEDS to be here for rendering eqn's in data.table
 
                tags$style(".btn-file {
@@ -184,10 +183,7 @@ ui <- function(request) {
 
                # 2. Presentation recap ----
                tabPanel(title = tags$b("Presentation"), value = "mtab2",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
                         fluidRow(
-                          hr(),
                           column(4,
                                  h3("Presentation"),
                                  p(id = "txt_j", "The presentation accompanying this module covers the introduction to forecast uncertainty, sources of forecast uncertainty, and the importance and relevance of quantifying uncertainty within ecological forecasts."),
@@ -218,9 +214,6 @@ ui <- function(request) {
 
                # 3. Introduction ----
                tabPanel(title = tags$b("Introduction"), value = "mtab3",
-                        # tags$style(type="text/css", "body {padding-top: 65px;}"),
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
                         fluidRow(
                           column(10, 
                                  h3("Workflow for this module"),
@@ -288,8 +281,6 @@ ui <- function(request) {
 
                # 5. Activity A ----
                tabPanel(title = tags$b("Activity A"), value = "mtab4",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
@@ -304,7 +295,7 @@ ui <- function(request) {
                                              value = "obj1", id = "wh_link",
                                              tags$style("outline: 5px dotted green;"),
                                              #* Objective 1 ====
-                                             # introBox(
+                                             introBox(
                                              fluidRow(
                                                column(12,
                                                       wellPanel(style = paste0("background: ", obj_bg),
@@ -313,7 +304,7 @@ ui <- function(request) {
                                                       )
                                                )
                                              ),
-                                             # data.step = 4, data.intro = help_text["objectives", 1], data.position = "top"),
+                                             data.step = 4, data.intro = help_text["objectives", 1], data.position = "top"),
                                              #** NEON Map ====
                                              fluidRow(
                                                #** NEON Intro ----
@@ -990,8 +981,6 @@ ui <- function(request) {
                         ),
                # 6. Activity B ----
                tabPanel(title = tags$b("Activity B"), value = "mtab5",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
@@ -1667,8 +1656,6 @@ ui <- function(request) {
                         ),
                # 6. Activity C ----
                tabPanel(title = tags$b("Activity C"), value = "mtab6",
-                        img(src = "project-eddie-banner-2020_green.png", height = 100,
-                            width = 1544, top = 5),
                         fluidRow(
                           column(12,
                                  wellPanel(style = paste0("background: ", obj_bg),
