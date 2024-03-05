@@ -955,8 +955,8 @@ ui <- function(request) {
                                                column(6,
                                                       h4("What is wrong with deterministic forecasts?"),
                                                       p(id = "txt_j", "Using a ", tags$b("deterministic"), " forecast (i.e. a forecast which is one single line, with no uncertainty) is guaranteed to be wrong, because it ignores the uncertainty that is inherently associated with the future."),
-                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the range of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
-                                                      p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the range of outcomes and also the likelihood of each.")
+                                                      p(id = "txt_j", "There are many things which contribute to uncertainty when generating a forecast, and a forecast should represent the set of potential outcomes and the ", tags$b("likelihood"), " of such outcomes occurring."),
+                                                      p(id = "txt_j", "Therefore, we need to generate a ", tags$b("probabilistic"), " forecast which represents both the set of potential outcomes and also the likelihood of each.")
                                                ),
                                                column(6,
                                                       box(id = "box2", width = 12, status = "primary",
