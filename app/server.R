@@ -11,7 +11,7 @@ shinyServer(function(input, output, session) {
   
   # Slickr summary output
   output$slides <- renderSlickR({
-    slickR(recap_slides) + settings(dots = TRUE, autoplay = TRUE, autoplaySpeed = 7000)
+    slickR(recap_slides) + settings(dots = TRUE, autoplay = FALSE)
   })
   
   #### Introduction ----
